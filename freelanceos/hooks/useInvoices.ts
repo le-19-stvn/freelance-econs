@@ -84,11 +84,33 @@ export function useInvoices() {
     await fetchInvoices()
   }
 
+  const updateStatus = async (id: string, newStatus: Invoice['status']) => {
+    const updates: Record<string, unknown> = { status: newStatus }
+
+    // Smart logic: when moving draft → sent, stamp the issue_date to now
+    const invoice = invoices.find(i => i.id === id)
+    if (invoice && invoice.status === 'draft' && newStatus === 'sent') {
+      updates.issue_date = new Date().toISOString().slice(0, 10)
+    }
+
+    const { error: err } = await supabase
+      .from('invoices')
+      .update(updates)
+      .eq('id', id)
+
+    if (err) throw err
+
+    // Optimistic UI update
+    setInvoices(prev =>
+      prev.map(i => (i.id === id ? { ...i, ...updates } as Invoice : i))
+    )
+  }
+
   const deleteInvoice = async (id: string) => {
     const { error: err } = await supabase.from('invoices').delete().eq('id', id)
     if (err) throw err
     setInvoices(prev => prev.filter(i => i.id !== id))
   }
 
-  return { invoices, loading, error, fetchInvoices, createInvoice, updateInvoice, deleteInvoice }
+  return { invoices, loading, error, fetchInvoices, createInvoice, updateInvoice, updateStatus, deleteInvoice }
 }
