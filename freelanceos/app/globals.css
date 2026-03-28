@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #F6F7FA;
+  --surface: #FFFFFF;
+  --ink: #0F1117;
+  --ink2: #2C2F3A;
+  --muted: #6B7280;
+  --line: #E4E6ED;
+  --blue-primary: #1A3FA3;
+  --blue-mid: #1E6FD9;
+  --blue-surface: #EBF2FA;
+  --cyan: #00B4D8;
+  --success: #0D9E6B;
+  --success-bg: #E6F7F2;
+  --warning-bg: #FEF3C7;
+  --warning: #B45309;
+  --danger: #C0152A;
+  --danger-bg: #FEE9EC;
+}
+
+body {
+  color: var(--ink);
+  background: var(--bg);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
