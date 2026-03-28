@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useInvoices } from '@/hooks/useInvoices'
 import { calculateHT, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
@@ -8,11 +8,12 @@ import type { InvoiceStatus } from '@/types'
 
 const statusBadge: Record<InvoiceStatus, { bg: string; color: string; label: string }> = {
   draft: { bg: '#F1F1F5', color: '#555', label: 'Brouillon' },
-  sent: { bg: 'var(--blue-surface)', color: 'var(--blue-primary)', label: 'Envoyee' },
-  paid: { bg: 'var(--success-bg)', color: 'var(--success)', label: 'Payee' },
+  sent: { bg: 'var(--blue-surface)', color: 'var(--blue-primary)', label: 'Envoyée' },
+  paid: { bg: 'var(--success-bg)', color: 'var(--success)', label: 'Payée' },
   late: { bg: 'var(--danger-bg)', color: 'var(--danger)', label: 'En retard' },
 }
 
+/* ── Icons ── */
 function DownloadIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -23,6 +24,53 @@ function DownloadIcon() {
   )
 }
 
+function ChevronDownIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  )
+}
+
+/* ── Status transition map ── */
+type Transition = { to: InvoiceStatus; label: string; icon: string }
+
+function getTransitions(current: InvoiceStatus): Transition[] {
+  switch (current) {
+    case 'draft':
+      return [
+        { to: 'sent', label: 'Marquer comme Envoyée', icon: '📤' },
+        { to: 'paid', label: 'Marquer comme Payée', icon: '✅' },
+      ]
+    case 'sent':
+      return [
+        { to: 'paid', label: 'Marquer comme Payée', icon: '✅' },
+        { to: 'late', label: 'Marquer en Retard', icon: '⚠️' },
+        { to: 'draft', label: 'Remettre en Brouillon', icon: '📝' },
+      ]
+    case 'paid':
+      return [
+        { to: 'draft', label: 'Remettre en Brouillon', icon: '📝' },
+      ]
+    case 'late':
+      return [
+        { to: 'paid', label: 'Marquer comme Payée', icon: '✅' },
+        { to: 'sent', label: 'Remettre en Envoyée', icon: '📤' },
+      ]
+    default:
+      return []
+  }
+}
+
+/* ── PDF Download Button ── */
 function PdfButton({ invoiceId }: { invoiceId: string }) {
   const [loading, setLoading] = useState(false)
 
@@ -31,7 +79,6 @@ function PdfButton({ invoiceId }: { invoiceId: string }) {
     e.preventDefault()
     setLoading(true)
     window.open(`/api/invoices/${invoiceId}/pdf`, '_blank')
-    // Reset after a short delay (download triggers in new tab)
     setTimeout(() => setLoading(false), 2000)
   }
 
@@ -53,7 +100,6 @@ function PdfButton({ invoiceId }: { invoiceId: string }) {
         fontSize: 12,
         cursor: loading ? 'wait' : 'pointer',
         opacity: loading ? 0.6 : 1,
-        textDecoration: 'none',
         transition: 'all 0.15s',
       }}
       onMouseEnter={(e) => {
@@ -73,8 +119,153 @@ function PdfButton({ invoiceId }: { invoiceId: string }) {
   )
 }
 
+/* ── Status Dropdown ── */
+function StatusDropdown({
+  invoiceId,
+  currentStatus,
+  onUpdate,
+}: {
+  invoiceId: string
+  currentStatus: InvoiceStatus
+  onUpdate: (id: string, status: InvoiceStatus) => Promise<void>
+}) {
+  const [open, setOpen] = useState(false)
+  const [updating, setUpdating] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const badge = statusBadge[currentStatus]
+  const transitions = getTransitions(currentStatus)
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const handleSelect = async (to: InvoiceStatus) => {
+    setUpdating(true)
+    setOpen(false)
+    try {
+      await onUpdate(invoiceId, to)
+    } catch (err) {
+      console.error('Status update failed:', err)
+    }
+    setUpdating(false)
+  }
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          if (transitions.length > 0) setOpen(!open)
+        }}
+        disabled={updating || transitions.length === 0}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '4px 12px',
+          borderRadius: 6,
+          fontSize: 12,
+          fontWeight: 600,
+          background: badge.bg,
+          color: badge.color,
+          border: 'none',
+          cursor: transitions.length > 0 ? 'pointer' : 'default',
+          opacity: updating ? 0.5 : 1,
+          transition: 'all 0.15s',
+        }}
+      >
+        {updating ? '...' : badge.label}
+        {transitions.length > 0 && <ChevronDownIcon />}
+      </button>
+
+      {open && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            right: 0,
+            marginTop: 6,
+            background: 'var(--surface)',
+            border: '1px solid var(--line)',
+            borderRadius: 10,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+            zIndex: 50,
+            minWidth: 230,
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              padding: '8px 14px',
+              fontSize: 9,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: 1.5,
+              color: 'var(--muted)',
+              borderBottom: '1px solid var(--line)',
+            }}
+          >
+            Changer le statut
+          </div>
+          {transitions.map((t) => {
+            const targetBadge = statusBadge[t.to]
+            return (
+              <button
+                key={t.to}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleSelect(t.to)
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  width: '100%',
+                  padding: '10px 14px',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  color: 'var(--ink)',
+                  textAlign: 'left',
+                  transition: 'background 0.1s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'var(--bg)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent'
+                }}
+              >
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: targetBadge.color,
+                    flexShrink: 0,
+                  }}
+                />
+                <span style={{ flex: 1 }}>{t.label}</span>
+                <CheckIcon />
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── Main Page ── */
 export default function InvoicesPage() {
-  const { invoices, loading } = useInvoices()
+  const { invoices, loading, updateStatus } = useInvoices()
 
   if (loading) {
     return <div style={{ color: 'var(--muted)', fontSize: 14 }}>Chargement...</div>
@@ -104,7 +295,7 @@ export default function InvoicesPage() {
               marginTop: 4,
             }}
           >
-            {invoices.length} FACTURE(S) ENREGISTREE(S)
+            {invoices.length} FACTURE(S) ENREGISTRÉE(S)
           </div>
         </div>
         <Link
@@ -129,7 +320,6 @@ export default function InvoicesPage() {
       {/* Invoice List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {invoices.map((inv) => {
-          const badge = statusBadge[inv.status]
           const ht = calculateHT(inv.items ?? [])
           const ttc = calculateTTC(ht, inv.tva_rate)
           return (
@@ -152,8 +342,8 @@ export default function InvoicesPage() {
                 e.currentTarget.style.borderColor = 'var(--line)'
               }}
             >
+              {/* Left side — icon + info */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1, minWidth: 0 }}>
-                {/* Doc Icon */}
                 <div
                   style={{
                     width: 40,
@@ -194,29 +384,28 @@ export default function InvoicesPage() {
                     >
                       {inv.invoice_number}
                     </span>
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        padding: '2px 10px',
-                        borderRadius: 4,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        background: badge.bg,
-                        color: badge.color,
-                      }}
-                    >
-                      {badge.label}
-                    </span>
+                    {/* Status badge dropdown */}
+                    <StatusDropdown
+                      invoiceId={inv.id}
+                      currentStatus={inv.status}
+                      onUpdate={updateStatus}
+                    />
                   </div>
                   <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 2 }}>
                     {inv.client?.name ?? '---'}
                     {inv.project?.name && (
                       <span> &middot; {inv.project.name}</span>
                     )}
+                    {inv.issue_date && (
+                      <span style={{ marginLeft: 8, fontSize: 11 }}>
+                        &middot; {new Date(inv.issue_date).toLocaleDateString('fr-FR')}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
 
+              {/* Right side — amount + actions */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
                 <div style={{ textAlign: 'right' }}>
                   <div
@@ -233,7 +422,6 @@ export default function InvoicesPage() {
                   </div>
                 </div>
 
-                {/* Download PDF button — always visible */}
                 <PdfButton invoiceId={inv.id} />
 
                 <Link
@@ -269,7 +457,7 @@ export default function InvoicesPage() {
 
       {invoices.length === 0 && (
         <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 20 }}>
-          Aucune facture enregistree.
+          Aucune facture enregistrée.
         </div>
       )}
     </div>
