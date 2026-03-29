@@ -161,7 +161,6 @@ export default function InvoiceDetailPage() {
             .insert(items.map((it) => ({ ...it, invoice_id: inv.id })))
           if (itemsErr) throw itemsErr
         }
-        router.push(`/invoices/${inv.id}`)
       } else {
         const { error: invErr } = await supabase
           .from('invoices')
@@ -177,7 +176,7 @@ export default function InvoiceDetailPage() {
           if (itemsErr) throw itemsErr
         }
       }
-      await fetchInvoice()
+      router.push('/invoices')
     } catch (err) {
       console.error('Erreur lors de la sauvegarde de la facture:', err)
       alert('Une erreur est survenue lors de la sauvegarde de la facture.')
