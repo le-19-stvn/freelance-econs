@@ -33,7 +33,7 @@ export function useInvoices() {
       setInvoices(data ?? [])
     }
     setLoading(false)
-  }, [supabase, activeWorkspaceId])
+  }, [supabase])
 
   useEffect(() => {
     fetchInvoices()

@@ -33,7 +33,7 @@ export function useProjects() {
       setProjects(data ?? [])
     }
     setLoading(false)
-  }, [supabase, activeWorkspaceId])
+  }, [supabase])
 
   useEffect(() => {
     fetchProjects()

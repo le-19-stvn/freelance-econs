@@ -15,7 +15,7 @@ import type { Workspace } from '@/types'
 interface WorkspaceContextValue {
   workspaces: Workspace[]
   activeWorkspaceId: string | null
-  setActiveWorkspaceId: (id: string) => void
+  setActiveWorkspaceId: (id: string | null) => void
   loading: boolean
   refetch: () => Promise<void>
 }
@@ -24,7 +24,7 @@ const WorkspaceContext = createContext<WorkspaceContextValue>({
   workspaces: [],
   activeWorkspaceId: null,
   setActiveWorkspaceId: () => {},
-  loading: true,
+  loading: false,
   refetch: async () => {},
 })
 
@@ -37,72 +37,44 @@ const STORAGE_KEY = 'freelanceos_active_workspace'
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([])
   const [activeWorkspaceId, setActiveWorkspaceIdState] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const supabase = createClient()
 
-  const setActiveWorkspaceId = (id: string) => {
+  const setActiveWorkspaceId = (id: string | null) => {
     setActiveWorkspaceIdState(id)
     try {
-      localStorage.setItem(STORAGE_KEY, id)
+      if (id) localStorage.setItem(STORAGE_KEY, id)
+      else localStorage.removeItem(STORAGE_KEY)
     } catch {}
   }
 
   const fetchWorkspaces = useCallback(async () => {
-    setLoading(true)
     try {
       const userId = await getAuthUserId(supabase)
 
-      // Get workspace IDs this user belongs to
-      const { data: memberships, error: memErr } = await supabase
+      const { data: memberships } = await supabase
         .from('workspace_members')
         .select('workspace_id')
         .eq('user_id', userId)
 
-      if (memErr || !memberships?.length) {
-        // No workspace yet — use RPC to atomically create workspace + owner membership
-        const { data: newWsId, error: rpcErr } = await supabase
-          .rpc('create_workspace_for_user', { ws_name: 'Mon Espace' })
-
-        if (rpcErr || !newWsId) {
-          setWorkspaces([])
-          setActiveWorkspaceIdState(null)
-          setLoading(false)
-          return
-        }
-
-        const { data: freshWs } = await supabase
-          .from('workspaces')
-          .select('*')
-          .eq('id', newWsId)
-          .single()
-
-        if (freshWs) {
-          const ws: Workspace = {
-            id: freshWs.id,
-            name: freshWs.name,
-            created_at: freshWs.created_at,
-          }
-          setWorkspaces([ws])
-          setActiveWorkspaceIdState(ws.id)
-          try { localStorage.setItem(STORAGE_KEY, ws.id) } catch {}
-        }
+      if (!memberships?.length) {
+        setWorkspaces([])
+        setActiveWorkspaceIdState(null)
         setLoading(false)
         return
       }
 
       const wsIds = memberships.map((m: any) => m.workspace_id)
 
-      // Fetch workspace details
-      const { data: ws, error: wsErr } = await supabase
+      const { data: ws } = await supabase
         .from('workspaces')
         .select('*')
         .in('id', wsIds)
         .order('created_at', { ascending: true })
 
-      if (wsErr || !ws?.length) {
+      if (!ws?.length) {
         setWorkspaces([])
         setActiveWorkspaceIdState(null)
-        setLoading(false)
         return
       }
 
@@ -113,19 +85,18 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       }))
       setWorkspaces(workspaceList)
 
-      // Restore last active workspace from localStorage, fallback to first
+      // Restore saved workspace, or leave null (personal mode)
       let savedId: string | null = null
       try {
         savedId = localStorage.getItem(STORAGE_KEY)
       } catch {}
 
       const validSaved = savedId && workspaceList.some((w) => w.id === savedId)
-      setActiveWorkspaceIdState(validSaved ? savedId : workspaceList[0].id)
+      setActiveWorkspaceIdState(validSaved ? savedId : null)
     } catch {
       setWorkspaces([])
       setActiveWorkspaceIdState(null)
     }
-    setLoading(false)
   }, [supabase])
 
   useEffect(() => {

@@ -33,7 +33,7 @@ export function useClients() {
       setClients(data ?? [])
     }
     setLoading(false)
-  }, [supabase, activeWorkspaceId])
+  }, [supabase])
 
   useEffect(() => {
     fetchClients()
