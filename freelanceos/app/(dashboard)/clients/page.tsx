@@ -69,9 +69,9 @@ export default function ClientsPage() {
         await createClient(payload)
       }
       setShowModal(false)
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erreur lors de la sauvegarde du client:', err)
-      alert('Une erreur est survenue lors de la sauvegarde du client.')
+      alert(`Erreur: ${err?.message ?? err?.details ?? JSON.stringify(err)}`)
     }
   }
 
