@@ -10,9 +10,27 @@ export interface Profile {
   logo_url: string | null
 }
 
+export interface Workspace {
+  id: string
+  name: string
+  created_at: string
+}
+
+export type WorkspaceRole = 'owner' | 'admin' | 'member'
+
+export interface WorkspaceMember {
+  workspace_id: string
+  user_id: string
+  role: WorkspaceRole
+  created_at: string
+  // Joined from profiles
+  profile?: Profile
+}
+
 export interface Client {
   id: string
   user_id: string
+  workspace_id: string | null
   name: string
   email: string | null
   phone: string | null
@@ -25,6 +43,7 @@ export type ProjectStatus = 'ongoing' | 'done'
 export interface Project {
   id: string
   user_id: string
+  workspace_id: string | null
   client_id: string | null
   name: string
   description: string | null
@@ -50,6 +69,7 @@ export interface InvoiceItem {
 export interface Invoice {
   id: string
   user_id: string
+  workspace_id: string | null
   client_id: string | null
   project_id: string | null
   invoice_number: string

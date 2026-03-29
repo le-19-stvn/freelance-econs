@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
+import { useWorkspace } from '@/context/WorkspaceContext'
 import type { Invoice, InvoiceItem } from '@/types'
 
 export function useInvoices() {
@@ -10,14 +11,22 @@ export function useInvoices() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
+  const { activeWorkspaceId } = useWorkspace()
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true)
     setError(null)
-    const { data, error: err } = await supabase
+
+    let query = supabase
       .from('invoices')
       .select('*, client:clients(*), project:projects(*), items:invoice_items(*)')
       .order('created_at', { ascending: false })
+
+    if (activeWorkspaceId) {
+      query = query.eq('workspace_id', activeWorkspaceId)
+    }
+
+    const { data, error: err } = await query
 
     if (err) {
       setError(err.message)
@@ -25,21 +34,21 @@ export function useInvoices() {
       setInvoices(data ?? [])
     }
     setLoading(false)
-  }, [supabase])
+  }, [supabase, activeWorkspaceId])
 
   useEffect(() => {
     fetchInvoices()
   }, [fetchInvoices])
 
   const createInvoice = async (
-    invoice: Omit<Invoice, 'id' | 'user_id' | 'items' | 'client' | 'project'>,
+    invoice: Omit<Invoice, 'id' | 'user_id' | 'workspace_id' | 'items' | 'client' | 'project'>,
     items: Omit<InvoiceItem, 'id' | 'invoice_id'>[]
   ) => {
     const userId = await getAuthUserId(supabase)
 
     const { data: inv, error: invErr } = await supabase
       .from('invoices')
-      .insert({ ...invoice, user_id: userId })
+      .insert({ ...invoice, user_id: userId, workspace_id: activeWorkspaceId })
       .select()
       .single()
 
@@ -71,7 +80,6 @@ export function useInvoices() {
     if (invErr) throw invErr
 
     if (items !== undefined) {
-      // Delete existing items and re-insert
       await supabase.from('invoice_items').delete().eq('invoice_id', id)
       if (items.length > 0) {
         const { error: itemsErr } = await supabase
@@ -87,7 +95,6 @@ export function useInvoices() {
   const updateStatus = async (id: string, newStatus: Invoice['status']) => {
     const updates: Record<string, unknown> = { status: newStatus }
 
-    // Smart logic: when moving draft → sent, stamp the issue_date to now
     const invoice = invoices.find(i => i.id === id)
     if (invoice && invoice.status === 'draft' && newStatus === 'sent') {
       updates.issue_date = new Date().toISOString().slice(0, 10)
@@ -100,7 +107,6 @@ export function useInvoices() {
 
     if (err) throw err
 
-    // Optimistic UI update
     setInvoices(prev =>
       prev.map(i => (i.id === id ? { ...i, ...updates } as Invoice : i))
     )

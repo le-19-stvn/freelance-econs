@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
+import { useWorkspace } from '@/context/WorkspaceContext'
 import type { Client } from '@/types'
 
 export function useClients() {
@@ -10,14 +11,22 @@ export function useClients() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
+  const { activeWorkspaceId } = useWorkspace()
 
   const fetchClients = useCallback(async () => {
     setLoading(true)
     setError(null)
-    const { data, error: err } = await supabase
+
+    let query = supabase
       .from('clients')
       .select('*')
       .order('created_at', { ascending: false })
+
+    if (activeWorkspaceId) {
+      query = query.eq('workspace_id', activeWorkspaceId)
+    }
+
+    const { data, error: err } = await query
 
     if (err) {
       setError(err.message)
@@ -25,18 +34,18 @@ export function useClients() {
       setClients(data ?? [])
     }
     setLoading(false)
-  }, [supabase])
+  }, [supabase, activeWorkspaceId])
 
   useEffect(() => {
     fetchClients()
   }, [fetchClients])
 
-  const createClient_ = async (client: Omit<Client, 'id' | 'user_id' | 'created_at'>) => {
+  const createClient_ = async (client: Omit<Client, 'id' | 'user_id' | 'workspace_id' | 'created_at'>) => {
     const userId = await getAuthUserId(supabase)
 
     const { data, error: err } = await supabase
       .from('clients')
-      .insert({ ...client, user_id: userId })
+      .insert({ ...client, user_id: userId, workspace_id: activeWorkspaceId })
       .select()
       .single()
 

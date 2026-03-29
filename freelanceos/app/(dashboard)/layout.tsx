@@ -3,8 +3,9 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { ReactNode, useState } from 'react'
-import { Menu, X } from 'lucide-react'
+import { ReactNode, useState, useRef, useEffect } from 'react'
+import { Menu, X, ChevronDown, Users } from 'lucide-react'
+import { useWorkspace } from '@/context/WorkspaceContext'
 
 const navItems = [
   {
@@ -44,6 +45,11 @@ const navItems = [
     ),
   },
   {
+    label: 'Équipe',
+    href: '/team',
+    icon: <Users size={18} />,
+  },
+  {
     label: 'Profil',
     href: '/profile',
     icon: (
@@ -59,7 +65,130 @@ const pageTitles: Record<string, string> = {
   '/clients': 'Clients',
   '/projects': 'Projets',
   '/invoices': 'Factures',
+  '/team': 'Équipe',
   '/profile': 'Profil',
+}
+
+/* ── Workspace Switcher ── */
+function WorkspaceSwitcher() {
+  const { workspaces, activeWorkspaceId, setActiveWorkspaceId, loading } = useWorkspace()
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const active = workspaces.find((w) => w.id === activeWorkspaceId)
+
+  if (loading || workspaces.length === 0) return null
+
+  return (
+    <div ref={ref} style={{ position: 'relative', margin: '0 24px 12px' }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+          padding: '8px 12px',
+          borderRadius: 8,
+          border: '1px solid var(--line)',
+          background: 'var(--bg)',
+          cursor: 'pointer',
+          fontSize: 13,
+          fontWeight: 600,
+          color: 'var(--ink)',
+          transition: 'border-color 0.15s',
+        }}
+      >
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {active?.name ?? 'Espace de travail'}
+        </span>
+        <ChevronDown size={14} style={{ flexShrink: 0, color: 'var(--muted)' }} />
+      </button>
+
+      {open && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            marginTop: 4,
+            background: 'var(--surface)',
+            border: '1px solid var(--line)',
+            borderRadius: 8,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+            zIndex: 50,
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              padding: '6px 12px',
+              fontSize: 9,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: 1.5,
+              color: 'var(--muted)',
+              borderBottom: '1px solid var(--line)',
+            }}
+          >
+            Vos espaces
+          </div>
+          {workspaces.map((ws) => (
+            <button
+              key={ws.id}
+              onClick={() => {
+                setActiveWorkspaceId(ws.id)
+                setOpen(false)
+              }}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '9px 12px',
+                border: 'none',
+                background: ws.id === activeWorkspaceId ? 'var(--blue-surface)' : 'transparent',
+                color: ws.id === activeWorkspaceId ? 'var(--blue-primary)' : 'var(--ink)',
+                fontWeight: ws.id === activeWorkspaceId ? 600 : 400,
+                fontSize: 13,
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'background 0.1s',
+              }}
+              onMouseEnter={(e) => {
+                if (ws.id !== activeWorkspaceId) e.currentTarget.style.background = 'var(--bg)'
+              }}
+              onMouseLeave={(e) => {
+                if (ws.id !== activeWorkspaceId) e.currentTarget.style.background = 'transparent'
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: ws.id === activeWorkspaceId ? 'var(--blue-primary)' : 'var(--line)',
+                  flexShrink: 0,
+                }}
+              />
+              {ws.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 function SidebarContent({
@@ -111,6 +240,9 @@ function SidebarContent({
             by eCons
           </div>
         </div>
+
+        {/* Workspace Switcher */}
+        <WorkspaceSwitcher />
 
         {/* Nav */}
         <nav style={{ marginTop: 8 }}>
