@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
-import { useWorkspace } from '@/context/WorkspaceContext'
 import type { Project } from '@/types'
 
 export function useProjects() {
@@ -11,21 +10,17 @@ export function useProjects() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
-  const { activeWorkspaceId } = useWorkspace()
 
   const fetchProjects = useCallback(async () => {
     setLoading(true)
     setError(null)
 
     const userId = await getAuthUserId(supabase)
-
-    let query = supabase
+    const { data, error: err } = await supabase
       .from('projects')
       .select('*, client:clients(*)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
-
-    const { data, error: err } = await query
 
     if (err) {
       setError(err.message)
@@ -43,10 +38,9 @@ export function useProjects() {
     project: Omit<Project, 'id' | 'user_id' | 'workspace_id' | 'invoice_generated' | 'client'>
   ) => {
     const userId = await getAuthUserId(supabase)
-
     const { data, error: err } = await supabase
       .from('projects')
-      .insert({ ...project, user_id: userId, workspace_id: activeWorkspaceId ?? undefined })
+      .insert({ ...project, user_id: userId })
       .select('*, client:clients(*)')
       .single()
 

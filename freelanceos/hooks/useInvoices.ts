@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
-import { useWorkspace } from '@/context/WorkspaceContext'
 import type { Invoice, InvoiceItem } from '@/types'
 
 export function useInvoices() {
@@ -11,21 +10,17 @@ export function useInvoices() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
-  const { activeWorkspaceId } = useWorkspace()
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true)
     setError(null)
 
     const userId = await getAuthUserId(supabase)
-
-    let query = supabase
+    const { data, error: err } = await supabase
       .from('invoices')
       .select('*, client:clients(*), project:projects(*), items:invoice_items(*)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
-
-    const { data, error: err } = await query
 
     if (err) {
       setError(err.message)
@@ -44,10 +39,9 @@ export function useInvoices() {
     items: Omit<InvoiceItem, 'id' | 'invoice_id'>[]
   ) => {
     const userId = await getAuthUserId(supabase)
-
     const { data: inv, error: invErr } = await supabase
       .from('invoices')
-      .insert({ ...invoice, user_id: userId, workspace_id: activeWorkspaceId ?? undefined })
+      .insert({ ...invoice, user_id: userId })
       .select()
       .single()
 
@@ -57,7 +51,6 @@ export function useInvoices() {
       const { error: itemsErr } = await supabase
         .from('invoice_items')
         .insert(items.map(item => ({ ...item, invoice_id: inv.id })))
-
       if (itemsErr) throw itemsErr
     }
 
