@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useInvoices } from '@/hooks/useInvoices'
 import { calculateHT, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
-import type { InvoiceStatus } from '@/types'
+import type { Invoice, InvoiceStatus } from '@/types'
 
 const statusBadge: Record<InvoiceStatus, { bg: string; color: string; label: string }> = {
   draft: { bg: '#F1F1F5', color: '#555', label: 'Brouillon' },
@@ -37,6 +37,124 @@ function CheckIcon() {
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <polyline points="20 6 9 17 4 12" />
     </svg>
+  )
+}
+
+function SendIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <line x1="22" y1="2" x2="11" y2="13" />
+      <polygon points="22 2 15 22 11 13 2 9 22 2" />
+    </svg>
+  )
+}
+
+/* ── Inline Toast ── */
+function Toast({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 4000)
+    return () => clearTimeout(t)
+  }, [onClose])
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        bottom: 24,
+        right: 24,
+        zIndex: 100,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '12px 20px',
+        borderRadius: 8,
+        fontSize: 13,
+        fontWeight: 600,
+        color: type === 'success' ? 'var(--success)' : 'var(--danger)',
+        background: type === 'success' ? 'var(--success-bg)' : 'var(--danger-bg)',
+        border: `1px solid ${type === 'success' ? 'var(--success)' : 'var(--danger)'}`,
+        boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+        animation: 'fadeIn 0.2s ease',
+      }}
+    >
+      {type === 'success' ? '✓' : '✕'} {message}
+    </div>
+  )
+}
+
+/* ── Email Send Button ── */
+function EmailButton({
+  invoice,
+  onSuccess,
+  onError,
+}: {
+  invoice: Invoice
+  onSuccess: (msg: string) => void
+  onError: (msg: string) => void
+}) {
+  const [sending, setSending] = useState(false)
+
+  const handleSend = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+
+    if (!invoice.client?.email) {
+      onError("Le client n'a pas d'adresse email configurée")
+      return
+    }
+
+    setSending(true)
+    try {
+      const res = await fetch(`/api/invoices/${invoice.id}/email`, { method: 'POST' })
+      const data = await res.json()
+
+      if (!res.ok) {
+        onError(data.error || "Erreur lors de l'envoi")
+        return
+      }
+
+      onSuccess(`Email envoyé à ${invoice.client.name} !`)
+    } catch {
+      onError("Erreur réseau lors de l'envoi")
+    } finally {
+      setSending(false)
+    }
+  }
+
+  return (
+    <button
+      onClick={handleSend}
+      disabled={sending}
+      title={invoice.client?.email ? `Envoyer à ${invoice.client.email}` : "Pas d'email client"}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        background: invoice.client?.email ? 'var(--success-bg)' : '#F1F1F5',
+        color: invoice.client?.email ? 'var(--success)' : '#999',
+        border: 'none',
+        borderRadius: 6,
+        padding: '8px 12px',
+        fontWeight: 600,
+        fontSize: 12,
+        cursor: sending ? 'wait' : invoice.client?.email ? 'pointer' : 'not-allowed',
+        opacity: sending ? 0.6 : 1,
+        transition: 'all 0.15s',
+      }}
+      onMouseEnter={(e) => {
+        if (!sending && invoice.client?.email) {
+          e.currentTarget.style.background = 'var(--success)'
+          e.currentTarget.style.color = '#fff'
+        }
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = invoice.client?.email ? 'var(--success-bg)' : '#F1F1F5'
+        e.currentTarget.style.color = invoice.client?.email ? 'var(--success)' : '#999'
+      }}
+    >
+      <SendIcon />
+      {sending ? 'Envoi...' : 'Email'}
+    </button>
   )
 }
 
@@ -265,7 +383,17 @@ function StatusDropdown({
 
 /* ── Main Page ── */
 export default function InvoicesPage() {
-  const { invoices, loading, updateStatus } = useInvoices()
+  const { invoices, loading, updateStatus, fetchInvoices } = useInvoices()
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+
+  const handleEmailSuccess = (msg: string) => {
+    setToast({ message: msg, type: 'success' })
+    fetchInvoices() // Refresh to get updated status
+  }
+
+  const handleEmailError = (msg: string) => {
+    setToast({ message: msg, type: 'error' })
+  }
 
   if (loading) {
     return <div style={{ color: 'var(--muted)', fontSize: 14 }}>Chargement...</div>
@@ -422,6 +550,12 @@ export default function InvoicesPage() {
                   </div>
                 </div>
 
+                <EmailButton
+                  invoice={inv}
+                  onSuccess={handleEmailSuccess}
+                  onError={handleEmailError}
+                />
+
                 <PdfButton invoiceId={inv.id} />
 
                 <Link
@@ -459,6 +593,15 @@ export default function InvoicesPage() {
         <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 20 }}>
           Aucune facture enregistrée.
         </div>
+      )}
+
+      {/* Toast notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
       )}
     </div>
   )
