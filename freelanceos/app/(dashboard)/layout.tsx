@@ -78,7 +78,7 @@ function SidebarContent({
         <div style={{ padding: '24px 24px 20px' }}>
           <div className="flex items-center gap-3 mb-2">
             <Image
-              src="assets/logo_freelance.png"
+              src="/assets/logo_freelance.png"
               alt="FreelanceOS Logo"
               width={40}
               height={40}

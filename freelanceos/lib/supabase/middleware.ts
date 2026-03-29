@@ -34,18 +34,22 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const isAuthPage =
-    request.nextUrl.pathname.startsWith('/login') ||
-    request.nextUrl.pathname.startsWith('/signup')
+  const { pathname } = request.nextUrl
 
-  // Not logged in and trying to access protected routes
-  if (!user && !isAuthPage && request.nextUrl.pathname !== '/') {
+  const isAuthPage =
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/signup')
+
+  const isApiRoute = pathname.startsWith('/api/')
+
+  // Not logged in and trying to access protected routes (skip API routes — they handle auth themselves)
+  if (!user && !isAuthPage && !isApiRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // Logged in and trying to access auth pages
+  // Logged in and trying to access auth pages → redirect to dashboard
   if (user && isAuthPage) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
