@@ -10,7 +10,10 @@
       "Bash(node -e \"console.log\\(require\\(''resend/package.json''\\).version\\)\")",
       "Bash(node -e \"console.log\\(require\\(''@react-email/components/package.json''\\).version\\)\")",
       "Bash(node -e \"require\\(''resend''\\); console.log\\(''resend OK''\\)\")",
-      "Bash(node -e \"require\\(''@react-email/render''\\); console.log\\(''react-email OK''\\)\")"
+      "Bash(node -e \"require\\(''@react-email/render''\\); console.log\\(''react-email OK''\\)\")",
+      "Bash(netstat -ano)",
+      "Bash(findstr :3000)",
+      "Bash(taskkill //PID 4892 //F)"
     ]
   }
 }
