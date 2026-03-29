@@ -6,7 +6,11 @@
       "Bash(ls D:/App/freelance/freelanceos/app/\\\\\\(dashboard\\\\\\)/)",
       "mcp__Claude_Preview__preview_start",
       "Bash(npx tsc:*)",
-      "Bash(npx next:*)"
+      "Bash(npx next:*)",
+      "Bash(node -e \"console.log\\(require\\(''resend/package.json''\\).version\\)\")",
+      "Bash(node -e \"console.log\\(require\\(''@react-email/components/package.json''\\).version\\)\")",
+      "Bash(node -e \"require\\(''resend''\\); console.log\\(''resend OK''\\)\")",
+      "Bash(node -e \"require\\(''@react-email/render''\\); console.log\\(''react-email OK''\\)\")"
     ]
   }
 }
