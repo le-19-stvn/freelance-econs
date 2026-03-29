@@ -59,29 +59,21 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         .eq('user_id', userId)
 
       if (memErr || !memberships?.length) {
-        // No workspace yet — auto-create a default one for this user
-        const { data: newWs, error: createErr } = await supabase
-          .from('workspaces')
-          .insert({ name: 'Mon Espace', owner_id: userId })
-          .select('id')
-          .single()
+        // No workspace yet — use RPC to atomically create workspace + owner membership
+        const { data: newWsId, error: rpcErr } = await supabase
+          .rpc('create_workspace_for_user', { ws_name: 'Mon Espace' })
 
-        if (createErr || !newWs) {
+        if (rpcErr || !newWsId) {
           setWorkspaces([])
           setActiveWorkspaceIdState(null)
           setLoading(false)
           return
         }
 
-        await supabase
-          .from('workspace_members')
-          .insert({ workspace_id: newWs.id, user_id: userId, role: 'owner' })
-
-        // Refetch after creation
         const { data: freshWs } = await supabase
           .from('workspaces')
           .select('*')
-          .eq('id', newWs.id)
+          .eq('id', newWsId)
           .single()
 
         if (freshWs) {
