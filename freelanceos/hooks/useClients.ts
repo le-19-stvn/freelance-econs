@@ -17,14 +17,13 @@ export function useClients() {
     setLoading(true)
     setError(null)
 
+    const userId = await getAuthUserId(supabase)
+
     let query = supabase
       .from('clients')
       .select('*')
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
-
-    if (activeWorkspaceId) {
-      query = query.eq('workspace_id', activeWorkspaceId)
-    }
 
     const { data, error: err } = await query
 
@@ -45,7 +44,7 @@ export function useClients() {
 
     const { data, error: err } = await supabase
       .from('clients')
-      .insert({ ...client, user_id: userId, workspace_id: activeWorkspaceId })
+      .insert({ ...client, user_id: userId, workspace_id: activeWorkspaceId ?? undefined })
       .select()
       .single()
 
