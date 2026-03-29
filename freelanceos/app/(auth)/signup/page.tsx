@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 export default function SignupPage() {
@@ -50,10 +51,7 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
       <div className="w-full max-w-md bg-[var(--surface)] rounded-xl border border-[var(--line)] p-8">
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #00B4D8 0%, #1A3FA3 100%)' }}>
-            <span className="text-[15px] font-extrabold text-white" style={{ letterSpacing: -0.5 }}>FR</span>
-          </div>
+          <Image src="/assets/logo_freelance.png" alt="eCons Freelance" width={40} height={40} className="flex-shrink-0 rounded-[10px]" />
           <div>
             <div className="text-[13px] font-bold text-[var(--ink)]">eCons Freelance</div>
             <div className="text-[9px] uppercase tracking-[2px] text-[var(--muted)]">by eCons</div>
