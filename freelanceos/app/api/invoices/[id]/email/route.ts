@@ -78,6 +78,7 @@ export async function POST(
           tva_number: null,
           tva_rate: 20,
           logo_url: null,
+          avatar_url: null,
         }
 
     // Calculate totals

@@ -8,6 +8,7 @@ export interface Profile {
   tva_number: string | null
   tva_rate: number
   logo_url: string | null
+  avatar_url: string | null
 }
 
 export interface Workspace {

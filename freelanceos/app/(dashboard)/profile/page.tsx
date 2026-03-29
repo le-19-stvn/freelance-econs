@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import { useInvoices } from '@/hooks/useInvoices'
 import { calculateHT, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
+import { uploadAvatar } from '@/lib/actions/avatar'
 import type { Profile } from '@/types'
 
 const inputStyle: React.CSSProperties = {
@@ -24,6 +26,10 @@ export default function ProfilePage() {
   const { invoices } = useInvoices()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [form, setForm] = useState({
     full_name: '',
@@ -48,6 +54,7 @@ export default function ProfilePage() {
 
     if (data) {
       const p = data as Profile
+      setAvatarUrl(p.avatar_url ?? null)
       setForm({
         full_name: p.full_name ?? '',
         company_name: p.company_name ?? '',
@@ -93,6 +100,30 @@ export default function ProfilePage() {
     setSaving(false)
   }
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setToast(null)
+    try {
+      const url = await uploadAvatar(file)
+      setAvatarUrl(url)
+      setToast({ msg: 'Photo de profil mise à jour !', type: 'success' })
+    } catch (err: any) {
+      setToast({ msg: err?.message ?? 'Erreur lors de l\'upload.', type: 'error' })
+    }
+    setUploading(false)
+    // Reset input so the same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 4000)
+    return () => clearTimeout(t)
+  }, [toast])
+
   if (loading) {
     return <div style={{ color: 'var(--muted)', fontSize: 14 }}>Chargement...</div>
   }
@@ -100,6 +131,36 @@ export default function ProfilePage() {
   return (
     <div style={{ maxWidth: 640, margin: '0 auto' }}>
       {/* Profile Card */}
+      {/* Toast */}
+      {toast && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 24,
+            right: 24,
+            zIndex: 100,
+            background: toast.type === 'success' ? 'var(--success-bg)' : 'var(--danger-bg)',
+            color: toast.type === 'success' ? 'var(--success)' : 'var(--danger)',
+            padding: '12px 20px',
+            borderRadius: 8,
+            fontSize: 13,
+            fontWeight: 600,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+          }}
+        >
+          {toast.msg}
+        </div>
+      )}
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        onChange={handleAvatarChange}
+        style={{ display: 'none' }}
+      />
+
       <div
         style={{
           background: 'var(--surface)',
@@ -112,23 +173,81 @@ export default function ProfilePage() {
           gap: 20,
         }}
       >
-        <div
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #00B4D8 0%, #1A3FA3 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            fontWeight: 800,
-            fontSize: 22,
-            flexShrink: 0,
-          }}
-        >
-          F
+        {/* Avatar with upload */}
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+          {avatarUrl ? (
+            <Image
+              src={avatarUrl}
+              alt="Avatar"
+              width={72}
+              height={72}
+              style={{
+                borderRadius: '50%',
+                objectFit: 'cover',
+                width: 72,
+                height: 72,
+              }}
+              unoptimized
+            />
+          ) : (
+            <div
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #00B4D8 0%, #1A3FA3 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                fontWeight: 800,
+                fontSize: 28,
+              }}
+            >
+              {(form.full_name?.[0] ?? 'F').toUpperCase()}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            style={{
+              position: 'absolute',
+              bottom: -2,
+              right: -2,
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: 'var(--blue-primary)',
+              border: '2px solid var(--surface)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: uploading ? 'wait' : 'pointer',
+              padding: 0,
+            }}
+            title="Modifier la photo"
+          >
+            {uploading ? (
+              <span
+                style={{
+                  width: 12,
+                  height: 12,
+                  border: '2px solid rgba(255,255,255,0.3)',
+                  borderTopColor: '#fff',
+                  borderRadius: '50%',
+                  display: 'inline-block',
+                  animation: 'spin 0.6s linear infinite',
+                }}
+              />
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+              </svg>
+            )}
+          </button>
         </div>
+
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--ink)' }}>
             {form.full_name || 'Freelance'}

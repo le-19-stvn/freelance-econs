@@ -57,6 +57,7 @@ export async function GET(
           tva_number: null,
           tva_rate: 20,
           logo_url: null,
+          avatar_url: null,
         }
       : (profile as Profile)
 

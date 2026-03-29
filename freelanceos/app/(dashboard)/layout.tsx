@@ -7,6 +7,8 @@ import { ReactNode, useState, useRef, useEffect } from 'react'
 import { Menu, X, ChevronDown, Users, Plus } from 'lucide-react'
 import { useWorkspace } from '@/context/WorkspaceContext'
 import { createWorkspace } from '@/lib/actions/workspace'
+import { createClient } from '@/lib/supabase/client'
+import { getAuthUserId } from '@/lib/supabase/auth-helper'
 
 const navItems = [
   {
@@ -382,6 +384,60 @@ function WorkspaceSwitcher() {
   )
 }
 
+/* ── Sidebar Avatar ── */
+function SidebarAvatar() {
+  const supabase = createClient()
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [initial, setInitial] = useState('F')
+
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const userId = await getAuthUserId(supabase)
+        const { data } = await supabase
+          .from('profiles')
+          .select('avatar_url, full_name')
+          .eq('id', userId)
+          .single()
+        if (data?.avatar_url) setAvatarUrl(data.avatar_url)
+        if (data?.full_name) setInitial(data.full_name[0].toUpperCase())
+      } catch {}
+    })()
+  }, [supabase])
+
+  if (avatarUrl) {
+    return (
+      <Image
+        src={avatarUrl}
+        alt="Avatar"
+        width={36}
+        height={36}
+        style={{ borderRadius: '50%', objectFit: 'cover', width: 36, height: 36 }}
+        unoptimized
+      />
+    )
+  }
+
+  return (
+    <div
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: '50%',
+        background: 'linear-gradient(135deg, #00B4D8 0%, #1A3FA3 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#fff',
+        fontWeight: 700,
+        fontSize: 14,
+      }}
+    >
+      {initial}
+    </div>
+  )
+}
+
 function SidebarContent({
   pathname,
   isActive,
@@ -480,22 +536,7 @@ function SidebarContent({
 
       {/* Bottom user avatar */}
       <div style={{ padding: '20px 24px' }}>
-        <div
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #00B4D8 0%, #1A3FA3 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            fontWeight: 700,
-            fontSize: 14,
-          }}
-        >
-          F
-        </div>
+        <SidebarAvatar />
       </div>
     </>
   )
