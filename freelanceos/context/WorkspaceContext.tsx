@@ -59,8 +59,41 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         .eq('user_id', userId)
 
       if (memErr || !memberships?.length) {
-        setWorkspaces([])
-        setActiveWorkspaceIdState(null)
+        // No workspace yet — auto-create a default one for this user
+        const { data: newWs, error: createErr } = await supabase
+          .from('workspaces')
+          .insert({ name: 'Mon Espace', owner_id: userId })
+          .select('id')
+          .single()
+
+        if (createErr || !newWs) {
+          setWorkspaces([])
+          setActiveWorkspaceIdState(null)
+          setLoading(false)
+          return
+        }
+
+        await supabase
+          .from('workspace_members')
+          .insert({ workspace_id: newWs.id, user_id: userId, role: 'owner' })
+
+        // Refetch after creation
+        const { data: freshWs } = await supabase
+          .from('workspaces')
+          .select('*')
+          .eq('id', newWs.id)
+          .single()
+
+        if (freshWs) {
+          const ws: Workspace = {
+            id: freshWs.id,
+            name: freshWs.name,
+            created_at: freshWs.created_at,
+          }
+          setWorkspaces([ws])
+          setActiveWorkspaceIdState(ws.id)
+          try { localStorage.setItem(STORAGE_KEY, ws.id) } catch {}
+        }
         setLoading(false)
         return
       }
@@ -84,7 +117,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       const workspaceList: Workspace[] = ws.map((w: any) => ({
         id: w.id,
         name: w.name,
-        owner_id: w.owner_id,
         created_at: w.created_at,
       }))
       setWorkspaces(workspaceList)
