@@ -395,6 +395,30 @@ export default function InvoicesPage() {
     setToast({ message: msg, type: 'error' })
   }
 
+  const handleExportCSV = () => {
+    const header = 'Numéro,Client,Date,Montant,Statut'
+    const rows = invoices.map((inv) => {
+      const ht = calculateHT(inv.items ?? [])
+      const ttc = calculateTTC(ht, inv.tva_rate)
+      const clientName = (inv.client?.name ?? '').replace(/,/g, ' ')
+      const date = inv.issue_date
+        ? new Date(inv.issue_date).toLocaleDateString('fr-FR')
+        : ''
+      const status = statusBadge[inv.status]?.label ?? inv.status
+      return `${inv.invoice_number},${clientName},${date},${ttc.toFixed(2)},${status}`
+    })
+    const csv = '\uFEFF' + [header, ...rows].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'factures_export.csv'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   if (loading) {
     return <div style={{ color: 'var(--muted)', fontSize: 14 }}>Chargement...</div>
   }
@@ -426,23 +450,53 @@ export default function InvoicesPage() {
             {invoices.length} FACTURE(S) ENREGISTRÉE(S)
           </div>
         </div>
-        <Link
-          href="/invoices/new"
-          style={{
-            background: 'var(--blue-primary)',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 6,
-            padding: '10px 20px',
-            fontWeight: 600,
-            fontSize: 14,
-            cursor: 'pointer',
-            textDecoration: 'none',
-            display: 'inline-block',
-          }}
-        >
-          + Nouvelle Facture
-        </Link>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            onClick={handleExportCSV}
+            disabled={invoices.length === 0}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              background: 'var(--surface)',
+              color: 'var(--ink)',
+              border: '1px solid var(--line)',
+              borderRadius: 6,
+              padding: '10px 18px',
+              fontWeight: 600,
+              fontSize: 14,
+              cursor: invoices.length === 0 ? 'not-allowed' : 'pointer',
+              opacity: invoices.length === 0 ? 0.5 : 1,
+              transition: 'all 0.15s',
+            }}
+            onMouseEnter={(e) => {
+              if (invoices.length > 0) e.currentTarget.style.borderColor = 'var(--blue-primary)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--line)'
+            }}
+          >
+            <DownloadIcon />
+            Exporter
+          </button>
+          <Link
+            href="/invoices/new"
+            style={{
+              background: 'var(--blue-primary)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              padding: '10px 20px',
+              fontWeight: 600,
+              fontSize: 14,
+              cursor: 'pointer',
+              textDecoration: 'none',
+              display: 'inline-block',
+            }}
+          >
+            + Nouvelle Facture
+          </Link>
+        </div>
       </div>
 
       {/* Invoice List */}
