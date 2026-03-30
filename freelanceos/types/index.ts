@@ -84,3 +84,46 @@ export interface Invoice {
   client?: Client
   project?: Project
 }
+
+/* ── Freelance Collective (Team Operations) ── */
+
+export interface Team {
+  id: string
+  name: string
+  created_by: string
+  created_at: string
+}
+
+export type TeamRole = 'owner' | 'admin' | 'member'
+
+export interface TeamMember {
+  id: string
+  team_id: string
+  user_id: string
+  role: TeamRole
+  created_at: string
+  email?: string
+  full_name?: string | null
+}
+
+export interface TeamProject {
+  id: string
+  team_id: string
+  name: string
+  description: string | null
+  created_at: string
+}
+
+export type TaskStatus = 'todo' | 'in_progress' | 'done'
+
+export interface TeamTask {
+  id: string
+  project_id: string
+  title: string
+  description: string | null
+  status: TaskStatus
+  assigned_to: string | null
+  position: number
+  created_at: string
+  assignee_name?: string | null
+}
