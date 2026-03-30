@@ -1,3 +1,6 @@
+export type PlanStatus = 'active' | 'canceled' | 'past_due' | 'inactive'
+export type PlanType = 'free' | 'pro'
+
 export interface Profile {
   id: string
   full_name: string | null
@@ -9,6 +12,10 @@ export interface Profile {
   tva_rate: number
   logo_url: string | null
   avatar_url: string | null
+  stripe_customer_id: string | null
+  stripe_subscription_id: string | null
+  plan_status: PlanStatus
+  plan_type: PlanType
 }
 
 export interface Workspace {

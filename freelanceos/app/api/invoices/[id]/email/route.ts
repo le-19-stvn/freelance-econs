@@ -79,6 +79,10 @@ export async function POST(
           tva_rate: 20,
           logo_url: null,
           avatar_url: null,
+          stripe_customer_id: null,
+          stripe_subscription_id: null,
+          plan_status: 'inactive' as const,
+          plan_type: 'free' as const,
         }
 
     // Calculate totals
