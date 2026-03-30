@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useProjects } from '@/hooks/useProjects'
 import { useClients } from '@/hooks/useClients'
+import { useToast } from '@/components/ui/Toast'
 import type { Project, ProjectStatus } from '@/types'
 
 const statusConfig: Record<ProjectStatus, { bg: string; color: string; label: string }> = {
@@ -22,6 +23,7 @@ const emptyForm = {
 export default function ProjectsPage() {
   const { projects, loading, createProject, updateProject, deleteProject } = useProjects()
   const { clients } = useClients()
+  const { showToast } = useToast()
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Project | null>(null)
   const [form, setForm] = useState(emptyForm)
@@ -81,7 +83,10 @@ export default function ProjectsPage() {
     }
     try {
       if (editing) {
-        await updateProject(editing.id, payload)
+        const result = await updateProject(editing.id, payload)
+        if (result.invoiceGenerated) {
+          showToast('Projet terminé ! Une facture brouillon a été générée.', 'success')
+        }
       } else {
         await createProject(payload)
       }

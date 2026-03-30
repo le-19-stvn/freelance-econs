@@ -49,7 +49,7 @@ export function useProjects() {
     return data
   }
 
-  const updateProject = async (id: string, updates: Partial<Project>) => {
+  const updateProject = async (id: string, updates: Partial<Project>): Promise<Project & { invoiceGenerated?: boolean }> => {
     const { data, error: err } = await supabase
       .from('projects')
       .update(updates)
@@ -59,7 +59,46 @@ export function useProjects() {
 
     if (err) throw err
     setProjects(prev => prev.map(p => (p.id === id ? data : p)))
-    return data
+
+    let invoiceGenerated = false
+
+    // Auto-generate draft invoice when project is marked as done
+    if (updates.status === 'done') {
+      // Check if an invoice already exists for this project
+      const { data: existing } = await supabase
+        .from('invoices')
+        .select('id')
+        .eq('project_id', id)
+        .limit(1)
+
+      if (!existing || existing.length === 0) {
+        const userId = await getAuthUserId(supabase)
+        const today = new Date().toISOString().slice(0, 10)
+        const invoiceNumber = `FAC-${Date.now().toString(36).toUpperCase()}`
+
+        const { error: invErr } = await supabase
+          .from('invoices')
+          .insert({
+            user_id: userId,
+            client_id: data.client_id,
+            project_id: id,
+            invoice_number: invoiceNumber,
+            status: 'draft',
+            issue_date: today,
+            tva_rate: 0,
+            notes: `Facture - ${data.name}`,
+          })
+
+        if (!invErr) {
+          invoiceGenerated = true
+          // Mark project so we know an invoice was generated
+          await supabase.from('projects').update({ invoice_generated: true }).eq('id', id)
+          setProjects(prev => prev.map(p => (p.id === id ? { ...p, invoice_generated: true } : p)))
+        }
+      }
+    }
+
+    return { ...data, invoiceGenerated }
   }
 
   const deleteProject = async (id: string) => {
