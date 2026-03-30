@@ -7,7 +7,8 @@ import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import { useInvoices } from '@/hooks/useInvoices'
 import { calculateHT, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
 import { uploadAvatar } from '@/lib/actions/avatar'
-import type { Profile } from '@/types'
+import { createCheckoutSession, createBillingPortalSession } from '@/lib/actions/stripe'
+import type { Profile, PlanStatus, PlanType } from '@/types'
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -30,6 +31,9 @@ export default function ProfilePage() {
   const [uploading, setUploading] = useState(false)
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [planType, setPlanType] = useState<PlanType>('free')
+  const [planStatus, setPlanStatus] = useState<PlanStatus>('inactive')
+  const [billingLoading, setBillingLoading] = useState(false)
 
   const [form, setForm] = useState({
     full_name: '',
@@ -55,6 +59,8 @@ export default function ProfilePage() {
     if (data) {
       const p = data as Profile
       setAvatarUrl(p.avatar_url ?? null)
+      setPlanType(p.plan_type ?? 'free')
+      setPlanStatus(p.plan_status ?? 'inactive')
       setForm({
         full_name: p.full_name ?? '',
         company_name: p.company_name ?? '',
@@ -288,6 +294,120 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Subscription Card */}
+      <div
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--line)',
+          borderRadius: 12,
+          padding: 32,
+          marginBottom: 28,
+        }}
+      >
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', marginTop: 0, marginBottom: 20 }}>
+          Abonnement
+        </h2>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {/* Plan badge */}
+            <span
+              style={{
+                display: 'inline-block',
+                padding: '4px 14px',
+                borderRadius: 6,
+                fontSize: 13,
+                fontWeight: 700,
+                letterSpacing: 0.5,
+                background: planType === 'pro' ? 'linear-gradient(135deg, #00B4D8 0%, #1A3FA3 100%)' : 'var(--bg)',
+                color: planType === 'pro' ? '#fff' : 'var(--muted)',
+                border: planType === 'pro' ? 'none' : '1px solid var(--line)',
+              }}
+            >
+              {planType === 'pro' ? 'Pro' : 'Gratuit'}
+            </span>
+
+            {/* Status */}
+            {planType === 'pro' && (
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: planStatus === 'active' ? 'var(--success)' : planStatus === 'past_due' ? 'var(--warning)' : 'var(--danger)',
+                }}
+              >
+                {planStatus === 'active' ? 'Actif' : planStatus === 'past_due' ? 'Paiement en retard' : planStatus === 'canceled' ? 'Annulé' : 'Inactif'}
+              </span>
+            )}
+          </div>
+
+          {/* Action button */}
+          {planType === 'pro' ? (
+            <button
+              onClick={async () => {
+                setBillingLoading(true)
+                try {
+                  const { url } = await createBillingPortalSession()
+                  if (url) window.location.href = url
+                } catch (err: any) {
+                  setToast({ msg: err?.message ?? 'Erreur', type: 'error' })
+                }
+                setBillingLoading(false)
+              }}
+              disabled={billingLoading}
+              style={{
+                background: 'var(--surface)',
+                color: 'var(--ink)',
+                border: '1px solid var(--line)',
+                borderRadius: 6,
+                padding: '8px 20px',
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: billingLoading ? 'wait' : 'pointer',
+                opacity: billingLoading ? 0.6 : 1,
+              }}
+            >
+              {billingLoading ? 'Chargement...' : 'Gérer mon abonnement'}
+            </button>
+          ) : (
+            <button
+              onClick={async () => {
+                setBillingLoading(true)
+                try {
+                  const priceId = process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID
+                  if (!priceId) throw new Error('Price ID non configuré')
+                  const { url } = await createCheckoutSession(priceId)
+                  if (url) window.location.href = url
+                } catch (err: any) {
+                  setToast({ msg: err?.message ?? 'Erreur', type: 'error' })
+                }
+                setBillingLoading(false)
+              }}
+              disabled={billingLoading}
+              style={{
+                background: 'linear-gradient(135deg, #00B4D8 0%, #1A3FA3 100%)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 6,
+                padding: '8px 20px',
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: billingLoading ? 'wait' : 'pointer',
+                opacity: billingLoading ? 0.6 : 1,
+              }}
+            >
+              {billingLoading ? 'Chargement...' : 'Passer au plan Pro'}
+            </button>
+          )}
+        </div>
+
+        {planType === 'free' && (
+          <div style={{ marginTop: 16, fontSize: 13, color: 'var(--muted)', lineHeight: 1.6 }}>
+            Le plan Pro inclut : export illimité, factures automatiques, accès prioritaire aux nouvelles fonctionnalités.
+          </div>
+        )}
       </div>
 
       {/* Form */}
