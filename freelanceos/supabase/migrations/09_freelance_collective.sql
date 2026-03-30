@@ -4,20 +4,7 @@
 -- COMPLETELY ISOLATED from clients/invoices/projects tables
 -- ============================================================
 
--- 1. SECURITY DEFINER helper to check team membership without RLS recursion
-CREATE OR REPLACE FUNCTION public.is_team_member(_team_id uuid)
-RETURNS boolean
-LANGUAGE sql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM team_members
-    WHERE team_id = _team_id AND user_id = auth.uid()
-  );
-$$;
-
--- 2. Tables
+-- 1. Tables (created BEFORE the function that references them)
 
 CREATE TABLE IF NOT EXISTS teams (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -53,6 +40,19 @@ CREATE TABLE IF NOT EXISTS team_tasks (
   position int NOT NULL DEFAULT 0,
   created_at timestamptz DEFAULT now()
 );
+
+-- 2. SECURITY DEFINER helper (tables exist now)
+CREATE OR REPLACE FUNCTION public.is_team_member(_team_id uuid)
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM team_members
+    WHERE team_id = _team_id AND user_id = auth.uid()
+  );
+$$;
 
 -- 3. RLS Policies (non-recursive, uses SECURITY DEFINER function)
 

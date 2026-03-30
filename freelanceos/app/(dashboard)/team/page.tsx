@@ -620,17 +620,70 @@ export default function TeamPage() {
                   </p>
                 )}
               </div>
-              <button
-                onClick={() => {
-                  if (confirm('Supprimer ce projet et toutes ses tâches ?')) {
-                    deleteProject(activeProject.id)
-                    setActiveProjectId(null)
-                  }
-                }}
-                style={{ ...btnSecondary, color: 'var(--danger)', borderColor: 'var(--danger)' }}
-              >
-                Supprimer
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {/* Member avatars */}
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  {members.slice(0, 5).map((m, i) => (
+                    <div
+                      key={m.user_id}
+                      title={m.full_name ?? m.email}
+                      style={{
+                        width: 28, height: 28, borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #00B4D8 0%, #1A3FA3 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: '#fff', fontSize: 10, fontWeight: 700,
+                        border: '2px solid var(--surface)',
+                        marginLeft: i > 0 ? -8 : 0, zIndex: 5 - i,
+                        position: 'relative',
+                      }}
+                    >
+                      {(m.full_name ?? m.email)?.[0]?.toUpperCase() ?? '?'}
+                    </div>
+                  ))}
+                  {members.length > 5 && (
+                    <div style={{
+                      width: 28, height: 28, borderRadius: '50%',
+                      background: 'var(--bg)', border: '2px solid var(--surface)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 9, fontWeight: 600, color: 'var(--muted)',
+                      marginLeft: -8, position: 'relative',
+                    }}>
+                      +{members.length - 5}
+                    </div>
+                  )}
+                </div>
+
+                {/* Invite button */}
+                {canManage && (
+                  <button
+                    onClick={() => { setShowInvite(true); setFormError(null) }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 6,
+                      background: 'var(--surface)', border: '1px solid var(--line)',
+                      borderRadius: 6, padding: '6px 14px',
+                      fontSize: 13, fontWeight: 600, color: 'var(--ink)',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--blue-primary)'; e.currentTarget.style.color = 'var(--blue-primary)' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.color = 'var(--ink)' }}
+                  >
+                    <UserPlusIcon />
+                    Inviter
+                  </button>
+                )}
+
+                <button
+                  onClick={() => {
+                    if (confirm('Supprimer ce projet et toutes ses tâches ?')) {
+                      deleteProject(activeProject.id)
+                      setActiveProjectId(null)
+                    }
+                  }}
+                  style={{ ...btnSecondary, color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                >
+                  Supprimer
+                </button>
+              </div>
             </div>
 
             {/* Kanban columns */}
@@ -767,7 +820,7 @@ export default function TeamPage() {
   )
 }
 
-/* ── Icon (imported inline to avoid extra deps) ── */
+/* ── Icons (inline to avoid extra deps) ── */
 function Users({ size = 24, style }: { size?: number; style?: React.CSSProperties }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={style}>
@@ -775,6 +828,17 @@ function Users({ size = 24, style }: { size?: number; style?: React.CSSPropertie
       <circle cx="9" cy="7" r="4" />
       <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  )
+}
+
+function UserPlusIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="8.5" cy="7" r="4" />
+      <line x1="20" y1="8" x2="20" y2="14" />
+      <line x1="23" y1="11" x2="17" y2="11" />
     </svg>
   )
 }
