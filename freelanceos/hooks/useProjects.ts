@@ -40,7 +40,6 @@ export function useProjects() {
   ) => {
     const userId = await getAuthUserId(supabase)
 
-    // ── Plan limit check (only counts "ongoing" projects) ──
     const limitCheck = await checkPlanLimit(supabase, userId, 'projects')
     if (!limitCheck.allowed) {
       throw { error: limitCheck.error, message: limitCheck.message }
@@ -70,9 +69,8 @@ export function useProjects() {
 
     let invoiceGenerated = false
 
-    // Auto-generate draft invoice when project is marked as done
+    // Auto-generate draft invoice with deliverables when project is marked as done
     if (updates.status === 'done') {
-      // Check if an invoice already exists for this project
       const { data: existing } = await supabase
         .from('invoices')
         .select('id')
@@ -84,7 +82,14 @@ export function useProjects() {
         const today = new Date().toISOString().slice(0, 10)
         const invoiceNumber = `FAC-${Date.now().toString(36).toUpperCase()}`
 
-        const { error: invErr } = await supabase
+        // Get user's default TVA rate
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('tva_rate')
+          .eq('id', userId)
+          .single()
+
+        const { data: inv, error: invErr } = await supabase
           .from('invoices')
           .insert({
             user_id: userId,
@@ -93,13 +98,28 @@ export function useProjects() {
             invoice_number: invoiceNumber,
             status: 'draft',
             issue_date: today,
-            tva_rate: 0,
+            tva_rate: profile?.tva_rate ?? 20,
             notes: `Facture - ${data.name}`,
           })
+          .select()
+          .single()
 
-        if (!invErr) {
+        if (!invErr && inv) {
+          // Auto-fill invoice_items from project deliverables
+          const deliverables = data.deliverables ?? []
+          if (deliverables.length > 0) {
+            const items = deliverables.map((d: { description: string; quantity: number; unit: string; unit_price: number }) => ({
+              invoice_id: inv.id,
+              description: d.description,
+              quantity: d.quantity,
+              unit_type: d.unit,
+              unit_price: d.unit_price,
+            }))
+
+            await supabase.from('invoice_items').insert(items)
+          }
+
           invoiceGenerated = true
-          // Mark project so we know an invoice was generated
           await supabase.from('projects').update({ invoice_generated: true }).eq('id', id)
           setProjects(prev => prev.map(p => (p.id === id ? { ...p, invoice_generated: true } : p)))
         }

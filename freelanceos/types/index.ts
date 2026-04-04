@@ -48,6 +48,14 @@ export interface Client {
 }
 
 export type ProjectStatus = 'ongoing' | 'done'
+
+export interface Deliverable {
+  description: string
+  quantity: number
+  unit: UnitType
+  unit_price: number
+}
+
 export interface Project {
   id: string
   user_id: string
@@ -59,6 +67,7 @@ export interface Project {
   deadline: string | null
   budget: number
   invoice_generated: boolean
+  deliverables: Deliverable[]
   client?: Client
 }
 
