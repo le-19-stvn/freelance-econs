@@ -11,6 +11,10 @@ import {
   Clock,
   ArrowRight,
   TrendingUp,
+  DollarSign,
+  FileText,
+  FolderOpen,
+  Briefcase,
 } from 'lucide-react'
 import {
   AreaChart,
@@ -22,22 +26,27 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
-const statusBadge: Record<string, { bg: string; color: string; label: string }> = {
-  draft: { bg: '#F1F1F5', color: '#555', label: 'Brouillon' },
-  sent: { bg: 'var(--blue-surface)', color: 'var(--blue-primary)', label: 'Envoyee' },
-  paid: { bg: 'var(--success-bg)', color: 'var(--success)', label: 'Payee' },
-  late: { bg: 'var(--danger-bg)', color: 'var(--danger)', label: 'En retard' },
+/* ─────────────────────────────────────────
+   Design tokens (Swiss / eCons Blue)
+   bg: #F8FAFC  |  card: #FFFFFF  |  border: #E5E7EB
+   gradient: from-[#00A3FF] to-[#0057FF]
+   card radius: rounded-2xl (16px)
+   shadow: shadow-sm = 0 1px 3px rgba(0,0,0,0.05)
+   ───────────────────────────────────────── */
+
+const statusBadge: Record<string, { bg: string; text: string; label: string }> = {
+  draft: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Brouillon' },
+  sent: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Envoyee' },
+  paid: { bg: 'bg-emerald-50', text: 'text-emerald-700', label: 'Payee' },
+  late: { bg: 'bg-red-50', text: 'text-red-700', label: 'En retard' },
 }
 
-// Generate last 6 months labels
 function getLast6Months(): string[] {
   const months = []
   const now = new Date()
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    months.push(
-      d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
-    )
+    months.push(d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }))
   }
   return months
 }
@@ -64,10 +73,30 @@ export default function DashboardPage() {
       : 0
 
   const kpis = [
-    { label: "Chiffre d'affaires", value: formatCurrency(totalTTC) },
-    { label: 'Factures en attente', value: String(pendingCount) },
-    { label: 'Projets actifs', value: String(activeProjects) },
-    { label: 'Taux TVA moyen', value: `${avgTVA.toFixed(1)}%` },
+    {
+      label: "Chiffre d'affaires",
+      value: formatCurrency(totalTTC),
+      icon: <DollarSign size={20} />,
+      accent: 'from-[#00A3FF] to-[#0057FF]',
+    },
+    {
+      label: 'Factures en attente',
+      value: String(pendingCount),
+      icon: <FileText size={20} />,
+      accent: 'from-amber-400 to-amber-600',
+    },
+    {
+      label: 'Projets actifs',
+      value: String(activeProjects),
+      icon: <FolderOpen size={20} />,
+      accent: 'from-emerald-400 to-emerald-600',
+    },
+    {
+      label: 'Taux TVA moyen',
+      value: `${avgTVA.toFixed(1)}%`,
+      icon: <Briefcase size={20} />,
+      accent: 'from-violet-400 to-violet-600',
+    },
   ]
 
   // Smart Focus alerts
@@ -80,67 +109,58 @@ export default function DashboardPage() {
       href: string
     }[] = []
 
-    // Late invoices
     invoices
       .filter((inv) => inv.status === 'late')
       .slice(0, 2)
       .forEach((inv) => {
         const daysLate = inv.due_date
-          ? Math.ceil(
-              (Date.now() - new Date(inv.due_date).getTime()) /
-                (1000 * 60 * 60 * 24)
-            )
+          ? Math.ceil((Date.now() - new Date(inv.due_date).getTime()) / (1000 * 60 * 60 * 24))
           : 0
         alerts.push({
           type: 'warning',
-          icon: <AlertTriangle size={18} />,
+          icon: <AlertTriangle size={16} />,
           text: `Facture ${inv.invoice_number} en retard de ${daysLate} jour(s)`,
           action: 'Envoyer un rappel',
           href: `/invoices/${inv.id}`,
         })
       })
 
-    // Projects done without invoice
     projects
       .filter((p) => p.status === 'done' && !p.invoice_generated)
       .slice(0, 2)
       .forEach((p) => {
         alerts.push({
           type: 'success',
-          icon: <CheckCircle2 size={18} />,
+          icon: <CheckCircle2 size={16} />,
           text: `Projet "${p.name}" termine`,
           action: 'Generer la facture',
           href: '/invoices/new',
         })
       })
 
-    // Draft invoices waiting
     invoices
       .filter((inv) => inv.status === 'draft')
       .slice(0, 1)
       .forEach((inv) => {
         alerts.push({
           type: 'info',
-          icon: <Clock size={18} />,
+          icon: <Clock size={16} />,
           text: `Facture ${inv.invoice_number} en brouillon`,
           action: 'Finaliser',
           href: `/invoices/${inv.id}`,
         })
       })
 
-    // Show max 3
     return alerts.slice(0, 3)
   }, [invoices, projects])
 
-  // Revenue chart data — aggregate paid invoices by month
+  // Revenue chart data
   const revenueData = useMemo(() => {
     const months = getLast6Months()
     const now = new Date()
-
     return months.map((label, idx) => {
       const monthDate = new Date(now.getFullYear(), now.getMonth() - (5 - idx), 1)
       const nextMonth = new Date(now.getFullYear(), now.getMonth() - (5 - idx) + 1, 1)
-
       const monthRevenue = paidInvoices
         .filter((inv) => {
           const d = new Date(inv.issue_date)
@@ -150,208 +170,109 @@ export default function DashboardPage() {
           const ht = calculateHT(inv.items ?? [])
           return sum + calculateTTC(ht, inv.tva_rate)
         }, 0)
-
       return { name: label, revenue: monthRevenue }
     })
   }, [paidInvoices])
 
   const recentInvoices = invoices.slice(0, 5)
 
+  // Loading skeleton
   if (loadingInv || loadingProj) {
     return (
-      <div style={{ color: 'var(--muted)', fontSize: 14, padding: 32 }}>
-        Chargement...
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 animate-pulse">
+              <div className="h-4 w-20 bg-gray-200 rounded mb-3" />
+              <div className="h-8 w-28 bg-gray-100 rounded" />
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
 
-  const alertColors = {
-    warning: {
-      iconColor: '#B45309',
-      bg: 'rgba(254, 243, 199, 0.5)',
-    },
-    success: {
-      iconColor: '#0D9E6B',
-      bg: 'rgba(230, 247, 242, 0.5)',
-    },
-    info: {
-      iconColor: '#1A3FA3',
-      bg: 'rgba(235, 242, 250, 0.5)',
-    },
+  const alertStyles = {
+    warning: { iconColor: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
+    success: { iconColor: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
+    info: { iconColor: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
   }
 
   return (
-    <div>
-      {/* KPI Cards — responsive grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-8 md:mb-10">
+    <div className="max-w-7xl mx-auto">
+
+      {/* ═══ KPI METRIC CARDS ═══ */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {kpis.map((kpi) => (
           <div
             key={kpi.label}
-            style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--line)',
-              borderRadius: 10,
-              padding: '20px 18px',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
+            className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 relative overflow-hidden group hover:shadow-md transition-shadow"
           >
-            <div
-              style={{
-                position: 'absolute',
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: 3,
-                background: 'linear-gradient(to bottom, #00B4D8, #1A3FA3)',
-              }}
-            />
-            <div className="text-xl md:text-[28px] font-extrabold" style={{ color: 'var(--blue-primary)', marginBottom: 6 }}>
+            {/* Icon circle */}
+            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${kpi.accent} flex items-center justify-center text-white mb-4`}>
+              {kpi.icon}
+            </div>
+            <div className="text-2xl font-bold text-gray-900 tracking-tight mb-1" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
               {kpi.value}
             </div>
-            <div
-              style={{
-                fontSize: 9,
-                textTransform: 'uppercase',
-                letterSpacing: 2,
-                color: 'var(--muted)',
-                fontWeight: 500,
-              }}
-            >
+            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
               {kpi.label}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Smart Focus Section */}
-      <div
-        className="mb-8 md:mb-10"
-        style={{
-          background: 'rgba(235, 242, 250, 0.5)',
-          border: '1px solid #D4E1F4',
-          borderRadius: 16,
-          padding: '24px',
-        }}
-      >
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp size={18} style={{ color: 'var(--blue-primary)' }} />
-          <h2
-            style={{
-              fontSize: 16,
-              fontWeight: 800,
-              color: 'var(--ink)',
-              margin: 0,
-              letterSpacing: -0.3,
-            }}
-          >
-            Smart Focus
-          </h2>
-          <span
-            style={{
-              fontSize: 9,
-              textTransform: 'uppercase',
-              letterSpacing: 2,
-              color: 'var(--muted)',
-              fontWeight: 500,
-              marginLeft: 4,
-            }}
-          >
-            Actions prioritaires
-          </span>
-        </div>
-
-        {smartFocusAlerts.length === 0 ? (
-          <div
-            className="flex items-center gap-3 py-3"
-            style={{ color: 'var(--muted)', fontSize: 13 }}
-          >
-            <CheckCircle2 size={16} style={{ color: 'var(--success)' }} />
-            Tout est a jour. Aucune action requise.
+      {/* ═══ SMART FOCUS ═══ */}
+      {smartFocusAlerts.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00A3FF] to-[#0057FF] flex items-center justify-center">
+              <TrendingUp size={16} className="text-white" />
+            </div>
+            <h2 className="text-sm font-bold text-gray-900 tracking-tight" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+              Smart Focus
+            </h2>
+            <span className="text-[10px] font-medium text-gray-400 uppercase tracking-widest ml-1">
+              Actions prioritaires
+            </span>
           </div>
-        ) : (
-          <div className="flex flex-col gap-3">
+
+          <div className="flex flex-col gap-2">
             {smartFocusAlerts.map((alert, idx) => {
-              const colors = alertColors[alert.type]
+              const styles = alertStyles[alert.type]
               return (
                 <div
                   key={idx}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                  style={{
-                    background: colors.bg,
-                    borderRadius: 10,
-                    padding: '14px 18px',
-                  }}
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${styles.bg} border ${styles.border} rounded-xl px-4 py-3`}
                 >
-                  <div
-                    className="flex items-center gap-3"
-                    style={{ color: 'var(--ink)', fontSize: 13, fontWeight: 500 }}
-                  >
-                    <span style={{ color: colors.iconColor, flexShrink: 0 }}>
-                      {alert.icon}
-                    </span>
+                  <div className="flex items-center gap-3 text-sm font-medium text-gray-800">
+                    <span className={`${styles.iconColor} shrink-0`}>{alert.icon}</span>
                     {alert.text}
                   </div>
                   <Link
                     href={alert.href}
-                    className="flex items-center gap-1.5 flex-shrink-0"
-                    style={{
-                      background: 'var(--blue-primary)',
-                      color: '#fff',
-                      borderRadius: 6,
-                      padding: '6px 14px',
-                      fontSize: 12,
-                      fontWeight: 700,
-                      textDecoration: 'none',
-                      transition: 'background 0.15s',
-                      whiteSpace: 'nowrap',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'var(--blue-mid)'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'var(--blue-primary)'
-                    }}
+                    className="inline-flex items-center gap-1.5 bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white text-xs font-semibold px-3.5 py-2 rounded-lg hover:opacity-90 transition-opacity whitespace-nowrap shrink-0"
                   >
                     {alert.action}
-                    <ArrowRight size={13} />
+                    <ArrowRight size={12} />
                   </Link>
                 </div>
               )
             })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* URSSAF Simulator Card */}
-      <div
-        className="mb-8 md:mb-10"
-        style={{
-          background: 'rgba(255,255,255,0.6)',
-          backdropFilter: 'blur(12px)',
-          border: '1px solid var(--line)',
-          borderRadius: 16,
-          padding: '24px',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: 3,
-          background: 'linear-gradient(90deg, #111 0%, #555 100%)',
-        }} />
+      {/* ═══ URSSAF SIMULATOR ═══ */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-8">
         <div className="flex items-center gap-2 mb-5">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-          </svg>
-          <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)', margin: 0 }}>
+          <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center">
+            <Briefcase size={16} className="text-white" />
+          </div>
+          <h2 className="text-sm font-bold text-gray-900 tracking-tight" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
             Simulateur URSSAF
           </h2>
-          <span style={{
-            fontSize: 9, textTransform: 'uppercase', letterSpacing: 2,
-            color: 'var(--muted)', fontWeight: 500, marginLeft: 4,
-          }}>
+          <span className="text-[10px] font-medium text-gray-400 uppercase tracking-widest ml-1">
             Auto-entrepreneur
           </span>
         </div>
@@ -362,21 +283,15 @@ export default function DashboardPage() {
             const urssafTax = grossRevenue * urssafRate
             const netIncome = grossRevenue - urssafTax
             return [
-              { label: 'Chiffre d\'affaires brut', value: formatCurrency(grossRevenue), color: 'var(--ink)' },
-              { label: 'Cotisations URSSAF (21.2%)', value: `- ${formatCurrency(urssafTax)}`, color: 'var(--danger, #EF4444)' },
-              { label: 'Revenu net estimé', value: formatCurrency(netIncome), color: 'var(--success, #059669)' },
+              { label: "Chiffre d'affaires brut", value: formatCurrency(grossRevenue), color: 'text-gray-900' },
+              { label: 'Cotisations URSSAF (21.2%)', value: `- ${formatCurrency(urssafTax)}`, color: 'text-red-600' },
+              { label: 'Revenu net estime', value: formatCurrency(netIncome), color: 'text-emerald-600' },
             ].map((item) => (
-              <div key={item.label} style={{
-                background: 'var(--bg)', borderRadius: 10, padding: '16px 18px',
-                border: '1px solid var(--line)',
-              }}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: item.color, marginBottom: 4 }}>
+              <div key={item.label} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <div className={`text-xl font-bold ${item.color} tracking-tight mb-1`} style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
                   {item.value}
                 </div>
-                <div style={{
-                  fontSize: 9, textTransform: 'uppercase', letterSpacing: 1.5,
-                  color: 'var(--muted)', fontWeight: 600,
-                }}>
+                <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                   {item.label}
                 </div>
               </div>
@@ -385,66 +300,37 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Revenue + Recent Invoices — 2-column on desktop */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 md:gap-6">
-        {/* Revenue Chart — takes 3/5 */}
-        <div
-          className="lg:col-span-3"
-          style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--line)',
-            borderRadius: 12,
-            padding: '24px',
-          }}
-        >
+      {/* ═══ REVENUE CHART + RECENT INVOICES ═══ */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+
+        {/* Revenue Chart — 3/5 */}
+        <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
           <div className="flex items-center justify-between mb-5">
-            <h2
-              style={{
-                fontSize: 16,
-                fontWeight: 700,
-                color: 'var(--ink)',
-                margin: 0,
-              }}
-            >
+            <h2 className="text-sm font-bold text-gray-900 tracking-tight" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
               Revenus (6 derniers mois)
             </h2>
-            <span
-              style={{
-                fontSize: 9,
-                textTransform: 'uppercase',
-                letterSpacing: 2,
-                color: 'var(--muted)',
-                fontWeight: 500,
-              }}
-            >
+            <span className="text-[10px] font-medium text-gray-400 uppercase tracking-widest">
               Tendance
             </span>
           </div>
-          <div style={{ width: '100%', height: 240 }}>
+          <div className="w-full h-60">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={revenueData}
-                margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
-              >
+              <AreaChart data={revenueData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#1A3FA3" stopOpacity={0.15} />
-                    <stop offset="100%" stopColor="#1A3FA3" stopOpacity={0.01} />
+                  <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#0057FF" stopOpacity={0.12} />
+                    <stop offset="100%" stopColor="#0057FF" stopOpacity={0.01} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="#E4E6ED"
-                />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
                 <XAxis
                   dataKey="name"
-                  tick={{ fontSize: 11, fill: '#6B7280' }}
-                  axisLine={{ stroke: '#E4E6ED' }}
+                  tick={{ fontSize: 11, fill: '#9CA3AF' }}
+                  axisLine={{ stroke: '#F3F4F6' }}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 11, fill: '#6B7280' }}
+                  tick={{ fontSize: 11, fill: '#9CA3AF' }}
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={(v) => `${v}€`}
@@ -453,9 +339,9 @@ export default function DashboardPage() {
                 <Tooltip
                   contentStyle={{
                     background: '#fff',
-                    border: '1px solid #E4E6ED',
-                    borderRadius: 8,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: 12,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
                     fontSize: 13,
                   }}
                   formatter={(value) => [formatCurrency(Number(value ?? 0)), 'Revenu']}
@@ -464,54 +350,31 @@ export default function DashboardPage() {
                 <Area
                   type="monotone"
                   dataKey="revenue"
-                  stroke="#1A3FA3"
+                  stroke="#0057FF"
                   strokeWidth={2.5}
-                  fill="url(#revenueGradient)"
-                  dot={{ r: 4, fill: '#1A3FA3', stroke: '#fff', strokeWidth: 2 }}
-                  activeDot={{ r: 6, fill: '#1A3FA3', stroke: '#fff', strokeWidth: 2 }}
+                  fill="url(#revenueGrad)"
+                  dot={{ r: 4, fill: '#0057FF', stroke: '#fff', strokeWidth: 2 }}
+                  activeDot={{ r: 6, fill: '#0057FF', stroke: '#fff', strokeWidth: 2 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Recent Invoices — takes 2/5 */}
-        <div
-          className="lg:col-span-2"
-          style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--line)',
-            borderRadius: 12,
-            padding: '24px',
-          }}
-        >
+        {/* Recent Invoices — 2/5 */}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2
-              style={{
-                fontSize: 16,
-                fontWeight: 700,
-                color: 'var(--ink)',
-                margin: 0,
-              }}
-            >
+            <h2 className="text-sm font-bold text-gray-900 tracking-tight" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
               Factures recentes
             </h2>
-            <Link
-              href="/invoices"
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: 'var(--blue-primary)',
-                textDecoration: 'none',
-              }}
-            >
+            <Link href="/invoices" className="text-xs font-semibold text-[#0057FF] hover:text-[#00A3FF] transition-colors">
               Voir tout
             </Link>
           </div>
 
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-1">
             {recentInvoices.length === 0 && (
-              <div style={{ color: 'var(--muted)', fontSize: 13 }}>
+              <div className="text-center py-8 text-sm text-gray-400" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
                 Aucune facture pour le moment.
               </div>
             )}
@@ -520,68 +383,22 @@ export default function DashboardPage() {
               const ht = calculateHT(inv.items ?? [])
               const ttc = calculateTTC(ht, inv.tva_rate)
               return (
-                <Link
-                  key={inv.id}
-                  href={`/invoices/${inv.id}`}
-                  style={{ textDecoration: 'none' }}
-                >
-                  <div
-                    className="flex items-center justify-between gap-3"
-                    style={{
-                      borderRadius: 8,
-                      padding: '10px 14px',
-                      transition: 'background 0.15s',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'var(--bg)'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent'
-                    }}
-                  >
+                <Link key={inv.id} href={`/invoices/${inv.id}`} className="group no-underline">
+                  <div className="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3 min-w-0">
-                      <span
-                        className="flex-shrink-0"
-                        style={{
-                          display: 'inline-block',
-                          padding: '2px 8px',
-                          borderRadius: 4,
-                          fontSize: 10,
-                          fontWeight: 700,
-                          background: badge.bg,
-                          color: badge.color,
-                          textTransform: 'uppercase',
-                        }}
-                      >
+                      <span className={`shrink-0 inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase ${badge.bg} ${badge.text}`}>
                         {badge.label}
                       </span>
                       <div className="min-w-0">
-                        <div
-                          style={{
-                            fontWeight: 600,
-                            color: 'var(--ink)',
-                            fontFamily: 'monospace',
-                            fontSize: 12,
-                          }}
-                        >
+                        <div className="text-xs font-semibold text-gray-900 font-mono">
                           {inv.invoice_number}
                         </div>
-                        <div
-                          className="truncate"
-                          style={{ color: 'var(--muted)', fontSize: 11 }}
-                        >
+                        <div className="text-[11px] text-gray-400 truncate">
                           {inv.client?.name ?? '---'}
                         </div>
                       </div>
                     </div>
-                    <span
-                      className="flex-shrink-0"
-                      style={{
-                        fontWeight: 800,
-                        color: 'var(--blue-primary)',
-                        fontSize: 13,
-                      }}
-                    >
+                    <span className="shrink-0 text-sm font-bold text-gray-900">
                       {formatCurrency(ttc)}
                     </span>
                   </div>

@@ -4,10 +4,17 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { ReactNode, useState, useEffect } from 'react'
-import { Menu, X, Users } from 'lucide-react'
+import { Menu, X, Users, Bell, Search } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import { LegalFooter } from '@/components/ui/LegalFooter'
+
+/* ─────────────────────────────────────────
+   Design tokens (Swiss / eCons Blue)
+   ───────────────────────────────────────── */
+// bg: #F8FAFC  |  card: #FFFFFF  |  border: #E5E7EB
+// primary gradient: from-[#00A3FF] to-[#0057FF]
+// active sidebar: 3px left bar + bg-blue-50
 
 const navItems = [
   {
@@ -76,6 +83,7 @@ function SidebarAvatar() {
   const supabase = createClient()
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [initial, setInitial] = useState('F')
+  const [name, setName] = useState('')
 
   useEffect(() => {
     ;(async () => {
@@ -87,44 +95,76 @@ function SidebarAvatar() {
           .eq('id', userId)
           .single()
         if (data?.avatar_url) setAvatarUrl(data.avatar_url)
-        if (data?.full_name) setInitial(data.full_name[0].toUpperCase())
+        if (data?.full_name) {
+          setInitial(data.full_name[0].toUpperCase())
+          setName(data.full_name)
+        }
       } catch {}
     })()
   }, [supabase])
 
-  if (avatarUrl) {
-    return (
-      <Image
-        src={avatarUrl}
-        alt="Avatar"
-        width={36}
-        height={36}
-        style={{ borderRadius: '50%', objectFit: 'cover', width: 36, height: 36 }}
-        unoptimized
-      />
-    )
-  }
-
   return (
-    <div
-      style={{
-        width: 36,
-        height: 36,
-        borderRadius: '50%',
-        background: 'linear-gradient(135deg, #00B4D8 0%, #1A3FA3 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#fff',
-        fontWeight: 700,
-        fontSize: 14,
-      }}
-    >
-      {initial}
-    </div>
+    <Link href="/profile" className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors group">
+      {avatarUrl ? (
+        <Image
+          src={avatarUrl}
+          alt="Avatar"
+          width={36}
+          height={36}
+          className="rounded-full object-cover w-9 h-9 shrink-0"
+          unoptimized
+        />
+      ) : (
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#00A3FF] to-[#0057FF] flex items-center justify-center text-white text-sm font-bold shrink-0">
+          {initial}
+        </div>
+      )}
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-semibold text-gray-900 truncate leading-tight">
+          {name || 'Mon profil'}
+        </div>
+        <div className="text-[11px] text-gray-400 leading-tight">eCons Freelance</div>
+      </div>
+    </Link>
   )
 }
 
+/* ── Nav Item ── */
+function NavItem({
+  item,
+  active,
+  onClick,
+}: {
+  item: typeof navItems[0]
+  active: boolean
+  onClick?: () => void
+}) {
+  return (
+    <Link
+      href={item.href}
+      onClick={onClick}
+      className={`
+        relative flex items-center gap-3 px-4 py-2.5 mx-2 rounded-xl text-sm font-medium
+        transition-all duration-150 group
+        ${active
+          ? 'bg-blue-50 text-[#0057FF] font-semibold'
+          : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+        }
+      `}
+    >
+      {/* Active indicator bar */}
+      {active && (
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-gradient-to-b from-[#00A3FF] to-[#0057FF] rounded-r-full" />
+      )}
+      <span className={active ? 'text-[#0057FF]' : 'text-gray-400 group-hover:text-gray-600'}>
+        {item.icon}
+      </span>
+      {item.label}
+    </Link>
+  )
+}
+
+/* ── Sidebar Content ── */
 function SidebarContent({
   pathname,
   isActive,
@@ -135,97 +175,56 @@ function SidebarContent({
   onNavigate?: () => void
 }) {
   return (
-    <>
-      <div>
-        {/* Logo */}
-        <div style={{ padding: '24px 24px 20px' }}>
-          <div className="flex items-center gap-3 mb-2">
-            <Image
-              src="/assets/logo_freelance.png"
-              alt="FreelanceOS Logo"
-              width={40}
-              height={40}
-              className="flex-shrink-0"
-              style={{ borderRadius: 10 }}
-            />
-            <span
-              style={{
-                fontSize: 18,
-                fontWeight: 800,
-                color: 'var(--ink)',
-                letterSpacing: -0.5,
-                fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif',
-                lineHeight: 1.1,
-              }}
-            >
+    <div className="flex flex-col h-full">
+      {/* Logo */}
+      <div className="px-6 pt-6 pb-4">
+        <div className="flex items-center gap-3">
+          <Image
+            src="/assets/logo_freelance.png"
+            alt="Freelance Logo"
+            width={38}
+            height={38}
+            className="shrink-0 rounded-xl"
+            style={{ borderRadius: 10 }}
+          />
+          <div>
+            <div className="text-[17px] font-bold text-gray-900 tracking-tight leading-tight" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
               Freelance
-            </span>
-          </div>
-          <div
-            style={{
-              fontSize: 9,
-              textTransform: 'uppercase',
-              letterSpacing: 2,
-              color: 'var(--muted)',
-              marginTop: 2,
-              paddingLeft: 53,
-            }}
-          >
-            by eCons
+            </div>
+            <div className="text-[10px] font-medium text-gray-400 tracking-widest uppercase leading-tight">
+              by eCons
+            </div>
           </div>
         </div>
-
-        {/* Nav */}
-        <nav style={{ marginTop: 8 }}>
-          {navItems.map((item) => {
-            const active = isActive(item.href)
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onNavigate}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: '10px 24px',
-                  fontSize: 14,
-                  fontWeight: active ? 600 : 400,
-                  color: active ? 'var(--blue-primary)' : 'var(--muted)',
-                  background: active ? 'var(--blue-surface)' : 'transparent',
-                  borderLeft: active
-                    ? '2px solid var(--blue-primary)'
-                    : '2px solid transparent',
-                  textDecoration: 'none',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  if (!active) {
-                    e.currentTarget.style.background = 'var(--bg)'
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!active) {
-                    e.currentTarget.style.background = 'transparent'
-                  }
-                }}
-              >
-                {item.icon}
-                {item.label}
-              </Link>
-            )
-          })}
-        </nav>
       </div>
 
-      {/* Bottom user avatar */}
-      <div style={{ padding: '20px 24px' }}>
+      {/* Divider */}
+      <div className="h-px bg-gray-100 mx-6 mb-2" />
+
+      {/* Nav */}
+      <nav className="flex-1 py-2 flex flex-col gap-0.5 overflow-y-auto">
+        {navItems.map((item) => (
+          <NavItem
+            key={item.href}
+            item={item}
+            active={isActive(item.href)}
+            onClick={onNavigate}
+          />
+        ))}
+      </nav>
+
+      {/* Divider */}
+      <div className="h-px bg-gray-100 mx-6 mt-2" />
+
+      {/* Bottom user */}
+      <div className="px-3 py-4">
         <SidebarAvatar />
       </div>
-    </>
+    </div>
   )
 }
 
+/* ── Main Layout ── */
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -240,45 +239,27 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const currentTitle = pageTitles[pathname] ?? 'eCons Freelance'
 
   return (
-    <div className="flex min-h-screen">
-      {/* Desktop sidebar — hidden on mobile */}
-      <aside
-        className="hidden md:flex flex-col justify-between flex-shrink-0"
-        style={{
-          width: 240,
-          minWidth: 240,
-          background: 'var(--surface)',
-          borderRight: '1px solid var(--line)',
-        }}
-      >
+    <div className="flex min-h-dvh bg-[#F8FAFC]">
+
+      {/* ── Desktop Sidebar ── */}
+      <aside className="hidden md:flex flex-col w-[240px] shrink-0 bg-white border-r border-gray-200">
         <SidebarContent pathname={pathname} isActive={isActive} />
       </aside>
 
-      {/* Mobile overlay sidebar */}
+      {/* ── Mobile Overlay Sidebar ── */}
       {mobileOpen && (
-        <div
-          className="fixed inset-0 z-50 md:hidden"
-          onClick={() => setMobileOpen(false)}
-        >
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
-          {/* Drawer */}
+        <div className="fixed inset-0 z-50 md:hidden" onClick={() => setMobileOpen(false)}>
+          <div className="absolute inset-0 bg-black/40" />
           <aside
-            className="relative flex flex-col justify-between h-full"
-            style={{
-              width: 280,
-              background: 'var(--surface)',
-              boxShadow: '4px 0 24px rgba(0,0,0,0.1)',
-            }}
+            className="relative flex flex-col w-72 h-full bg-white shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close button */}
             <button
               onClick={() => setMobileOpen(false)}
-              className="absolute top-4 right-4 p-1 rounded-md"
-              style={{ color: 'var(--muted)' }}
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              aria-label="Fermer le menu"
             >
-              <X size={20} />
+              <X size={18} />
             </button>
             <SidebarContent
               pathname={pathname}
@@ -289,133 +270,66 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      {/* Main area */}
+      {/* ── Main Area ── */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Topbar */}
-        <header
-          className="flex items-center justify-between px-4 md:px-8"
-          style={{
-            height: 56,
-            background: 'var(--surface)',
-            borderBottom: '1px solid var(--line)',
-          }}
-        >
+
+        {/* ── Topbar ── */}
+        <header className="sticky top-0 z-30 flex items-center justify-between h-14 px-4 md:px-6 bg-white border-b border-gray-200">
           <div className="flex items-center gap-3">
             {/* Hamburger — mobile only */}
             <button
-              className="md:hidden p-1 rounded-md"
-              style={{ color: 'var(--ink)' }}
+              className="md:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100"
               onClick={() => setMobileOpen(true)}
+              aria-label="Ouvrir le menu"
             >
-              <Menu size={22} />
+              <Menu size={20} />
             </button>
-            <span style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 16 }}>
+            <h1 className="text-base font-bold text-gray-900 tracking-tight" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
               {currentTitle}
-            </span>
+            </h1>
           </div>
-          <div className="flex items-center gap-3">
-            <div
-              className="hidden sm:flex items-center gap-2"
-              style={{
-                background: 'var(--bg)',
-                border: '1px solid var(--line)',
-                borderRadius: 6,
-                padding: '6px 14px',
-                minWidth: 220,
-              }}
-            >
-              <svg
-                width="16"
-                height="16"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="var(--muted)"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
+
+          <div className="flex items-center gap-2">
+            {/* Search bar — hidden on mobile */}
+            <div className="hidden sm:flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 w-52 focus-within:border-[#00A3FF] focus-within:ring-1 focus-within:ring-[#00A3FF]/20 transition-all">
+              <Search size={14} className="text-gray-400 shrink-0" />
               <input
                 type="text"
                 placeholder="Rechercher..."
-                style={{
-                  border: 'none',
-                  background: 'transparent',
-                  outline: 'none',
-                  fontSize: 13,
-                  color: 'var(--ink)',
-                  width: '100%',
-                }}
+                className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400 w-full"
               />
             </div>
 
             {/* Notification Bell */}
-            <div style={{ position: 'relative' }}>
+            <div className="relative">
               <button
                 onClick={() => setNotifOpen(!notifOpen)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 6,
-                  borderRadius: 6,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                }}
+                className="relative p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+                aria-label="Notifications"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                </svg>
+                <Bell size={18} />
                 {notifications.length > 0 && (
-                  <span style={{
-                    position: 'absolute', top: 4, right: 4,
-                    width: 8, height: 8, borderRadius: '50%',
-                    background: '#EF4444', border: '2px solid var(--surface)',
-                  }} />
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white" />
                 )}
               </button>
 
               {notifOpen && (
                 <>
-                  <div
-                    style={{ position: 'fixed', inset: 0, zIndex: 40 }}
-                    onClick={() => setNotifOpen(false)}
-                  />
-                  <div style={{
-                    position: 'absolute', top: '100%', right: 0, marginTop: 8,
-                    width: 320, background: 'var(--surface)',
-                    border: '1px solid var(--line)', borderRadius: 10,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                    zIndex: 50, overflow: 'hidden',
-                  }}>
-                    <div style={{
-                      padding: '12px 16px', borderBottom: '1px solid var(--line)',
-                      fontSize: 13, fontWeight: 700, color: 'var(--ink)',
-                    }}>
-                      Notifications
+                  <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
+                  <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-200 rounded-2xl shadow-lg z-50 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <span className="text-sm font-semibold text-gray-900">Notifications</span>
                     </div>
                     {notifications.length === 0 ? (
-                      <div style={{
-                        padding: '24px 16px', textAlign: 'center',
-                        fontSize: 13, color: 'var(--muted)',
-                      }}>
+                      <div className="px-4 py-8 text-center text-sm text-gray-400">
                         Aucune nouvelle notification
                       </div>
                     ) : (
-                      <div style={{ maxHeight: 280, overflowY: 'auto' }}>
+                      <div className="max-h-72 overflow-y-auto divide-y divide-gray-100">
                         {notifications.map((n) => (
-                          <div key={n.id} style={{
-                            padding: '10px 16px', borderBottom: '1px solid var(--line)',
-                            fontSize: 13, color: 'var(--ink)',
-                          }}>
-                            <div>{n.message}</div>
-                            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{n.date}</div>
+                          <div key={n.id} className="px-4 py-3">
+                            <div className="text-sm text-gray-800">{n.message}</div>
+                            <div className="text-xs text-gray-400 mt-0.5">{n.date}</div>
                           </div>
                         ))}
                       </div>
@@ -427,16 +341,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        {/* Content */}
-        <main
-          className="flex-1 p-4 md:p-8"
-          style={{ background: 'var(--bg)' }}
-        >
+        {/* ── Page Content ── */}
+        <main className="flex-1 p-4 md:p-8">
           {children}
         </main>
 
-        {/* Legal footer */}
-        <div style={{ background: 'var(--bg)', borderTop: '1px solid var(--line)' }}>
+        {/* ── Legal Footer ── */}
+        <div className="border-t border-gray-200 bg-white">
           <LegalFooter />
         </div>
       </div>

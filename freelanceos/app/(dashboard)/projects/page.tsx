@@ -6,10 +6,11 @@ import { useClients } from '@/hooks/useClients'
 import { useToast } from '@/components/ui/Toast'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
 import type { Project, ProjectStatus } from '@/types'
+import { FolderOpen, Calendar, DollarSign } from 'lucide-react'
 
-const statusConfig: Record<ProjectStatus, { bg: string; color: string; label: string }> = {
-  done: { bg: 'var(--success-bg)', color: 'var(--success)', label: 'Termine' },
-  ongoing: { bg: 'var(--blue-surface)', color: 'var(--blue-primary)', label: 'En cours' },
+const statusConfig: Record<ProjectStatus, { bg: string; text: string; label: string }> = {
+  done: { bg: 'bg-emerald-50', text: 'text-emerald-700', label: 'Termine' },
+  ongoing: { bg: 'bg-blue-50', text: 'text-[#0057FF]', label: 'En cours' },
 }
 
 const emptyForm = {
@@ -20,6 +21,10 @@ const emptyForm = {
   deadline: '',
   budget: '',
 }
+
+/* ── Shared input classes ── */
+const inputCls = 'w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white outline-none focus:border-[#00A3FF] focus:ring-1 focus:ring-[#00A3FF]/20 transition-all'
+const labelCls = 'block text-xs font-semibold text-gray-700 mb-1.5'
 
 export default function ProjectsPage() {
   const { projects, loading, createProject, updateProject, deleteProject } = useProjects()
@@ -88,7 +93,7 @@ export default function ProjectsPage() {
       if (editing) {
         const result = await updateProject(editing.id, payload)
         if (result.invoiceGenerated) {
-          showToast('Projet terminé ! Une facture brouillon a été générée.', 'success')
+          showToast('Projet termine ! Une facture brouillon a ete generee.', 'success')
         }
       } else {
         await createProject(payload)
@@ -106,12 +111,26 @@ export default function ProjectsPage() {
     }
   }
 
+  // Loading skeleton
   if (loading) {
-    return <div style={{ color: 'var(--muted)', fontSize: 14 }}>Chargement...</div>
+    return (
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 animate-pulse">
+              <div className="h-10 w-10 bg-gray-200 rounded-xl mb-4" />
+              <div className="h-4 w-32 bg-gray-200 rounded mb-2" />
+              <div className="h-3 w-20 bg-gray-100 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div>
+    <div className="max-w-7xl mx-auto">
+
       {/* Upgrade Modal */}
       <UpgradeModal
         open={showUpgrade}
@@ -119,341 +138,176 @@ export default function ProjectsPage() {
         message={upgradeMessage}
       />
 
-      {/* Header */}
-      <div
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-        style={{ marginBottom: 28 }}
-      >
+      {/* ═══ HEADER ═══ */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-[28px]" style={{ fontWeight: 800, color: 'var(--ink)', margin: 0 }}>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
             Projets
           </h1>
-          <div
-            style={{
-              fontSize: 10,
-              textTransform: 'uppercase',
-              letterSpacing: 2,
-              color: 'var(--muted)',
-              marginTop: 4,
-            }}
-          >
-            {projects.length} PROJET(S) ENREGISTRE(S)
-          </div>
+          <p className="text-xs font-medium text-gray-400 uppercase tracking-widest mt-1">
+            {projects.length} projet(s) enregistre(s)
+          </p>
         </div>
         <button
           onClick={openCreate}
-          style={{
-            background: 'var(--blue-primary)',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 6,
-            padding: '10px 20px',
-            fontWeight: 600,
-            fontSize: 14,
-            cursor: 'pointer',
-          }}
+          className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
         >
           + Nouveau Projet
         </button>
       </div>
 
-      {/* Project Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-
-        {projects.map((project) => {
-          const badge = statusConfig[project.status]
-          return (
-            <div
-              key={project.id}
-              onClick={() => openEdit(project)}
-              style={{
-                background: 'var(--surface)',
-                border: '1px solid var(--line)',
-                borderRadius: 10,
-                padding: '20px',
-                cursor: 'pointer',
-                transition: 'border-color 0.15s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--blue-primary)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--line)'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 8,
-                    background: 'var(--blue-surface)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  <svg
-                    width="18"
-                    height="18"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="var(--blue-primary)"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                    />
-                  </svg>
+      {/* ═══ PROJECT GRID ═══ */}
+      {projects.length === 0 ? (
+        <div className="text-center py-20">
+          <FolderOpen size={48} className="mx-auto text-gray-300 mb-4" />
+          <p className="text-sm text-gray-400" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+            Pret a demarrer un nouveau projet ?
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {projects.map((project) => {
+            const badge = statusConfig[project.status]
+            return (
+              <div
+                key={project.id}
+                onClick={() => openEdit(project)}
+                className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 cursor-pointer hover:shadow-md hover:border-[#00A3FF]/40 transition-all group"
+              >
+                {/* Top: Icon + Status */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00A3FF] to-[#0057FF] flex items-center justify-center text-white">
+                    <FolderOpen size={18} />
+                  </div>
+                  <span className={`inline-block px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase ${badge.bg} ${badge.text}`}>
+                    {badge.label}
+                  </span>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 8,
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontWeight: 600,
-                        color: 'var(--ink)',
-                        fontSize: 15,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {project.name}
+
+                {/* Title */}
+                <h3 className="text-base font-semibold text-gray-900 truncate mb-1 group-hover:text-[#0057FF] transition-colors" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+                  {project.name}
+                </h3>
+
+                {/* Client */}
+                <p className="text-sm text-gray-500 truncate mb-4">
+                  {project.client?.name ?? '---'}
+                </p>
+
+                {/* Footer: deadline + budget */}
+                <div className="flex items-center gap-4 text-xs text-gray-400 border-t border-gray-100 pt-3">
+                  {project.deadline && (
+                    <div className="flex items-center gap-1">
+                      <Calendar size={12} />
+                      {new Date(project.deadline).toLocaleDateString('fr-FR')}
                     </div>
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        padding: '2px 10px',
-                        borderRadius: 4,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        background: badge.bg,
-                        color: badge.color,
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {badge.label}
-                    </span>
-                  </div>
-                  <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>
-                    {project.client?.name ?? '---'}
-                    {project.deadline && (
-                      <span style={{ marginLeft: 8 }}>
-                        &middot; {new Date(project.deadline).toLocaleDateString('fr-FR')}
-                      </span>
-                    )}
-                  </div>
+                  )}
+                  {project.budget > 0 && (
+                    <div className="flex items-center gap-1">
+                      <DollarSign size={12} />
+                      {project.budget.toLocaleString('fr-FR')} EUR
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {projects.length === 0 && (
-        <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 20 }}>
-          Aucun projet enregistre.
+            )
+          })}
         </div>
       )}
 
-      {/* Modal */}
+      {/* ═══ MODAL ═══ */}
       {showModal && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 50,
-          }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
           onClick={() => setShowModal(false)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{
-              background: 'var(--surface)',
-              borderRadius: 12,
-              padding: 32,
-              width: 480,
-              maxWidth: '90vw',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-            }}
+            className="bg-white rounded-2xl p-8 w-full max-w-lg mx-4 shadow-xl"
           >
-            <h2
-              style={{
-                fontSize: 20,
-                fontWeight: 700,
-                color: 'var(--ink)',
-                marginTop: 0,
-                marginBottom: 20,
-              }}
-            >
+            <h2 className="text-lg font-bold text-gray-900 mb-6" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
               {editing ? 'Modifier le projet' : 'Nouveau projet'}
             </h2>
-            <form onSubmit={handleSubmit}>
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)', display: 'block', marginBottom: 4 }}>
-                  Nom *
-                </label>
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              {/* Name */}
+              <div>
+                <label className={labelCls}>Nom *</label>
                 <input
                   type="text"
                   required
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: 6,
-                    border: `1px solid ${nameError ? 'var(--danger)' : 'var(--line)'}`,
-                    fontSize: 14,
-                    outline: 'none',
-                    background: 'var(--bg)',
-                    color: 'var(--ink)',
-                    boxSizing: 'border-box',
-                  }}
+                  className={`${inputCls} ${nameError ? '!border-red-400 !ring-red-200' : ''}`}
                 />
-                {nameError && (
-                  <div style={{ color: 'var(--danger)', fontSize: 12, marginTop: 4 }}>{nameError}</div>
-                )}
+                {nameError && <p className="text-xs text-red-600 mt-1">{nameError}</p>}
               </div>
 
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)', display: 'block', marginBottom: 4 }}>
-                  Client
-                </label>
+              {/* Client */}
+              <div>
+                <label className={labelCls}>Client</label>
                 <select
                   value={form.client_id}
                   onChange={(e) => setForm((f) => ({ ...f, client_id: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: 6,
-                    border: '1px solid var(--line)',
-                    fontSize: 14,
-                    outline: 'none',
-                    background: 'var(--bg)',
-                    color: 'var(--ink)',
-                    boxSizing: 'border-box',
-                  }}
+                  className={inputCls}
                 >
                   <option value="">-- Aucun --</option>
                   {clients.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
+                    <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
               </div>
 
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)', display: 'block', marginBottom: 4 }}>
-                  Description
-                </label>
+              {/* Description */}
+              <div>
+                <label className={labelCls}>Description</label>
                 <textarea
                   value={form.description}
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                   rows={3}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: 6,
-                    border: '1px solid var(--line)',
-                    fontSize: 14,
-                    outline: 'none',
-                    background: 'var(--bg)',
-                    color: 'var(--ink)',
-                    boxSizing: 'border-box',
-                    resize: 'vertical',
-                  }}
+                  className={`${inputCls} resize-y`}
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+              {/* Status + Deadline row */}
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)', display: 'block', marginBottom: 4 }}>
-                    Statut
-                  </label>
+                  <label className={labelCls}>Statut</label>
                   <select
                     value={form.status}
                     onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as ProjectStatus }))}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: 6,
-                      border: '1px solid var(--line)',
-                      fontSize: 14,
-                      outline: 'none',
-                      background: 'var(--bg)',
-                      color: 'var(--ink)',
-                      boxSizing: 'border-box',
-                    }}
+                    className={inputCls}
                   >
                     <option value="ongoing">En cours</option>
                     <option value="done">Termine</option>
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)', display: 'block', marginBottom: 4 }}>
-                    Deadline
-                  </label>
+                  <label className={labelCls}>Deadline</label>
                   <input
                     type="date"
                     value={form.deadline}
                     onChange={(e) => setForm((f) => ({ ...f, deadline: e.target.value }))}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: 6,
-                      border: `1px solid ${deadlineError ? 'var(--danger)' : 'var(--line)'}`,
-                      fontSize: 14,
-                      outline: 'none',
-                      background: 'var(--bg)',
-                      color: 'var(--ink)',
-                      boxSizing: 'border-box',
-                    }}
+                    className={`${inputCls} ${deadlineError ? '!border-red-400 !ring-red-200' : ''}`}
                   />
-                  {deadlineError && (
-                    <div style={{ color: 'var(--danger)', fontSize: 12, marginTop: 4 }}>{deadlineError}</div>
-                  )}
+                  {deadlineError && <p className="text-xs text-red-600 mt-1">{deadlineError}</p>}
                 </div>
               </div>
 
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)', display: 'block', marginBottom: 4 }}>
-                  Budget
-                </label>
+              {/* Budget */}
+              <div>
+                <label className={labelCls}>Budget</label>
                 <input
                   type="number"
                   step="0.01"
                   value={form.budget}
                   onChange={(e) => setForm((f) => ({ ...f, budget: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: 6,
-                    border: '1px solid var(--line)',
-                    fontSize: 14,
-                    outline: 'none',
-                    background: 'var(--bg)',
-                    color: 'var(--ink)',
-                    boxSizing: 'border-box',
-                  }}
+                  className={inputCls}
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: 10, marginTop: 20, justifyContent: 'flex-end' }}>
+              {/* Actions */}
+              <div className="flex gap-3 mt-2 justify-end">
                 {editing && (
                   <button
                     type="button"
@@ -462,16 +316,7 @@ export default function ProjectsPage() {
                       await deleteProject(editing.id)
                       setShowModal(false)
                     }}
-                    style={{
-                      background: 'var(--danger-bg)',
-                      color: 'var(--danger)',
-                      border: 'none',
-                      borderRadius: 6,
-                      padding: '8px 18px',
-                      fontWeight: 600,
-                      fontSize: 13,
-                      cursor: 'pointer',
-                    }}
+                    className="text-red-600 bg-red-50 border border-red-200 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors"
                   >
                     Supprimer
                   </button>
@@ -479,31 +324,13 @@ export default function ProjectsPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  style={{
-                    background: 'var(--bg)',
-                    color: 'var(--muted)',
-                    border: '1px solid var(--line)',
-                    borderRadius: 6,
-                    padding: '8px 18px',
-                    fontWeight: 600,
-                    fontSize: 13,
-                    cursor: 'pointer',
-                  }}
+                  className="text-gray-500 bg-white border border-gray-200 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  style={{
-                    background: 'var(--blue-primary)',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 6,
-                    padding: '8px 18px',
-                    fontWeight: 600,
-                    fontSize: 13,
-                    cursor: 'pointer',
-                  }}
+                  className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
                 >
                   {editing ? 'Enregistrer' : 'Creer'}
                 </button>

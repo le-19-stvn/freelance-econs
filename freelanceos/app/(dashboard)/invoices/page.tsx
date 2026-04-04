@@ -5,51 +5,17 @@ import Link from 'next/link'
 import { useInvoices } from '@/hooks/useInvoices'
 import { calculateHT, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
 import type { Invoice, InvoiceStatus } from '@/types'
+import { FileText, Download, ChevronDown, Check, Send, Eye } from 'lucide-react'
 
-const statusBadge: Record<InvoiceStatus, { bg: string; color: string; label: string }> = {
-  draft: { bg: '#F1F1F5', color: '#555', label: 'Brouillon' },
-  sent: { bg: 'var(--blue-surface)', color: 'var(--blue-primary)', label: 'Envoyée' },
-  paid: { bg: 'var(--success-bg)', color: 'var(--success)', label: 'Payée' },
-  late: { bg: 'var(--danger-bg)', color: 'var(--danger)', label: 'En retard' },
+/* ── Status badge config ── */
+const statusBadge: Record<InvoiceStatus, { bg: string; text: string; dot: string; label: string }> = {
+  draft: { bg: 'bg-gray-100', text: 'text-gray-600', dot: 'bg-gray-400', label: 'Brouillon' },
+  sent: { bg: 'bg-blue-50', text: 'text-[#0057FF]', dot: 'bg-[#0057FF]', label: 'Envoyee' },
+  paid: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500', label: 'Payee' },
+  late: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500', label: 'En retard' },
 }
 
-/* ── Icons ── */
-function DownloadIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-      <polyline points="7 10 12 15 17 10" />
-      <line x1="12" y1="15" x2="12" y2="3" />
-    </svg>
-  )
-}
-
-function ChevronDownIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="6 9 12 15 18 9" />
-    </svg>
-  )
-}
-
-function CheckIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  )
-}
-
-function SendIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <line x1="22" y1="2" x2="11" y2="13" />
-      <polygon points="22 2 15 22 11 13 2 9 22 2" />
-    </svg>
-  )
-}
-
-/* ── Inline Toast ── */
+/* ── Toast ── */
 function Toast({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) {
   useEffect(() => {
     const t = setTimeout(onClose, 4000)
@@ -57,27 +23,12 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
   }, [onClose])
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: 24,
-        right: 24,
-        zIndex: 100,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '12px 20px',
-        borderRadius: 8,
-        fontSize: 13,
-        fontWeight: 600,
-        color: type === 'success' ? 'var(--success)' : 'var(--danger)',
-        background: type === 'success' ? 'var(--success-bg)' : 'var(--danger-bg)',
-        border: `1px solid ${type === 'success' ? 'var(--success)' : 'var(--danger)'}`,
-        boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-        animation: 'fadeIn 0.2s ease',
-      }}
-    >
-      {type === 'success' ? '✓' : '✕'} {message}
+    <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-2.5 px-5 py-3 rounded-xl text-[13px] font-semibold shadow-lg border ${
+      type === 'success'
+        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        : 'bg-red-50 text-red-700 border-red-200'
+    }`}>
+      {type === 'success' ? <Check size={14} /> : <span className="text-sm">✕</span>} {message}
     </div>
   )
 }
@@ -99,7 +50,7 @@ function EmailButton({
     e.preventDefault()
 
     if (!invoice.client?.email) {
-      onError("Le client n'a pas d'adresse email configurée")
+      onError("Le client n'a pas d'adresse email configuree")
       return
     }
 
@@ -113,75 +64,57 @@ function EmailButton({
         return
       }
 
-      onSuccess(`Email envoyé à ${invoice.client.name} !`)
+      onSuccess(`Email envoye a ${invoice.client.name} !`)
     } catch {
-      onError("Erreur réseau lors de l'envoi")
+      onError("Erreur reseau lors de l'envoi")
     } finally {
       setSending(false)
     }
   }
 
+  const hasEmail = !!invoice.client?.email
+
   return (
     <button
       onClick={handleSend}
       disabled={sending}
-      title={invoice.client?.email ? `Envoyer à ${invoice.client.email}` : "Pas d'email client"}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        background: invoice.client?.email ? 'var(--success-bg)' : '#F1F1F5',
-        color: invoice.client?.email ? 'var(--success)' : '#999',
-        border: 'none',
-        borderRadius: 6,
-        padding: '8px 12px',
-        fontWeight: 600,
-        fontSize: 12,
-        cursor: sending ? 'wait' : invoice.client?.email ? 'pointer' : 'not-allowed',
-        opacity: sending ? 0.6 : 1,
-        transition: 'all 0.15s',
-      }}
-      onMouseEnter={(e) => {
-        if (!sending && invoice.client?.email) {
-          e.currentTarget.style.background = 'var(--success)'
-          e.currentTarget.style.color = '#fff'
-        }
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = invoice.client?.email ? 'var(--success-bg)' : '#F1F1F5'
-        e.currentTarget.style.color = invoice.client?.email ? 'var(--success)' : '#999'
-      }}
+      title={hasEmail ? `Envoyer a ${invoice.client?.email}` : "Pas d'email client"}
+      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+        hasEmail
+          ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white cursor-pointer'
+          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+      } ${sending ? 'opacity-60 cursor-wait' : ''}`}
     >
-      <SendIcon />
+      <Send size={13} />
       {sending ? 'Envoi...' : 'Email'}
     </button>
   )
 }
 
 /* ── Status transition map ── */
-type Transition = { to: InvoiceStatus; label: string; icon: string }
+type Transition = { to: InvoiceStatus; label: string }
 
 function getTransitions(current: InvoiceStatus): Transition[] {
   switch (current) {
     case 'draft':
       return [
-        { to: 'sent', label: 'Marquer comme Envoyée', icon: '📤' },
-        { to: 'paid', label: 'Marquer comme Payée', icon: '✅' },
+        { to: 'sent', label: 'Marquer comme Envoyee' },
+        { to: 'paid', label: 'Marquer comme Payee' },
       ]
     case 'sent':
       return [
-        { to: 'paid', label: 'Marquer comme Payée', icon: '✅' },
-        { to: 'late', label: 'Marquer en Retard', icon: '⚠️' },
-        { to: 'draft', label: 'Remettre en Brouillon', icon: '📝' },
+        { to: 'paid', label: 'Marquer comme Payee' },
+        { to: 'late', label: 'Marquer en Retard' },
+        { to: 'draft', label: 'Remettre en Brouillon' },
       ]
     case 'paid':
       return [
-        { to: 'draft', label: 'Remettre en Brouillon', icon: '📝' },
+        { to: 'draft', label: 'Remettre en Brouillon' },
       ]
     case 'late':
       return [
-        { to: 'paid', label: 'Marquer comme Payée', icon: '✅' },
-        { to: 'sent', label: 'Remettre en Envoyée', icon: '📤' },
+        { to: 'paid', label: 'Marquer comme Payee' },
+        { to: 'sent', label: 'Remettre en Envoyee' },
       ]
     default:
       return []
@@ -204,34 +137,12 @@ function PdfButton({ invoiceId }: { invoiceId: string }) {
     <button
       onClick={handleDownload}
       disabled={loading}
-      title="Télécharger le PDF"
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        background: 'var(--blue-surface)',
-        color: 'var(--blue-primary)',
-        border: 'none',
-        borderRadius: 6,
-        padding: '8px 12px',
-        fontWeight: 600,
-        fontSize: 12,
-        cursor: loading ? 'wait' : 'pointer',
-        opacity: loading ? 0.6 : 1,
-        transition: 'all 0.15s',
-      }}
-      onMouseEnter={(e) => {
-        if (!loading) {
-          e.currentTarget.style.background = 'var(--blue-primary)'
-          e.currentTarget.style.color = '#fff'
-        }
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = 'var(--blue-surface)'
-        e.currentTarget.style.color = 'var(--blue-primary)'
-      }}
+      title="Telecharger le PDF"
+      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-blue-50 text-[#0057FF] hover:bg-[#0057FF] hover:text-white transition-all ${
+        loading ? 'opacity-60 cursor-wait' : 'cursor-pointer'
+      }`}
     >
-      <DownloadIcon />
+      <Download size={13} />
       PDF
     </button>
   )
@@ -253,7 +164,6 @@ function StatusDropdown({
   const badge = statusBadge[currentStatus]
   const transitions = getTransitions(currentStatus)
 
-  // Close on outside click
   useEffect(() => {
     if (!open) return
     const handler = (e: MouseEvent) => {
@@ -275,60 +185,24 @@ function StatusDropdown({
   }
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <div ref={ref} className="relative">
       <button
         onClick={(e) => {
           e.stopPropagation()
           if (transitions.length > 0) setOpen(!open)
         }}
         disabled={updating || transitions.length === 0}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-          padding: '4px 12px',
-          borderRadius: 6,
-          fontSize: 12,
-          fontWeight: 600,
-          background: badge.bg,
-          color: badge.color,
-          border: 'none',
-          cursor: transitions.length > 0 ? 'pointer' : 'default',
-          opacity: updating ? 0.5 : 1,
-          transition: 'all 0.15s',
-        }}
+        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-bold uppercase ${badge.bg} ${badge.text} ${
+          transitions.length > 0 ? 'cursor-pointer' : 'cursor-default'
+        } ${updating ? 'opacity-50' : ''} transition-all`}
       >
         {updating ? '...' : badge.label}
-        {transitions.length > 0 && <ChevronDownIcon />}
+        {transitions.length > 0 && <ChevronDown size={12} />}
       </button>
 
       {open && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '100%',
-            right: 0,
-            marginTop: 6,
-            background: 'var(--surface)',
-            border: '1px solid var(--line)',
-            borderRadius: 10,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-            zIndex: 50,
-            minWidth: 230,
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              padding: '8px 14px',
-              fontSize: 9,
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: 1.5,
-              color: 'var(--muted)',
-              borderBottom: '1px solid var(--line)',
-            }}
-          >
+        <div className="absolute top-full right-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-lg z-50 min-w-[230px] overflow-hidden">
+          <div className="px-3.5 py-2 text-[9px] font-semibold uppercase tracking-[1.5px] text-gray-400 border-b border-gray-100">
             Changer le statut
           </div>
           {transitions.map((t) => {
@@ -340,38 +214,11 @@ function StatusDropdown({
                   e.stopPropagation()
                   handleSelect(t.to)
                 }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  width: '100%',
-                  padding: '10px 14px',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: 13,
-                  color: 'var(--ink)',
-                  textAlign: 'left',
-                  transition: 'background 0.1s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'var(--bg)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent'
-                }}
+                className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-gray-800 text-left hover:bg-gray-50 transition-colors"
               >
-                <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    background: targetBadge.color,
-                    flexShrink: 0,
-                  }}
-                />
-                <span style={{ flex: 1 }}>{t.label}</span>
-                <CheckIcon />
+                <span className={`w-2 h-2 rounded-full ${targetBadge.dot} shrink-0`} />
+                <span className="flex-1">{t.label}</span>
+                <Check size={13} className="text-gray-300" />
               </button>
             )
           })}
@@ -388,7 +235,7 @@ export default function InvoicesPage() {
 
   const handleEmailSuccess = (msg: string) => {
     setToast({ message: msg, type: 'success' })
-    fetchInvoices() // Refresh to get updated status
+    fetchInvoices()
   }
 
   const handleEmailError = (msg: string) => {
@@ -396,11 +243,10 @@ export default function InvoicesPage() {
   }
 
   const handleExportCSV = () => {
-    // Escape values containing semicolons, double quotes, or newlines
     const esc = (v: string) =>
       /[;\n\r"]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v
 
-    const header = 'Numéro;Client;Date;Montant;Statut'
+    const header = 'Numero;Client;Date;Montant;Statut'
     const rows = invoices.map((inv) => {
       const ht = calculateHT(inv.items ?? [])
       const ttc = calculateTTC(ht, inv.tva_rate)
@@ -425,227 +271,145 @@ export default function InvoicesPage() {
     URL.revokeObjectURL(url)
   }
 
+  /* Loading skeleton */
   if (loading) {
-    return <div style={{ color: 'var(--muted)', fontSize: 14 }}>Chargement...</div>
+    return (
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col gap-3 mt-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 animate-pulse">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-gray-200 rounded-xl" />
+                <div className="flex-1">
+                  <div className="h-4 w-28 bg-gray-200 rounded mb-2" />
+                  <div className="h-3 w-44 bg-gray-100 rounded" />
+                </div>
+                <div className="h-8 w-20 bg-gray-100 rounded-lg" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div>
-      {/* Header */}
-      <div
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-        style={{ marginBottom: 28 }}
-      >
+    <div className="max-w-7xl mx-auto">
+
+      {/* ═══ HEADER ═══ */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-[28px]" style={{ fontWeight: 800, color: 'var(--ink)', margin: 0 }}>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
             Factures
           </h1>
-          <div
-            style={{
-              fontSize: 10,
-              textTransform: 'uppercase',
-              letterSpacing: 2,
-              color: 'var(--muted)',
-              marginTop: 4,
-            }}
-          >
-            {invoices.length} FACTURE(S) ENREGISTRÉE(S)
-          </div>
+          <p className="text-xs font-medium text-gray-400 uppercase tracking-widest mt-1">
+            {invoices.length} facture(s) enregistree(s)
+          </p>
         </div>
         <div className="flex gap-2 sm:gap-3 flex-wrap">
           <button
             onClick={handleExportCSV}
             disabled={invoices.length === 0}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              background: 'var(--surface)',
-              color: 'var(--ink)',
-              border: '1px solid var(--line)',
-              borderRadius: 6,
-              padding: '10px 18px',
-              fontWeight: 600,
-              fontSize: 14,
-              cursor: invoices.length === 0 ? 'not-allowed' : 'pointer',
-              opacity: invoices.length === 0 ? 0.5 : 1,
-              transition: 'all 0.15s',
-            }}
-            onMouseEnter={(e) => {
-              if (invoices.length > 0) e.currentTarget.style.borderColor = 'var(--blue-primary)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'var(--line)'
-            }}
+            className={`inline-flex items-center gap-2 bg-white text-gray-700 border border-gray-200 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${
+              invoices.length === 0
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:border-[#00A3FF] hover:text-[#0057FF] cursor-pointer'
+            }`}
           >
-            <DownloadIcon />
+            <Download size={15} />
             Exporter
           </button>
           <Link
             href="/invoices/new"
-            style={{
-              background: 'var(--blue-primary)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-              padding: '10px 20px',
-              fontWeight: 600,
-              fontSize: 14,
-              cursor: 'pointer',
-              textDecoration: 'none',
-              display: 'inline-block',
-            }}
+            className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:opacity-90 transition-opacity"
           >
             + Nouvelle Facture
           </Link>
         </div>
       </div>
 
-      {/* Invoice List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {invoices.map((inv) => {
-          const ht = calculateHT(inv.items ?? [])
-          const ttc = calculateTTC(ht, inv.tva_rate)
-          return (
-            <div
-              key={inv.id}
-              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-              style={{
-                background: 'var(--surface)',
-                border: '1px solid var(--line)',
-                borderRadius: 10,
-                padding: '14px 16px',
-                transition: 'border-color 0.15s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--blue-primary)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--line)'
-              }}
-            >
-              {/* Left side — icon + info */}
-              <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 8,
-                    background: 'var(--blue-surface)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  <svg
-                    width="18"
-                    height="18"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="var(--blue-primary)"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                </div>
+      {/* ═══ INVOICE LIST ═══ */}
+      {invoices.length === 0 ? (
+        <div className="text-center py-20">
+          <FileText size={48} className="mx-auto text-gray-300 mb-4" />
+          <p className="text-sm text-gray-400" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+            Aucune facture enregistree.
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {invoices.map((inv) => {
+            const ht = calculateHT(inv.items ?? [])
+            const ttc = calculateTTC(ht, inv.tva_rate)
+            return (
+              <div
+                key={inv.id}
+                className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 hover:shadow-md hover:border-[#00A3FF]/40 transition-all group"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
 
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span
-                      style={{
-                        fontWeight: 700,
-                        color: 'var(--ink)',
-                        fontFamily: 'monospace',
-                        fontSize: 14,
-                      }}
+                  {/* Left — icon + info */}
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00A3FF] to-[#0057FF] flex items-center justify-center text-white shrink-0">
+                      <FileText size={18} />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <span className="font-bold text-gray-900 font-mono text-sm group-hover:text-[#0057FF] transition-colors">
+                          {inv.invoice_number}
+                        </span>
+                        <StatusDropdown
+                          invoiceId={inv.id}
+                          currentStatus={inv.status}
+                          onUpdate={updateStatus}
+                        />
+                      </div>
+                      <div className="text-sm text-gray-400 mt-0.5 truncate">
+                        {inv.client?.name ?? '---'}
+                        {inv.project?.name && (
+                          <span> &middot; {inv.project.name}</span>
+                        )}
+                        {inv.issue_date && (
+                          <span className="ml-2 text-xs">
+                            &middot; {new Date(inv.issue_date).toLocaleDateString('fr-FR')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right — amount + actions */}
+                  <div className="flex items-center gap-2.5 shrink-0">
+                    <div className="text-right mr-2">
+                      <div className="font-extrabold text-[#0057FF] text-base">
+                        {formatCurrency(ttc)}
+                      </div>
+                      <div className="text-[10px] text-gray-400 uppercase font-medium">
+                        TTC
+                      </div>
+                    </div>
+
+                    <EmailButton
+                      invoice={inv}
+                      onSuccess={handleEmailSuccess}
+                      onError={handleEmailError}
+                    />
+
+                    <PdfButton invoiceId={inv.id} />
+
+                    <Link
+                      href={`/invoices/${inv.id}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-blue-50 text-[#0057FF] hover:bg-[#0057FF] hover:text-white transition-all"
                     >
-                      {inv.invoice_number}
-                    </span>
-                    {/* Status badge dropdown */}
-                    <StatusDropdown
-                      invoiceId={inv.id}
-                      currentStatus={inv.status}
-                      onUpdate={updateStatus}
-                    />
-                  </div>
-                  <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 2 }}>
-                    {inv.client?.name ?? '---'}
-                    {inv.project?.name && (
-                      <span> &middot; {inv.project.name}</span>
-                    )}
-                    {inv.issue_date && (
-                      <span style={{ marginLeft: 8, fontSize: 11 }}>
-                        &middot; {new Date(inv.issue_date).toLocaleDateString('fr-FR')}
-                      </span>
-                    )}
+                      <Eye size={13} />
+                      Voir
+                    </Link>
                   </div>
                 </div>
               </div>
-
-              {/* Right side — amount + actions */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-                <div style={{ textAlign: 'right' }}>
-                  <div
-                    style={{
-                      fontWeight: 800,
-                      color: 'var(--blue-primary)',
-                      fontSize: 16,
-                    }}
-                  >
-                    {formatCurrency(ttc)}
-                  </div>
-                  <div style={{ color: 'var(--muted)', fontSize: 10, textTransform: 'uppercase' }}>
-                    TTC
-                  </div>
-                </div>
-
-                <EmailButton
-                  invoice={inv}
-                  onSuccess={handleEmailSuccess}
-                  onError={handleEmailError}
-                />
-
-                <PdfButton invoiceId={inv.id} />
-
-                <Link
-                  href={`/invoices/${inv.id}`}
-                  style={{
-                    background: 'var(--blue-surface)',
-                    color: 'var(--blue-primary)',
-                    border: 'none',
-                    borderRadius: 6,
-                    padding: '8px 12px',
-                    fontWeight: 600,
-                    fontSize: 12,
-                    cursor: 'pointer',
-                    textDecoration: 'none',
-                    transition: 'all 0.15s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'var(--blue-primary)'
-                    e.currentTarget.style.color = '#fff'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'var(--blue-surface)'
-                    e.currentTarget.style.color = 'var(--blue-primary)'
-                  }}
-                >
-                  Voir
-                </Link>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {invoices.length === 0 && (
-        <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 20 }}>
-          Aucune facture enregistrée.
+            )
+          })}
         </div>
       )}
 
