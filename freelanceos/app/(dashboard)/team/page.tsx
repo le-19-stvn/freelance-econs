@@ -4,73 +4,31 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import { useTeams, useTeamMembers, useTeamProjects, useTeamTasks } from '@/hooks/useTeams'
-import type { Team, TeamProject, TeamTask, TaskStatus, TeamMember } from '@/types'
+import type { TeamTask, TaskStatus, TeamMember } from '@/types'
 
 /* ── Constants ── */
-const columns: { key: TaskStatus; label: string; color: string; bg: string }[] = [
-  { key: 'todo', label: 'À faire', color: '#6B7280', bg: '#F3F4F6' },
-  { key: 'in_progress', label: 'En cours', color: '#2563EB', bg: '#EFF6FF' },
-  { key: 'done', label: 'Terminé', color: '#059669', bg: '#ECFDF5' },
+const columns: { key: TaskStatus; label: string }[] = [
+  { key: 'todo', label: 'A faire' },
+  { key: 'in_progress', label: 'En cours' },
+  { key: 'done', label: 'Termine' },
 ]
 
 const roleLabels: Record<string, string> = {
-  owner: 'Propriétaire',
+  owner: 'Proprietaire',
   admin: 'Admin',
   member: 'Membre',
 }
 
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '8px 12px',
-  borderRadius: 6,
-  border: '1px solid var(--line)',
-  fontSize: 14,
-  outline: 'none',
-  background: 'var(--bg)',
-  color: 'var(--ink)',
-  boxSizing: 'border-box',
-}
-
-const btnPrimary: React.CSSProperties = {
-  background: 'var(--blue-primary)',
-  color: '#fff',
-  border: 'none',
-  borderRadius: 6,
-  padding: '8px 16px',
-  fontWeight: 600,
-  fontSize: 13,
-  cursor: 'pointer',
-}
-
-const btnSecondary: React.CSSProperties = {
-  background: 'var(--bg)',
-  color: 'var(--muted)',
-  border: '1px solid var(--line)',
-  borderRadius: 6,
-  padding: '8px 16px',
-  fontWeight: 600,
-  fontSize: 13,
-  cursor: 'pointer',
-}
-
-/* ── Modal Wrapper ── */
+/* ── Simple Modal ── */
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
     <div
-      style={{
-        position: 'fixed', inset: 0, zIndex: 50,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)',
-      }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
       onClick={onClose}
     >
       <div
         onClick={e => e.stopPropagation()}
-        style={{
-          background: 'var(--surface)', borderRadius: 12,
-          border: '1px solid var(--line)', padding: 28,
-          width: '100%', maxWidth: 420, boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
-        }}
+        className="bg-white rounded-lg p-6 w-full max-w-md"
       >
         {children}
       </div>
@@ -78,7 +36,7 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
   )
 }
 
-/* ── Kanban Card ── */
+/* ── Task Card ── */
 function TaskCard({
   task,
   members,
@@ -95,95 +53,45 @@ function TaskCard({
   const [showMenu, setShowMenu] = useState(false)
 
   return (
-    <div
-      style={{
-        background: 'var(--surface)',
-        border: '1px solid var(--line)',
-        borderRadius: 8,
-        padding: '12px 14px',
-        marginBottom: 8,
-        position: 'relative',
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-        <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', lineHeight: 1.4 }}>
-          {task.title}
-        </span>
+    <div className="bg-white border border-gray-200 rounded p-3 mb-2 relative">
+      <div className="flex justify-between items-start gap-2">
+        <span className="text-sm text-gray-900">{task.title}</span>
         <button
           onClick={() => setShowMenu(!showMenu)}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            padding: '2px 4px', fontSize: 16, color: 'var(--muted)', lineHeight: 1,
-            flexShrink: 0,
-          }}
+          className="text-gray-400 hover:text-gray-600 text-sm px-1 shrink-0"
         >
-          ···
+          ...
         </button>
       </div>
 
-      {/* Assignee badge */}
       {task.assignee_name && (
-        <div style={{
-          marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 5,
-          background: 'var(--bg)', borderRadius: 4, padding: '2px 8px',
-        }}>
-          <div style={{
-            width: 16, height: 16, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #00B4D8 0%, #1A3FA3 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontSize: 8, fontWeight: 700,
-          }}>
-            {task.assignee_name[0]?.toUpperCase()}
-          </div>
-          <span style={{ fontSize: 11, color: 'var(--muted)' }}>{task.assignee_name}</span>
+        <div className="mt-2 text-xs text-gray-500">
+          Assigne a : {task.assignee_name}
         </div>
       )}
 
-      {/* Context menu */}
       {showMenu && (
-        <div
-          style={{
-            position: 'absolute', top: 32, right: 8, zIndex: 10,
-            background: 'var(--surface)', border: '1px solid var(--line)',
-            borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-            padding: 4, minWidth: 160,
-          }}
-        >
-          {/* Move options */}
+        <div className="absolute top-8 right-2 z-10 bg-white border border-gray-200 rounded p-1 min-w-[150px]">
           {columns.filter(c => c.key !== task.status).map(c => (
             <button
               key={c.key}
               onClick={() => { onMove(task.id, c.key); setShowMenu(false) }}
-              style={{
-                display: 'block', width: '100%', textAlign: 'left',
-                background: 'none', border: 'none', padding: '7px 12px',
-                fontSize: 12, color: 'var(--ink)', cursor: 'pointer', borderRadius: 4,
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
+              className="block w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 rounded"
             >
-              → {c.label}
+              Deplacer → {c.label}
             </button>
           ))}
-
-          <div style={{ height: 1, background: 'var(--line)', margin: '4px 0' }} />
-
-          {/* Assign options */}
-          <div style={{ padding: '4px 12px 2px', fontSize: 10, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 1 }}>
+          <div className="border-t border-gray-100 my-1" />
+          <div className="px-3 py-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
             Assigner
           </div>
           {members.map(m => (
             <button
               key={m.user_id}
               onClick={() => { onAssign(task.id, m.user_id); setShowMenu(false) }}
-              style={{
-                display: 'block', width: '100%', textAlign: 'left',
-                background: task.assigned_to === m.user_id ? 'var(--blue-surface)' : 'none',
-                border: 'none', padding: '7px 12px',
-                fontSize: 12, color: 'var(--ink)', cursor: 'pointer', borderRadius: 4,
-              }}
-              onMouseEnter={e => { if (task.assigned_to !== m.user_id) e.currentTarget.style.background = 'var(--bg)' }}
-              onMouseLeave={e => { if (task.assigned_to !== m.user_id) e.currentTarget.style.background = 'none' }}
+              className={`block w-full text-left px-3 py-1.5 text-xs rounded ${
+                task.assigned_to === m.user_id ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'
+              }`}
             >
               {m.full_name ?? m.email}
             </button>
@@ -191,29 +99,15 @@ function TaskCard({
           {task.assigned_to && (
             <button
               onClick={() => { onAssign(task.id, null); setShowMenu(false) }}
-              style={{
-                display: 'block', width: '100%', textAlign: 'left',
-                background: 'none', border: 'none', padding: '7px 12px',
-                fontSize: 12, color: 'var(--danger)', cursor: 'pointer', borderRadius: 4,
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--danger-bg, #FEE2E2)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
+              className="block w-full text-left px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded"
             >
-              Retirer l'assignation
+              Retirer l&apos;assignation
             </button>
           )}
-
-          <div style={{ height: 1, background: 'var(--line)', margin: '4px 0' }} />
-
+          <div className="border-t border-gray-100 my-1" />
           <button
             onClick={() => { onDelete(task.id); setShowMenu(false) }}
-            style={{
-              display: 'block', width: '100%', textAlign: 'left',
-              background: 'none', border: 'none', padding: '7px 12px',
-              fontSize: 12, color: 'var(--danger)', cursor: 'pointer', borderRadius: 4,
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--danger-bg, #FEE2E2)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
+            className="block w-full text-left px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded"
           >
             Supprimer
           </button>
@@ -242,46 +136,23 @@ function KanbanColumn({
   onAddTask: (status: TaskStatus) => void
 }) {
   return (
-    <div style={{ flex: 1, minWidth: 240 }}>
-      {/* Column header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: 12, padding: '0 2px',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{
-            display: 'inline-block', width: 8, height: 8,
-            borderRadius: '50%', background: colDef.color,
-          }} />
-          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>
-            {colDef.label}
-          </span>
-          <span style={{
-            fontSize: 11, fontWeight: 600, color: 'var(--muted)',
-            background: 'var(--bg)', borderRadius: 10, padding: '1px 8px',
-          }}>
+    <div className="flex-1 min-w-[220px]">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-gray-900">{colDef.label}</span>
+          <span className="text-xs text-gray-400 bg-gray-100 rounded px-2 py-0.5">
             {tasks.length}
           </span>
         </div>
         <button
           onClick={() => onAddTask(colDef.key)}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 18, color: 'var(--muted)', lineHeight: 1, padding: '0 4px',
-          }}
-          title="Ajouter une tâche"
+          className="text-gray-400 hover:text-gray-600 text-lg leading-none"
+          title="Ajouter une tache"
         >
           +
         </button>
       </div>
-
-      {/* Cards container */}
-      <div style={{
-        background: colDef.bg,
-        borderRadius: 10,
-        padding: 8,
-        minHeight: 120,
-      }}>
+      <div className="bg-gray-50 rounded-lg p-2 min-h-[100px]">
         {tasks.map(task => (
           <TaskCard
             key={task.id}
@@ -293,19 +164,16 @@ function KanbanColumn({
           />
         ))}
         {tasks.length === 0 && (
-          <div style={{
-            padding: '24px 0', textAlign: 'center',
-            fontSize: 12, color: 'var(--muted)',
-          }}>
-            Aucune tâche
-          </div>
+          <div className="text-center text-xs text-gray-400 py-6">Aucune tache</div>
         )}
       </div>
     </div>
   )
 }
 
-/* ── Main Page ── */
+/* ══════════════════════════════════════════════
+   MAIN PAGE
+   ══════════════════════════════════════════════ */
 export default function TeamPage() {
   const supabase = createClient()
   const { teams, loading: teamsLoading, fetchTeams, createTeam } = useTeams()
@@ -408,49 +276,44 @@ export default function TeamPage() {
     setFormLoading(false)
   }
 
-  /* ── Empty state ── */
+  /* ── Loading ── */
   if (teamsLoading) {
-    return <div style={{ color: 'var(--muted)', fontSize: 14, padding: 20 }}>Chargement...</div>
+    return <div className="text-gray-400 text-sm p-4">Chargement...</div>
   }
 
+  /* ── Empty state: no teams ── */
   if (teams.length === 0) {
     return (
-      <div style={{ maxWidth: 480, margin: '80px auto', textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>
-          <Users size={48} style={{ color: 'var(--muted)' }} />
-        </div>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--ink)', margin: '0 0 8px' }}>
-          Freelance Collective
-        </h2>
-        <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.6, margin: '0 0 28px' }}>
-          Collaborez avec d'autres freelances sur des projets communs.
-          Vos clients et factures restent privés.
+      <div className="max-w-md mx-auto text-center py-20">
+        <UsersIcon size={48} className="mx-auto text-gray-300 mb-4" />
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Gestion de l&apos;Equipe</h2>
+        <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+          Collaborez avec d&apos;autres freelances sur des projets communs.
+          Vos clients et factures restent prives.
         </p>
         <button
           onClick={() => { setShowCreateTeam(true); setFormError(null) }}
-          style={btnPrimary}
+          className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-blue-700"
         >
-          Créer une équipe
+          Creer une equipe
         </button>
 
         {showCreateTeam && (
           <Modal onClose={() => setShowCreateTeam(false)}>
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--ink)', margin: '0 0 16px' }}>
-              Nouvelle équipe
-            </h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Nouvelle equipe</h3>
             <input
               value={newTeamName}
               onChange={e => setNewTeamName(e.target.value)}
-              placeholder="Nom de l'équipe"
-              style={{ ...inputStyle, marginBottom: 16 }}
+              placeholder="Nom de l'equipe"
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-4 outline-none focus:border-blue-500"
               autoFocus
               onKeyDown={e => e.key === 'Enter' && handleCreateTeam()}
             />
-            {formError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 12 }}>{formError}</div>}
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button onClick={() => setShowCreateTeam(false)} style={btnSecondary}>Annuler</button>
-              <button onClick={handleCreateTeam} disabled={formLoading} style={{ ...btnPrimary, opacity: formLoading ? 0.6 : 1 }}>
-                {formLoading ? 'Création...' : 'Créer'}
+            {formError && <div className="text-sm text-red-600 mb-3">{formError}</div>}
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setShowCreateTeam(false)} className="border border-gray-300 text-gray-500 px-4 py-2 rounded text-sm font-semibold">Annuler</button>
+              <button onClick={handleCreateTeam} disabled={formLoading} className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold disabled:opacity-50">
+                {formLoading ? 'Creation...' : 'Creer'}
               </button>
             </div>
           </Modal>
@@ -459,83 +322,132 @@ export default function TeamPage() {
     )
   }
 
-  /* ── Main layout ── */
+  /* ══════════════════════════════════════
+     MAIN LAYOUT — Full width, no sidebar
+     ══════════════════════════════════════ */
   return (
-    <div style={{ display: 'flex', gap: 0, minHeight: 'calc(100vh - 120px)' }}>
-      {/* ── Left sidebar: teams + projects ── */}
-      <div style={{
-        width: 260, minWidth: 260, flexShrink: 0,
-        borderRight: '1px solid var(--line)',
-        background: 'var(--surface)',
-        borderRadius: '12px 0 0 12px',
-        display: 'flex', flexDirection: 'column',
-      }}>
-        {/* Team selector */}
-        <div style={{ padding: '16px 16px 12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--muted)' }}>
-              Équipes
-            </span>
-            <button
-              onClick={() => { setShowCreateTeam(true); setFormError(null) }}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--muted)', lineHeight: 1 }}
-              title="Nouvelle équipe"
-            >
-              +
-            </button>
-          </div>
-          {teams.map(team => (
-            <button
-              key={team.id}
-              onClick={() => { setActiveTeamId(team.id); setActiveProjectId(null) }}
-              style={{
-                display: 'block', width: '100%', textAlign: 'left',
-                padding: '8px 10px', borderRadius: 6, marginBottom: 2,
-                border: 'none', cursor: 'pointer',
-                background: team.id === activeTeamId ? 'var(--blue-surface)' : 'transparent',
-                color: team.id === activeTeamId ? 'var(--blue-primary)' : 'var(--ink)',
-                fontWeight: team.id === activeTeamId ? 600 : 400,
-                fontSize: 13,
-              }}
-            >
-              {team.name}
-            </button>
-          ))}
+    <div className="max-w-7xl mx-auto">
+
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Gestion de l&apos;Equipe</h1>
+          <p className="text-sm text-gray-500 mt-1">{members.length} membre(s) dans cette equipe</p>
         </div>
 
-        <div style={{ height: 1, background: 'var(--line)', margin: '0 16px' }} />
+        <div className="flex items-center gap-3">
+          {/* Team Selector */}
+          <select
+            value={activeTeamId ?? ''}
+            onChange={e => { setActiveTeamId(e.target.value); setActiveProjectId(null) }}
+            className="border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+          >
+            {teams.map(team => (
+              <option key={team.id} value={team.id}>{team.name}</option>
+            ))}
+          </select>
 
-        {/* Team projects */}
-        {activeTeam && (
-          <div style={{ padding: '12px 16px', flex: 1, overflow: 'auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--muted)' }}>
-                Projets
-              </span>
-              <button
-                onClick={() => { setShowCreateProject(true); setFormError(null) }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--muted)', lineHeight: 1 }}
-                title="Nouveau projet"
+          <button
+            onClick={() => { setShowCreateTeam(true); setFormError(null) }}
+            className="border border-gray-300 text-gray-600 px-3 py-2 rounded text-sm font-semibold hover:bg-gray-50"
+          >
+            + Equipe
+          </button>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════
+         SECTION 1: MEMBERS (Priority)
+         ══════════════════════════════ */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Membres</h2>
+          {canManage && (
+            <button
+              onClick={() => { setShowInvite(true); setFormError(null) }}
+              className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-blue-700"
+            >
+              + Inviter un membre
+            </button>
+          )}
+        </div>
+
+        {members.length === 0 ? (
+          <p className="text-sm text-gray-400">Aucun membre dans cette equipe.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {members.map(m => (
+              <div
+                key={m.user_id}
+                className="flex items-center gap-3 border border-gray-200 rounded-lg p-4"
               >
-                +
-              </button>
-            </div>
-            {projects.length === 0 && (
-              <div style={{ fontSize: 12, color: 'var(--muted)', padding: '8px 0' }}>Aucun projet</div>
-            )}
+                {/* Avatar */}
+                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-sm font-bold shrink-0">
+                  {(m.full_name ?? m.email)?.[0]?.toUpperCase() ?? '?'}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900 truncate">
+                    {m.full_name ?? 'Sans nom'}
+                  </div>
+                  <div className="text-xs text-gray-500 truncate">{m.email}</div>
+                </div>
+
+                {/* Role + Remove */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400 font-medium">
+                    {roleLabels[m.role] ?? m.role}
+                  </span>
+                  {canManage && m.user_id !== currentUserId && m.role !== 'owner' && (
+                    <button
+                      onClick={() => {
+                        if (confirm('Retirer ce membre de l\'equipe ?')) {
+                          removeMember(m.user_id)
+                        }
+                      }}
+                      className="text-xs text-red-500 hover:text-red-700"
+                      title="Retirer"
+                    >
+                      x
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ══════════════════════════════════════
+         SECTION 2: PROJECTS LINKED TO TEAM
+         ══════════════════════════════════════ */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Projets associes a cette equipe
+          </h2>
+          <button
+            onClick={() => { setShowCreateProject(true); setFormError(null) }}
+            className="border border-gray-300 text-gray-600 px-3 py-2 rounded text-sm font-semibold hover:bg-gray-50"
+          >
+            + Nouveau projet
+          </button>
+        </div>
+
+        {projects.length === 0 ? (
+          <p className="text-sm text-gray-400">Aucun projet pour cette equipe.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2 mb-4">
             {projects.map(p => (
               <button
                 key={p.id}
                 onClick={() => setActiveProjectId(p.id)}
-                style={{
-                  display: 'block', width: '100%', textAlign: 'left',
-                  padding: '7px 10px', borderRadius: 6, marginBottom: 2,
-                  border: 'none', cursor: 'pointer',
-                  background: p.id === activeProjectId ? 'var(--blue-surface)' : 'transparent',
-                  color: p.id === activeProjectId ? 'var(--blue-primary)' : 'var(--ink)',
-                  fontWeight: p.id === activeProjectId ? 600 : 400,
-                  fontSize: 13,
-                }}
+                className={`px-4 py-2 rounded text-sm font-medium border ${
+                  p.id === activeProjectId
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                }`}
               >
                 {p.name}
               </button>
@@ -543,151 +455,31 @@ export default function TeamPage() {
           </div>
         )}
 
-        <div style={{ height: 1, background: 'var(--line)', margin: '0 16px' }} />
-
-        {/* Team members */}
-        {activeTeam && (
-          <div style={{ padding: '12px 16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--muted)' }}>
-                Membres ({members.length})
-              </span>
-              {canManage && (
-                <button
-                  onClick={() => { setShowInvite(true); setFormError(null) }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--muted)', lineHeight: 1 }}
-                  title="Inviter"
-                >
-                  +
-                </button>
-              )}
-            </div>
-            {members.map(m => (
-              <div key={m.user_id} style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '5px 0', fontSize: 12,
-              }}>
-                <div style={{
-                  width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                  background: 'linear-gradient(135deg, #00B4D8 0%, #1A3FA3 100%)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#fff', fontSize: 9, fontWeight: 700,
-                }}>
-                  {(m.full_name ?? m.email)?.[0]?.toUpperCase() ?? '?'}
-                </div>
-                <span style={{ color: 'var(--ink)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {m.full_name ?? m.email}
-                </span>
-                <span style={{ fontSize: 10, color: 'var(--muted)' }}>
-                  {roleLabels[m.role] ?? m.role}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* ── Right: Kanban board ── */}
-      <div style={{ flex: 1, padding: '20px 24px', overflow: 'auto' }}>
-        {!activeProject ? (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--muted)' }}>
-            <div style={{ fontSize: 14, marginBottom: 16 }}>
-              {projects.length === 0 ? 'Créez un projet pour commencer.' : 'Sélectionnez un projet.'}
-            </div>
-            {projects.length === 0 && (
-              <button
-                onClick={() => { setShowCreateProject(true); setFormError(null) }}
-                style={btnPrimary}
-              >
-                + Nouveau projet
-              </button>
-            )}
-          </div>
-        ) : (
-          <>
-            {/* Project header */}
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              marginBottom: 20,
-            }}>
+        {/* Selected project: Kanban */}
+        {activeProject && (
+          <div>
+            <div className="flex items-center justify-between mb-4 pt-4 border-t border-gray-200">
               <div>
-                <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)', margin: 0 }}>
-                  {activeProject.name}
-                </h2>
+                <h3 className="text-base font-semibold text-gray-900">{activeProject.name}</h3>
                 {activeProject.description && (
-                  <p style={{ fontSize: 13, color: 'var(--muted)', margin: '4px 0 0' }}>
-                    {activeProject.description}
-                  </p>
+                  <p className="text-sm text-gray-500 mt-1">{activeProject.description}</p>
                 )}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                {/* Member avatars */}
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  {members.slice(0, 5).map((m, i) => (
-                    <div
-                      key={m.user_id}
-                      title={m.full_name ?? m.email}
-                      style={{
-                        width: 28, height: 28, borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #00B4D8 0%, #1A3FA3 100%)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: '#fff', fontSize: 10, fontWeight: 700,
-                        border: '2px solid var(--surface)',
-                        marginLeft: i > 0 ? -8 : 0, zIndex: 5 - i,
-                        position: 'relative',
-                      }}
-                    >
-                      {(m.full_name ?? m.email)?.[0]?.toUpperCase() ?? '?'}
-                    </div>
-                  ))}
-                  {members.length > 5 && (
-                    <div style={{
-                      width: 28, height: 28, borderRadius: '50%',
-                      background: 'var(--bg)', border: '2px solid var(--surface)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 9, fontWeight: 600, color: 'var(--muted)',
-                      marginLeft: -8, position: 'relative',
-                    }}>
-                      +{members.length - 5}
-                    </div>
-                  )}
-                </div>
-
-                {/* Invite button */}
-                {canManage && (
-                  <button
-                    onClick={() => { setShowInvite(true); setFormError(null) }}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 6,
-                      background: 'var(--surface)', border: '1px solid var(--line)',
-                      borderRadius: 6, padding: '6px 14px',
-                      fontSize: 13, fontWeight: 600, color: 'var(--ink)',
-                      cursor: 'pointer',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--blue-primary)'; e.currentTarget.style.color = 'var(--blue-primary)' }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.color = 'var(--ink)' }}
-                  >
-                    <UserPlusIcon />
-                    Inviter
-                  </button>
-                )}
-
-                <button
-                  onClick={() => {
-                    if (confirm('Supprimer ce projet et toutes ses tâches ?')) {
-                      deleteProject(activeProject.id)
-                      setActiveProjectId(null)
-                    }
-                  }}
-                  style={{ ...btnSecondary, color: 'var(--danger)', borderColor: 'var(--danger)' }}
-                >
-                  Supprimer
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  if (confirm('Supprimer ce projet et toutes ses taches ?')) {
+                    deleteProject(activeProject.id)
+                    setActiveProjectId(null)
+                  }
+                }}
+                className="text-xs text-red-500 border border-red-300 px-3 py-1.5 rounded hover:bg-red-50"
+              >
+                Supprimer le projet
+              </button>
             </div>
 
-            {/* Kanban columns */}
-            <div style={{ display: 'flex', gap: 16 }}>
+            {/* Kanban Board */}
+            <div className="flex gap-4 overflow-x-auto pb-4">
               {columns.map(col => (
                 <KanbanColumn
                   key={col.key}
@@ -701,30 +493,30 @@ export default function TeamPage() {
                 />
               ))}
             </div>
-          </>
+          </div>
         )}
       </div>
 
-      {/* ══ Modals ══ */}
+      {/* ══════════════════
+         MODALS
+         ══════════════════ */}
 
       {showCreateTeam && (
         <Modal onClose={() => setShowCreateTeam(false)}>
-          <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--ink)', margin: '0 0 16px' }}>
-            Nouvelle équipe
-          </h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Nouvelle equipe</h3>
           <input
             value={newTeamName}
             onChange={e => setNewTeamName(e.target.value)}
-            placeholder="Nom de l'équipe"
-            style={{ ...inputStyle, marginBottom: 16 }}
+            placeholder="Nom de l'equipe"
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-4 outline-none focus:border-blue-500"
             autoFocus
             onKeyDown={e => e.key === 'Enter' && handleCreateTeam()}
           />
-          {formError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 12 }}>{formError}</div>}
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-            <button onClick={() => setShowCreateTeam(false)} style={btnSecondary}>Annuler</button>
-            <button onClick={handleCreateTeam} disabled={formLoading} style={{ ...btnPrimary, opacity: formLoading ? 0.6 : 1 }}>
-              {formLoading ? 'Création...' : 'Créer'}
+          {formError && <div className="text-sm text-red-600 mb-3">{formError}</div>}
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => setShowCreateTeam(false)} className="border border-gray-300 text-gray-500 px-4 py-2 rounded text-sm font-semibold">Annuler</button>
+            <button onClick={handleCreateTeam} disabled={formLoading} className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold disabled:opacity-50">
+              {formLoading ? 'Creation...' : 'Creer'}
             </button>
           </div>
         </Modal>
@@ -732,14 +524,12 @@ export default function TeamPage() {
 
       {showCreateProject && (
         <Modal onClose={() => setShowCreateProject(false)}>
-          <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--ink)', margin: '0 0 16px' }}>
-            Nouveau projet
-          </h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Nouveau projet</h3>
           <input
             value={newProjectName}
             onChange={e => setNewProjectName(e.target.value)}
             placeholder="Nom du projet"
-            style={{ ...inputStyle, marginBottom: 12 }}
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3 outline-none focus:border-blue-500"
             autoFocus
             onKeyDown={e => e.key === 'Enter' && handleCreateProject()}
           />
@@ -748,13 +538,13 @@ export default function TeamPage() {
             onChange={e => setNewProjectDesc(e.target.value)}
             placeholder="Description (optionnel)"
             rows={3}
-            style={{ ...inputStyle, marginBottom: 16, resize: 'vertical' }}
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-4 outline-none focus:border-blue-500 resize-y"
           />
-          {formError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 12 }}>{formError}</div>}
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-            <button onClick={() => setShowCreateProject(false)} style={btnSecondary}>Annuler</button>
-            <button onClick={handleCreateProject} disabled={formLoading} style={{ ...btnPrimary, opacity: formLoading ? 0.6 : 1 }}>
-              {formLoading ? 'Création...' : 'Créer'}
+          {formError && <div className="text-sm text-red-600 mb-3">{formError}</div>}
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => setShowCreateProject(false)} className="border border-gray-300 text-gray-500 px-4 py-2 rounded text-sm font-semibold">Annuler</button>
+            <button onClick={handleCreateProject} disabled={formLoading} className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold disabled:opacity-50">
+              {formLoading ? 'Creation...' : 'Creer'}
             </button>
           </div>
         </Modal>
@@ -762,32 +552,28 @@ export default function TeamPage() {
 
       {showInvite && (
         <Modal onClose={() => setShowInvite(false)}>
-          <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--ink)', margin: '0 0 4px' }}>
-            Inviter un membre
-          </h3>
-          <p style={{ fontSize: 13, color: 'var(--muted)', margin: '0 0 16px' }}>
-            L'utilisateur doit déjà avoir un compte Freelance.
-          </p>
+          <h3 className="text-lg font-bold text-gray-900 mb-1">Inviter un membre</h3>
+          <p className="text-sm text-gray-500 mb-4">L&apos;utilisateur doit deja avoir un compte Freelance.</p>
           <input
             value={inviteEmail}
             onChange={e => setInviteEmail(e.target.value)}
             placeholder="email@exemple.com"
             type="email"
-            style={{ ...inputStyle, marginBottom: 12 }}
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3 outline-none focus:border-blue-500"
             autoFocus
           />
           <select
             value={inviteRole}
             onChange={e => setInviteRole(e.target.value)}
-            style={{ ...inputStyle, marginBottom: 16 }}
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-4 outline-none focus:border-blue-500 bg-white"
           >
             <option value="admin">Admin</option>
             <option value="member">Membre</option>
           </select>
-          {formError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 12 }}>{formError}</div>}
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-            <button onClick={() => setShowInvite(false)} style={btnSecondary}>Annuler</button>
-            <button onClick={handleInvite} disabled={formLoading} style={{ ...btnPrimary, opacity: formLoading ? 0.6 : 1 }}>
+          {formError && <div className="text-sm text-red-600 mb-3">{formError}</div>}
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => setShowInvite(false)} className="border border-gray-300 text-gray-500 px-4 py-2 rounded text-sm font-semibold">Annuler</button>
+            <button onClick={handleInvite} disabled={formLoading} className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold disabled:opacity-50">
               {formLoading ? 'Ajout...' : 'Inviter'}
             </button>
           </div>
@@ -796,21 +582,21 @@ export default function TeamPage() {
 
       {showAddTask !== null && (
         <Modal onClose={() => setShowAddTask(null)}>
-          <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--ink)', margin: '0 0 16px' }}>
-            Nouvelle tâche — {columns.find(c => c.key === showAddTask)?.label}
+          <h3 className="text-lg font-bold text-gray-900 mb-4">
+            Nouvelle tache — {columns.find(c => c.key === showAddTask)?.label}
           </h3>
           <input
             value={newTaskTitle}
             onChange={e => setNewTaskTitle(e.target.value)}
-            placeholder="Titre de la tâche"
-            style={{ ...inputStyle, marginBottom: 16 }}
+            placeholder="Titre de la tache"
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-4 outline-none focus:border-blue-500"
             autoFocus
             onKeyDown={e => e.key === 'Enter' && handleAddTask()}
           />
-          {formError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 12 }}>{formError}</div>}
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-            <button onClick={() => setShowAddTask(null)} style={btnSecondary}>Annuler</button>
-            <button onClick={handleAddTask} disabled={formLoading} style={{ ...btnPrimary, opacity: formLoading ? 0.6 : 1 }}>
+          {formError && <div className="text-sm text-red-600 mb-3">{formError}</div>}
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => setShowAddTask(null)} className="border border-gray-300 text-gray-500 px-4 py-2 rounded text-sm font-semibold">Annuler</button>
+            <button onClick={handleAddTask} disabled={formLoading} className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold disabled:opacity-50">
               {formLoading ? 'Ajout...' : 'Ajouter'}
             </button>
           </div>
@@ -820,25 +606,14 @@ export default function TeamPage() {
   )
 }
 
-/* ── Icons (inline to avoid extra deps) ── */
-function Users({ size = 24, style }: { size?: number; style?: React.CSSProperties }) {
+/* ── Icon ── */
+function UsersIcon({ size = 24, className }: { size?: number; className?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={style}>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
       <circle cx="9" cy="7" r="4" />
       <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  )
-}
-
-function UserPlusIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="8.5" cy="7" r="4" />
-      <line x1="20" y1="8" x2="20" y2="14" />
-      <line x1="23" y1="11" x2="17" y2="11" />
     </svg>
   )
 }
