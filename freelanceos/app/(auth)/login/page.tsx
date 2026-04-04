@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
+import { LegalFooter } from '@/components/ui/LegalFooter'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -44,7 +45,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--bg)]">
       <div className="w-full max-w-md bg-[var(--surface)] rounded-xl border border-[var(--line)] p-8">
         <div className="flex items-center gap-3 mb-8">
           <Image src="/assets/logo_freelance.png" alt="eCons Freelance" width={40} height={40} className="flex-shrink-0 rounded-[10px]" />
@@ -128,6 +129,7 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
+      <LegalFooter />
     </div>
   )
 }

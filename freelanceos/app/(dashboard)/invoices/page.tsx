@@ -396,18 +396,24 @@ export default function InvoicesPage() {
   }
 
   const handleExportCSV = () => {
-    const header = 'Numéro,Client,Date,Montant,Statut'
+    // Escape values containing semicolons, double quotes, or newlines
+    const esc = (v: string) =>
+      /[;\n\r"]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v
+
+    const header = 'Numéro;Client;Date;Montant;Statut'
     const rows = invoices.map((inv) => {
       const ht = calculateHT(inv.items ?? [])
       const ttc = calculateTTC(ht, inv.tva_rate)
-      const clientName = (inv.client?.name ?? '').replace(/,/g, ' ')
+      const clientName = inv.client?.name ?? ''
       const date = inv.issue_date
         ? new Date(inv.issue_date).toLocaleDateString('fr-FR')
         : ''
       const status = statusBadge[inv.status]?.label ?? inv.status
-      return `${inv.invoice_number},${clientName},${date},${ttc.toFixed(2)},${status}`
+      return [inv.invoice_number, clientName, date, ttc.toFixed(2), status]
+        .map(esc)
+        .join(';')
     })
-    const csv = '\uFEFF' + [header, ...rows].join('\n')
+    const csv = '\uFEFF' + [header, ...rows].join('\r\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')

@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import { generateInvoicesExcel } from '@/lib/export/excel'
 import type { Invoice } from '@/types'
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
+import { checkPlanLimit } from '@/lib/plan-limits'
 import type { Invoice, InvoiceItem } from '@/types'
 
 export function useInvoices() {
@@ -39,6 +40,13 @@ export function useInvoices() {
     items: Omit<InvoiceItem, 'id' | 'invoice_id'>[]
   ) => {
     const userId = await getAuthUserId(supabase)
+
+    // ── Plan limit check ──
+    const limitCheck = await checkPlanLimit(supabase, userId, 'invoices')
+    if (!limitCheck.allowed) {
+      throw { error: limitCheck.error, message: limitCheck.message }
+    }
+
     const { data: inv, error: invErr } = await supabase
       .from('invoices')
       .insert({ ...invoice, user_id: userId })

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
+import { checkPlanLimit } from '@/lib/plan-limits'
 import type { Client } from '@/types'
 
 export function useClients() {
@@ -36,6 +37,13 @@ export function useClients() {
 
   const createClient_ = async (client: Omit<Client, 'id' | 'user_id' | 'workspace_id' | 'created_at'>) => {
     const userId = await getAuthUserId(supabase)
+
+    // ── Plan limit check ──
+    const limitCheck = await checkPlanLimit(supabase, userId, 'clients')
+    if (!limitCheck.allowed) {
+      throw { error: limitCheck.error, message: limitCheck.message }
+    }
+
     const { data, error: err } = await supabase
       .from('clients')
       .insert({ ...client, user_id: userId })

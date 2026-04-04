@@ -7,6 +7,7 @@ import { ReactNode, useState, useEffect } from 'react'
 import { Menu, X, Users } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
+import { LegalFooter } from '@/components/ui/LegalFooter'
 
 const navItems = [
   {
@@ -356,6 +357,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         >
           {children}
         </main>
+
+        {/* Legal footer */}
+        <div style={{ background: 'var(--bg)', borderTop: '1px solid var(--line)' }}>
+          <LegalFooter />
+        </div>
       </div>
     </div>
   )

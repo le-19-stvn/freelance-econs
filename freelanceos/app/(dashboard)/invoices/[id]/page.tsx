@@ -8,6 +8,8 @@ import { useClients } from '@/hooks/useClients'
 import { useProjects } from '@/hooks/useProjects'
 import { calculateHT, calculateTVA, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
 import { generateInvoiceNumber } from '@/lib/utils/invoice-number'
+import { checkPlanLimit } from '@/lib/plan-limits'
+import { UpgradeModal } from '@/components/ui/UpgradeModal'
 import type { Invoice, InvoiceItem, InvoiceStatus, UnitType } from '@/types'
 
 const tvaOptions = [0, 5.5, 10, 20]
@@ -47,6 +49,8 @@ export default function InvoiceDetailPage() {
 
   const [loading, setLoading] = useState(!isNew)
   const [saving, setSaving] = useState(false)
+  const [showUpgrade, setShowUpgrade] = useState(false)
+  const [upgradeMessage, setUpgradeMessage] = useState('')
 
   const [clientId, setClientId] = useState('')
   const [projectId, setProjectId] = useState('')
@@ -147,6 +151,15 @@ export default function InvoiceDetailPage() {
       }
 
       if (isNew) {
+        // ── Plan limit check ──
+        const limitCheck = await checkPlanLimit(supabase, userId, 'invoices')
+        if (!limitCheck.allowed) {
+          setUpgradeMessage(limitCheck.message ?? 'Limite atteinte.')
+          setShowUpgrade(true)
+          setSaving(false)
+          return
+        }
+
         const number = await generateInvoiceNumber(supabase, userId)
         const { data: inv, error: invErr } = await supabase
           .from('invoices')
@@ -218,6 +231,12 @@ export default function InvoiceDetailPage() {
 
   return (
     <div style={{ maxWidth: 820, margin: '0 auto' }}>
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        message={upgradeMessage}
+      />
       {/* Header */}
       <div
         style={{

@@ -386,19 +386,20 @@ export default function ProfilePage() {
                 setBillingLoading(false)
               }}
               disabled={billingLoading}
+              className="relative group overflow-hidden rounded-lg bg-black px-8 py-3 font-medium text-white transition-all duration-300 hover:scale-105 active:scale-95"
               style={{
-                background: 'linear-gradient(135deg, #00B4D8 0%, #1A3FA3 100%)',
-                color: '#fff',
                 border: 'none',
-                borderRadius: 6,
-                padding: '8px 20px',
-                fontWeight: 700,
-                fontSize: 13,
                 cursor: billingLoading ? 'wait' : 'pointer',
                 opacity: billingLoading ? 0.6 : 1,
+                fontSize: 13,
               }}
             >
-              {billingLoading ? 'Chargement...' : 'Passer au plan Pro'}
+              <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-20deg)]">
+                <div className="relative h-full w-10 bg-white/30 blur-md animate-shimmer" />
+              </div>
+              <span className="relative font-bold">
+                {billingLoading ? 'Chargement...' : 'Passer au plan Pro'}
+              </span>
             </button>
           )}
         </div>

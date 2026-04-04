@@ -11,6 +11,15 @@ const config: Config = {
       fontFamily: {
         sans: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
       },
+      keyframes: {
+        shimmer: {
+          '0%': { transform: 'translateX(-500%) skewX(-20deg)' },
+          '100%': { transform: 'translateX(500%) skewX(-20deg)' },
+        },
+      },
+      animation: {
+        shimmer: 'shimmer 2.5s infinite linear',
+      },
       colors: {
         bg: "var(--bg)",
         surface: "var(--surface)",

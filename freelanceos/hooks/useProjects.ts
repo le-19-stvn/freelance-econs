@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
+import { checkPlanLimit } from '@/lib/plan-limits'
 import type { Project } from '@/types'
 
 export function useProjects() {
@@ -38,6 +39,13 @@ export function useProjects() {
     project: Omit<Project, 'id' | 'user_id' | 'workspace_id' | 'invoice_generated' | 'client'>
   ) => {
     const userId = await getAuthUserId(supabase)
+
+    // ── Plan limit check (only counts "ongoing" projects) ──
+    const limitCheck = await checkPlanLimit(supabase, userId, 'projects')
+    if (!limitCheck.allowed) {
+      throw { error: limitCheck.error, message: limitCheck.message }
+    }
+
     const { data, error: err } = await supabase
       .from('projects')
       .insert({ ...project, user_id: userId })

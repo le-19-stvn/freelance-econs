@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useClients } from '@/hooks/useClients'
+import { UpgradeModal } from '@/components/ui/UpgradeModal'
 import type { Client } from '@/types'
 
 function getInitials(name: string) {
@@ -27,6 +28,8 @@ export default function ClientsPage() {
   const [editing, setEditing] = useState<Client | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [nameError, setNameError] = useState('')
+  const [showUpgrade, setShowUpgrade] = useState(false)
+  const [upgradeMessage, setUpgradeMessage] = useState('')
 
   const openCreate = () => {
     setNameError('')
@@ -70,8 +73,14 @@ export default function ClientsPage() {
       }
       setShowModal(false)
     } catch (err: any) {
-      console.error('Erreur lors de la sauvegarde du client:', err)
-      alert(`Erreur: ${err?.message ?? err?.details ?? JSON.stringify(err)}`)
+      if (err?.error === 'LIMIT_REACHED') {
+        setShowModal(false)
+        setUpgradeMessage(err.message)
+        setShowUpgrade(true)
+      } else {
+        console.error('Erreur lors de la sauvegarde du client:', err)
+        alert(`Erreur: ${err?.message ?? err?.details ?? JSON.stringify(err)}`)
+      }
     }
   }
 
@@ -83,6 +92,13 @@ export default function ClientsPage() {
 
   return (
     <div>
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        message={upgradeMessage}
+      />
+
       {/* Header */}
       <div
         style={{

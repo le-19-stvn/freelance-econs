@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useProjects } from '@/hooks/useProjects'
 import { useClients } from '@/hooks/useClients'
 import { useToast } from '@/components/ui/Toast'
+import { UpgradeModal } from '@/components/ui/UpgradeModal'
 import type { Project, ProjectStatus } from '@/types'
 
 const statusConfig: Record<ProjectStatus, { bg: string; color: string; label: string }> = {
@@ -29,6 +30,8 @@ export default function ProjectsPage() {
   const [form, setForm] = useState(emptyForm)
   const [nameError, setNameError] = useState('')
   const [deadlineError, setDeadlineError] = useState('')
+  const [showUpgrade, setShowUpgrade] = useState(false)
+  const [upgradeMessage, setUpgradeMessage] = useState('')
 
   const openCreate = () => {
     setNameError('')
@@ -91,9 +94,15 @@ export default function ProjectsPage() {
         await createProject(payload)
       }
       setShowModal(false)
-    } catch (err) {
-      console.error('Erreur lors de la sauvegarde du projet:', err)
-      alert('Une erreur est survenue lors de la sauvegarde du projet.')
+    } catch (err: any) {
+      if (err?.error === 'LIMIT_REACHED') {
+        setShowModal(false)
+        setUpgradeMessage(err.message)
+        setShowUpgrade(true)
+      } else {
+        console.error('Erreur lors de la sauvegarde du projet:', err)
+        alert('Une erreur est survenue lors de la sauvegarde du projet.')
+      }
     }
   }
 
@@ -103,6 +112,13 @@ export default function ProjectsPage() {
 
   return (
     <div>
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        message={upgradeMessage}
+      />
+
       {/* Header */}
       <div
         style={{
