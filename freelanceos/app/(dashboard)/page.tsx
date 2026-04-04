@@ -323,6 +323,68 @@ export default function DashboardPage() {
         )}
       </div>
 
+      {/* URSSAF Simulator Card */}
+      <div
+        className="mb-8 md:mb-10"
+        style={{
+          background: 'rgba(255,255,255,0.6)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid var(--line)',
+          borderRadius: 16,
+          padding: '24px',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 3,
+          background: 'linear-gradient(90deg, #111 0%, #555 100%)',
+        }} />
+        <div className="flex items-center gap-2 mb-5">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+          </svg>
+          <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)', margin: 0 }}>
+            Simulateur URSSAF
+          </h2>
+          <span style={{
+            fontSize: 9, textTransform: 'uppercase', letterSpacing: 2,
+            color: 'var(--muted)', fontWeight: 500, marginLeft: 4,
+          }}>
+            Auto-entrepreneur
+          </span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {(() => {
+            const urssafRate = 0.212
+            const grossRevenue = totalTTC
+            const urssafTax = grossRevenue * urssafRate
+            const netIncome = grossRevenue - urssafTax
+            return [
+              { label: 'Chiffre d\'affaires brut', value: formatCurrency(grossRevenue), color: 'var(--ink)' },
+              { label: 'Cotisations URSSAF (21.2%)', value: `- ${formatCurrency(urssafTax)}`, color: 'var(--danger, #EF4444)' },
+              { label: 'Revenu net estimé', value: formatCurrency(netIncome), color: 'var(--success, #059669)' },
+            ].map((item) => (
+              <div key={item.label} style={{
+                background: 'var(--bg)', borderRadius: 10, padding: '16px 18px',
+                border: '1px solid var(--line)',
+              }}>
+                <div style={{ fontSize: 22, fontWeight: 800, color: item.color, marginBottom: 4 }}>
+                  {item.value}
+                </div>
+                <div style={{
+                  fontSize: 9, textTransform: 'uppercase', letterSpacing: 1.5,
+                  color: 'var(--muted)', fontWeight: 600,
+                }}>
+                  {item.label}
+                </div>
+              </div>
+            ))
+          })()}
+        </div>
+      </div>
+
       {/* Revenue + Recent Invoices — 2-column on desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 md:gap-6">
         {/* Revenue Chart — takes 3/5 */}

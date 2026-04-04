@@ -46,9 +46,10 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith('/confidentialite')
 
   const isApiRoute = pathname.startsWith('/api/')
+  const isCallbackRoute = pathname.startsWith('/auth/callback')
 
-  // Not logged in and trying to access protected routes (skip API, auth, and legal routes)
-  if (!user && !isAuthPage && !isLegalPage && !isApiRoute) {
+  // Not logged in and trying to access protected routes (skip API, auth, callback, and legal routes)
+  if (!user && !isAuthPage && !isLegalPage && !isApiRoute && !isCallbackRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)

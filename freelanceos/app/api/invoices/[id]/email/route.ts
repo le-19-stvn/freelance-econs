@@ -122,12 +122,13 @@ export async function POST(
         totalAmount: totalFormatted,
         dueDate: dueDateFormatted,
         invoiceUrl: `${appUrl}/api/invoices/${invoiceId}/pdf`,
+        paymentLink: (userProfile as any).payment_link || undefined,
       })
     )
 
     // Send email with PDF attachment
     const { error: sendError } = await resend.emails.send({
-      from: `${freelanceName} <onboarding@resend.dev>`,
+      from: 'Freelance by eCons <contact@econs-freelance.com>',
       to: inv.client.email,
       subject: `Facture ${inv.invoice_number} — ${totalFormatted}`,
       html: emailHtml,

@@ -121,15 +121,11 @@ export default function ProjectsPage() {
 
       {/* Header */}
       <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 28,
-        }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        style={{ marginBottom: 28 }}
       >
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--ink)', margin: 0 }}>
+          <h1 className="text-2xl md:text-[28px]" style={{ fontWeight: 800, color: 'var(--ink)', margin: 0 }}>
             Projets
           </h1>
           <div
@@ -162,13 +158,8 @@ export default function ProjectsPage() {
       </div>
 
       {/* Project Grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-          gap: 16,
-        }}
-      >
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
         {projects.map((project) => {
           const badge = statusConfig[project.status]
           return (

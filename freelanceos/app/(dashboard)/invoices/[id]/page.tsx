@@ -294,7 +294,26 @@ export default function InvoiceDetailPage() {
             <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)', display: 'block', marginBottom: 4 }}>
               Projet
             </label>
-            <select value={projectId} onChange={(e) => setProjectId(e.target.value)} style={inputStyle}>
+            <select value={projectId} onChange={(e) => {
+              const pid = e.target.value
+              setProjectId(pid)
+              // Auto-fill from project data
+              if (pid && isNew) {
+                const proj = projects.find(p => p.id === pid)
+                if (proj) {
+                  if (proj.client_id) setClientId(proj.client_id)
+                  if (proj.budget && proj.budget > 0) {
+                    setItems([{
+                      description: proj.name,
+                      quantity: 1,
+                      unit_type: 'forfait',
+                      unit_price: proj.budget,
+                    }])
+                  }
+                  setNotes(`Facture - ${proj.name}`)
+                }
+              }
+            }} style={inputStyle}>
               <option value="">-- Aucun --</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>

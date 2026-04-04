@@ -433,15 +433,11 @@ export default function InvoicesPage() {
     <div>
       {/* Header */}
       <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 28,
-        }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        style={{ marginBottom: 28 }}
       >
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--ink)', margin: 0 }}>
+          <h1 className="text-2xl md:text-[28px]" style={{ fontWeight: 800, color: 'var(--ink)', margin: 0 }}>
             Factures
           </h1>
           <div
@@ -456,7 +452,7 @@ export default function InvoicesPage() {
             {invoices.length} FACTURE(S) ENREGISTRÉE(S)
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div className="flex gap-2 sm:gap-3 flex-wrap">
           <button
             onClick={handleExportCSV}
             disabled={invoices.length === 0}
@@ -513,14 +509,12 @@ export default function InvoicesPage() {
           return (
             <div
               key={inv.id}
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
               style={{
                 background: 'var(--surface)',
                 border: '1px solid var(--line)',
                 borderRadius: 10,
-                padding: '18px 20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                padding: '14px 16px',
                 transition: 'border-color 0.15s',
               }}
               onMouseEnter={(e) => {
@@ -531,7 +525,7 @@ export default function InvoicesPage() {
               }}
             >
               {/* Left side — icon + info */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1, minWidth: 0 }}>
+              <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
                 <div
                   style={{
                     width: 40,

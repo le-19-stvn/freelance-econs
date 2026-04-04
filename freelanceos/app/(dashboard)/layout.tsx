@@ -229,6 +229,8 @@ function SidebarContent({
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
+  const [notifications] = useState<{ id: string; message: string; date: string }[]>([])
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
@@ -311,42 +313,117 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               {currentTitle}
             </span>
           </div>
-          <div
-            className="hidden sm:flex items-center gap-2"
-            style={{
-              background: 'var(--bg)',
-              border: '1px solid var(--line)',
-              borderRadius: 6,
-              padding: '6px 14px',
-              minWidth: 220,
-            }}
-          >
-            <svg
-              width="16"
-              height="16"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="var(--muted)"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            <input
-              type="text"
-              placeholder="Rechercher..."
+          <div className="flex items-center gap-3">
+            <div
+              className="hidden sm:flex items-center gap-2"
               style={{
-                border: 'none',
-                background: 'transparent',
-                outline: 'none',
-                fontSize: 13,
-                color: 'var(--ink)',
-                width: '100%',
+                background: 'var(--bg)',
+                border: '1px solid var(--line)',
+                borderRadius: 6,
+                padding: '6px 14px',
+                minWidth: 220,
               }}
-            />
+            >
+              <svg
+                width="16"
+                height="16"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="var(--muted)"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <input
+                type="text"
+                placeholder="Rechercher..."
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  outline: 'none',
+                  fontSize: 13,
+                  color: 'var(--ink)',
+                  width: '100%',
+                }}
+              />
+            </div>
+
+            {/* Notification Bell */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setNotifOpen(!notifOpen)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 6,
+                  borderRadius: 6,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                {notifications.length > 0 && (
+                  <span style={{
+                    position: 'absolute', top: 4, right: 4,
+                    width: 8, height: 8, borderRadius: '50%',
+                    background: '#EF4444', border: '2px solid var(--surface)',
+                  }} />
+                )}
+              </button>
+
+              {notifOpen && (
+                <>
+                  <div
+                    style={{ position: 'fixed', inset: 0, zIndex: 40 }}
+                    onClick={() => setNotifOpen(false)}
+                  />
+                  <div style={{
+                    position: 'absolute', top: '100%', right: 0, marginTop: 8,
+                    width: 320, background: 'var(--surface)',
+                    border: '1px solid var(--line)', borderRadius: 10,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                    zIndex: 50, overflow: 'hidden',
+                  }}>
+                    <div style={{
+                      padding: '12px 16px', borderBottom: '1px solid var(--line)',
+                      fontSize: 13, fontWeight: 700, color: 'var(--ink)',
+                    }}>
+                      Notifications
+                    </div>
+                    {notifications.length === 0 ? (
+                      <div style={{
+                        padding: '24px 16px', textAlign: 'center',
+                        fontSize: 13, color: 'var(--muted)',
+                      }}>
+                        Aucune nouvelle notification
+                      </div>
+                    ) : (
+                      <div style={{ maxHeight: 280, overflowY: 'auto' }}>
+                        {notifications.map((n) => (
+                          <div key={n.id} style={{
+                            padding: '10px 16px', borderBottom: '1px solid var(--line)',
+                            fontSize: 13, color: 'var(--ink)',
+                          }}>
+                            <div>{n.message}</div>
+                            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{n.date}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </header>
 

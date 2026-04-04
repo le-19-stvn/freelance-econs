@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import { useInvoices } from '@/hooks/useInvoices'
 import { calculateHT, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
+import { useRouter } from 'next/navigation'
 import { uploadAvatar } from '@/lib/actions/avatar'
 import { createCheckoutSession, createBillingPortalSession } from '@/lib/actions/stripe'
 import type { Profile, PlanStatus, PlanType } from '@/types'
@@ -24,6 +25,7 @@ const inputStyle: React.CSSProperties = {
 
 export default function ProfilePage() {
   const supabase = createClient()
+  const router = useRouter()
   const { invoices } = useInvoices()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -43,6 +45,7 @@ export default function ProfilePage() {
     siret: '',
     tva_number: '',
     tva_rate: '20',
+    payment_link: '',
   })
 
   const fetchProfile = useCallback(async () => {
@@ -69,6 +72,7 @@ export default function ProfilePage() {
         siret: p.siret ?? '',
         tva_number: p.tva_number ?? '',
         tva_rate: String(p.tva_rate ?? 20),
+        payment_link: (p as any).payment_link ?? '',
       })
     }
     setLoading(false)
@@ -100,6 +104,7 @@ export default function ProfilePage() {
         siret: form.siret || null,
         tva_number: form.tva_number || null,
         tva_rate: parseFloat(form.tva_rate) || 20,
+        payment_link: form.payment_link || null,
       })
       .eq('id', userId)
 
@@ -432,6 +437,7 @@ export default function ProfilePage() {
           { key: 'siret', label: 'SIRET' },
           { key: 'tva_number', label: 'Numero TVA' },
           { key: 'tva_rate', label: 'Taux TVA par defaut (%)', type: 'number' },
+          { key: 'payment_link', label: 'Lien de paiement (Stripe/PayPal)', type: 'url' },
         ].map((field) => (
           <div key={field.key} style={{ marginBottom: 16 }}>
             <label
@@ -473,6 +479,28 @@ export default function ProfilePage() {
             {saving ? 'Sauvegarde...' : 'Sauvegarder le profil'}
           </button>
         </div>
+      </div>
+
+      {/* Logout */}
+      <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center' }}>
+        <button
+          onClick={async () => {
+            await supabase.auth.signOut()
+            router.push('/login')
+          }}
+          style={{
+            background: 'none',
+            border: '1px solid var(--danger, #EF4444)',
+            color: 'var(--danger, #EF4444)',
+            borderRadius: 6,
+            padding: '10px 28px',
+            fontWeight: 600,
+            fontSize: 13,
+            cursor: 'pointer',
+          }}
+        >
+          Déconnexion
+        </button>
       </div>
     </div>
   )

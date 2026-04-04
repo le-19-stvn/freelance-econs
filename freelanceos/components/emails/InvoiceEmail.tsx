@@ -18,6 +18,7 @@ interface InvoiceEmailProps {
   totalAmount: string
   dueDate: string
   invoiceUrl?: string
+  paymentLink?: string
 }
 
 export default function InvoiceEmail({
@@ -27,6 +28,7 @@ export default function InvoiceEmail({
   totalAmount = '0,00 €',
   dueDate = '—',
   invoiceUrl = '#',
+  paymentLink,
 }: InvoiceEmailProps) {
   return (
     <Html lang="fr">
@@ -64,11 +66,19 @@ export default function InvoiceEmail({
             </Section>
 
             {/* CTA */}
-            <Section style={{ textAlign: 'center' as const, marginTop: '28px', marginBottom: '28px' }}>
+            <Section style={{ textAlign: 'center' as const, marginTop: '28px', marginBottom: paymentLink ? '12px' : '28px' }}>
               <Button style={button} href={invoiceUrl}>
                 Consulter la facture
               </Button>
             </Section>
+
+            {paymentLink && (
+              <Section style={{ textAlign: 'center' as const, marginBottom: '28px' }}>
+                <Button style={payButton} href={paymentLink}>
+                  Payer maintenant
+                </Button>
+              </Section>
+            )}
 
             <Hr style={divider} />
 
@@ -183,6 +193,17 @@ const amountDue: React.CSSProperties = {
 
 const button: React.CSSProperties = {
   backgroundColor: '#1A3FA3',
+  color: '#FFFFFF',
+  fontSize: '14px',
+  fontWeight: 700,
+  padding: '12px 32px',
+  borderRadius: '6px',
+  textDecoration: 'none',
+  display: 'inline-block',
+}
+
+const payButton: React.CSSProperties = {
+  backgroundColor: '#059669',
   color: '#FFFFFF',
   fontSize: '14px',
   fontWeight: 700,

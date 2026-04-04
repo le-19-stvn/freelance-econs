@@ -3,14 +3,18 @@ import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import type { Invoice, Profile } from '@/types'
 import { calculateHT, calculateTVA, calculateTTC } from '@/lib/utils/calculations'
 
+/* ──────────────────────────────────────────────────────────
+   Swiss Design Invoice — 100% Black & White, Strict Grid
+   ────────────────────────────────────────────────────────── */
+
 const c = {
-  ink: '#0F1117',
-  ink2: '#2C2F3A',
-  muted: '#6B7280',
-  line: '#E4E6ED',
-  blue: '#1A3FA3',
-  blueSurface: '#EBF2FA',
-  bg: '#F6F7FA',
+  black: '#000000',
+  dark: '#1A1A1A',
+  grey: '#555555',
+  lightGrey: '#999999',
+  rule: '#CCCCCC',
+  faintRule: '#E0E0E0',
+  bgAlt: '#F5F5F5',
   white: '#FFFFFF',
 }
 
@@ -20,86 +24,118 @@ const styles = StyleSheet.create({
     paddingBottom: 80,
     fontSize: 9,
     fontFamily: 'Helvetica',
-    color: c.ink,
+    color: c.dark,
     backgroundColor: c.white,
   },
 
-  // ── Header ──
+  /* ── Top rule ── */
+  topRule: {
+    borderTopWidth: 4,
+    borderTopColor: c.black,
+    marginBottom: 32,
+  },
+
+  /* ── Header ── */
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 36,
-    paddingBottom: 20,
-    borderBottomWidth: 2,
-    borderBottomColor: c.blue,
+    marginBottom: 32,
   },
   headerLeft: { maxWidth: '55%' },
   headerRight: { alignItems: 'flex-end', maxWidth: '40%' },
-  brandName: { fontSize: 18, fontWeight: 'bold', color: c.blue, marginBottom: 2 },
-  brandSub: { fontSize: 8, color: c.muted, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 },
-  infoText: { fontSize: 9, color: c.ink2, lineHeight: 1.5 },
-  infoMuted: { fontSize: 8, color: c.muted, lineHeight: 1.5 },
+  brandName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: c.black,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  brandSub: {
+    fontSize: 7,
+    color: c.lightGrey,
+    letterSpacing: 3,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+  },
+  infoText: { fontSize: 8.5, color: c.dark, lineHeight: 1.6 },
+  infoMuted: { fontSize: 8, color: c.grey, lineHeight: 1.6 },
 
-  // ── Invoice Meta ──
+  /* ── Invoice title block ── */
+  invoiceTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: c.black,
+    letterSpacing: 3,
+    textTransform: 'uppercase',
+  },
+  invoiceNumber: {
+    fontSize: 10,
+    color: c.dark,
+    fontWeight: 'bold',
+    marginTop: 4,
+    marginBottom: 8,
+  },
+
+  /* ── Divider ── */
+  divider: {
+    borderBottomWidth: 1,
+    borderBottomColor: c.rule,
+    marginBottom: 24,
+  },
+
+  /* ── Meta ── */
   metaSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 32,
   },
   metaBlock: {},
-  invoiceTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: c.ink,
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  invoiceNumber: {
-    fontSize: 11,
-    color: c.blue,
-    fontWeight: 'bold',
-    marginBottom: 12,
-  },
   label: {
     fontSize: 7,
-    color: c.muted,
+    color: c.lightGrey,
     textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginBottom: 3,
+    letterSpacing: 2,
+    marginBottom: 4,
     marginTop: 8,
   },
-  clientName: { fontSize: 11, fontWeight: 'bold', color: c.ink, marginBottom: 2 },
-  clientDetail: { fontSize: 9, color: c.ink2, lineHeight: 1.5 },
+  clientName: { fontSize: 11, fontWeight: 'bold', color: c.black, marginBottom: 2 },
+  clientDetail: { fontSize: 8.5, color: c.dark, lineHeight: 1.6 },
 
-  // ── Table ──
+  /* ── Table ── */
   table: { marginBottom: 24 },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: c.blueSurface,
     paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderBottomWidth: 1.5,
-    borderBottomColor: c.blue,
+    paddingHorizontal: 0,
+    borderBottomWidth: 2,
+    borderBottomColor: c.black,
   },
   tableRow: {
     flexDirection: 'row',
     paddingVertical: 9,
-    paddingHorizontal: 10,
+    paddingHorizontal: 0,
     borderBottomWidth: 0.5,
-    borderBottomColor: c.line,
+    borderBottomColor: c.faintRule,
   },
   tableRowAlt: {
-    backgroundColor: '#FAFBFD',
+    backgroundColor: c.bgAlt,
   },
-  thText: { fontWeight: 'bold', fontSize: 8, color: c.blue, textTransform: 'uppercase', letterSpacing: 0.8 },
-  tdText: { fontSize: 9, color: c.ink },
-  colDesc: { flex: 4 },
+  thText: {
+    fontWeight: 'bold',
+    fontSize: 7,
+    color: c.black,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
+  tdText: { fontSize: 9, color: c.dark },
+  colDesc: { flex: 4, paddingRight: 8 },
   colQty: { flex: 1, textAlign: 'center' },
   colUnit: { flex: 1.2, textAlign: 'center' },
   colPrice: { flex: 1.3, textAlign: 'right' },
   colTotal: { flex: 1.3, textAlign: 'right' },
 
-  // ── Totals ──
+  /* ── Totals ── */
   totalsWrapper: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
@@ -107,53 +143,65 @@ const styles = StyleSheet.create({
   },
   totalsBox: {
     width: 220,
-    borderWidth: 1,
-    borderColor: c.line,
-    borderRadius: 6,
-    overflow: 'hidden',
+    borderTopWidth: 1,
+    borderTopColor: c.rule,
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 7,
-    paddingHorizontal: 14,
+    paddingHorizontal: 0,
   },
-  totalLabel: { fontSize: 9, color: c.muted },
-  totalValue: { fontSize: 9, fontWeight: 'bold', color: c.ink },
+  totalLabel: { fontSize: 9, color: c.grey },
+  totalValue: { fontSize: 9, fontWeight: 'bold', color: c.dark },
   ttcRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 10,
-    paddingHorizontal: 14,
-    backgroundColor: c.blue,
+    paddingHorizontal: 12,
+    backgroundColor: c.black,
   },
   ttcLabel: { fontSize: 11, fontWeight: 'bold', color: c.white },
   ttcValue: { fontSize: 11, fontWeight: 'bold', color: c.white },
 
-  // ── Notes ──
+  /* ── Notes ── */
   notesBox: {
     marginTop: 8,
     padding: 14,
-    backgroundColor: c.bg,
-    borderRadius: 6,
     borderLeftWidth: 3,
-    borderLeftColor: c.blue,
+    borderLeftColor: c.black,
+    backgroundColor: c.bgAlt,
   },
-  notesTitle: { fontSize: 8, fontWeight: 'bold', color: c.blue, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
-  notesText: { fontSize: 9, color: c.ink2, lineHeight: 1.6 },
+  notesTitle: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: c.black,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
+  notesText: { fontSize: 9, color: c.dark, lineHeight: 1.6 },
 
-  // ── Footer ──
+  /* ── Footer ── */
   footer: {
     position: 'absolute',
     bottom: 28,
     left: 48,
     right: 48,
     borderTopWidth: 1,
-    borderTopColor: c.line,
+    borderTopColor: c.rule,
     paddingTop: 10,
     textAlign: 'center',
   },
-  footerText: { fontSize: 7, color: c.muted, lineHeight: 1.6 },
+  footerText: { fontSize: 7, color: c.lightGrey, lineHeight: 1.6 },
+  footerBrand: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: c.black,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
 })
 
 interface InvoicePDFProps {
@@ -183,11 +231,16 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
     <Document>
       <Page size="A4" style={styles.page}>
 
+        {/* ═══ TOP RULE — Bold black line ═══ */}
+        <View style={styles.topRule} />
+
         {/* ═══ HEADER — Freelancer info ═══ */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.brandName}>{profile.company_name ?? profile.full_name ?? 'Freelance'}</Text>
-            <Text style={styles.brandSub}>Freelance</Text>
+            <Text style={styles.brandName}>
+              {profile.company_name ?? profile.full_name ?? 'Freelance'}
+            </Text>
+            <Text style={styles.brandSub}>eCons Freelance</Text>
             {profile.address && <Text style={styles.infoText}>{profile.address}</Text>}
             {profile.email && <Text style={styles.infoText}>{profile.email}</Text>}
             {profile.siret && <Text style={styles.infoMuted}>SIRET : {profile.siret}</Text>}
@@ -198,15 +251,18 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
             <Text style={styles.invoiceNumber}>N° {invoice.invoice_number}</Text>
             <Text style={styles.infoMuted}>Date : {formatDate(invoice.issue_date)}</Text>
             {invoice.due_date && (
-              <Text style={styles.infoMuted}>Échéance : {formatDate(invoice.due_date)}</Text>
+              <Text style={styles.infoMuted}>Echeance : {formatDate(invoice.due_date)}</Text>
             )}
           </View>
         </View>
 
+        {/* ═══ DIVIDER ═══ */}
+        <View style={styles.divider} />
+
         {/* ═══ CLIENT BLOCK ═══ */}
         <View style={styles.metaSection}>
           <View style={styles.metaBlock}>
-            <Text style={styles.label}>Facturé à</Text>
+            <Text style={styles.label}>Facture a</Text>
             <Text style={styles.clientName}>{invoice.client?.name ?? 'Client'}</Text>
             {invoice.client?.address && <Text style={styles.clientDetail}>{invoice.client.address}</Text>}
             {invoice.client?.email && <Text style={styles.clientDetail}>{invoice.client.email}</Text>}
@@ -217,7 +273,7 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
           {invoice.project?.name && (
             <View style={{ alignItems: 'flex-end' }}>
               <Text style={styles.label}>Projet</Text>
-              <Text style={{ fontSize: 10, fontWeight: 'bold', color: c.ink }}>{invoice.project.name}</Text>
+              <Text style={{ fontSize: 10, fontWeight: 'bold', color: c.black }}>{invoice.project.name}</Text>
             </View>
           )}
         </View>
@@ -227,8 +283,8 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
           {/* Table Header */}
           <View style={styles.tableHeader}>
             <Text style={[styles.thText, styles.colDesc]}>Description</Text>
-            <Text style={[styles.thText, styles.colQty]}>Qté</Text>
-            <Text style={[styles.thText, styles.colUnit]}>Unité</Text>
+            <Text style={[styles.thText, styles.colQty]}>Qte</Text>
+            <Text style={[styles.thText, styles.colUnit]}>Unite</Text>
             <Text style={[styles.thText, styles.colPrice]}>P.U. HT</Text>
             <Text style={[styles.thText, styles.colTotal]}>Total HT</Text>
           </View>
@@ -254,7 +310,7 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
               <Text style={styles.totalLabel}>Total HT</Text>
               <Text style={styles.totalValue}>{fmtEur(ht)}</Text>
             </View>
-            <View style={[styles.totalRow, { borderTopWidth: 0.5, borderTopColor: c.line }]}>
+            <View style={[styles.totalRow, { borderTopWidth: 0.5, borderTopColor: c.rule }]}>
               <Text style={styles.totalLabel}>TVA ({invoice.tva_rate}%)</Text>
               <Text style={styles.totalValue}>{fmtEur(tva)}</Text>
             </View>
@@ -275,6 +331,7 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
 
         {/* ═══ FOOTER — Legal mentions ═══ */}
         <View style={styles.footer}>
+          <Text style={styles.footerBrand}>eCons</Text>
           <Text style={styles.footerText}>
             {profile.company_name ?? profile.full_name ?? 'eCons Freelance'} — {profile.email ?? ''}
           </Text>
@@ -284,10 +341,10 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
             </Text>
           )}
           <Text style={styles.footerText}>
-            Paiement à réception de facture — En cas de retard, une pénalité de 3x le taux d'intérêt légal sera appliquée.
+            Paiement a reception de facture — En cas de retard, une penalite de 3x le taux d interet legal sera appliquee.
           </Text>
           <Text style={styles.footerText}>
-            Indemnité forfaitaire pour frais de recouvrement : 40,00 €
+            Indemnite forfaitaire pour frais de recouvrement : 40,00 EUR
           </Text>
         </View>
 
