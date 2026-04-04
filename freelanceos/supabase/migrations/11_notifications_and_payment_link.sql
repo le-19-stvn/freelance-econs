@@ -8,12 +8,14 @@ ALTER TABLE profiles
   ADD COLUMN IF NOT EXISTS payment_link text;
 
 -- Notifications table
+DROP TABLE IF EXISTS notifications;
+
 CREATE TABLE IF NOT EXISTS notifications (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   type text NOT NULL DEFAULT 'info',
   message text NOT NULL,
-  read boolean NOT NULL DEFAULT false,
+  is_read boolean NOT NULL DEFAULT false,
   created_at timestamptz DEFAULT now()
 );
 
@@ -30,4 +32,4 @@ CREATE POLICY "notifications_delete" ON notifications FOR DELETE
 
 -- Index for fast user lookup
 CREATE INDEX IF NOT EXISTS idx_notifications_user
-  ON notifications (user_id, read, created_at DESC);
+  ON notifications (user_id, is_read, created_at DESC);
