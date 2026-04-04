@@ -55,21 +55,24 @@ export default function DashboardPage() {
   const { invoices, loading: loadingInv } = useInvoices()
   const { projects, loading: loadingProj } = useProjects()
 
-  const paidInvoices = invoices.filter((i) => i.status === 'paid')
+  const safeInvoices = Array.isArray(invoices) ? invoices : []
+  const safeProjects = Array.isArray(projects) ? projects : []
+
+  const paidInvoices = safeInvoices.filter((i) => i.status === 'paid')
   const totalTTC = paidInvoices.reduce((sum, inv) => {
     const ht = calculateHT(inv.items ?? [])
     return sum + calculateTTC(ht, inv.tva_rate)
   }, 0)
 
-  const pendingCount = invoices.filter(
+  const pendingCount = safeInvoices.filter(
     (i) => i.status === 'draft' || i.status === 'sent'
   ).length
 
-  const activeProjects = projects.filter((p) => p.status === 'ongoing').length
+  const activeProjects = safeProjects.filter((p) => p.status === 'ongoing').length
 
   const avgTVA =
-    invoices.length > 0
-      ? invoices.reduce((sum, i) => sum + i.tva_rate, 0) / invoices.length
+    safeInvoices.length > 0
+      ? safeInvoices.reduce((sum, i) => sum + i.tva_rate, 0) / safeInvoices.length
       : 0
 
   const kpis = [
@@ -109,7 +112,7 @@ export default function DashboardPage() {
       href: string
     }[] = []
 
-    invoices
+    safeInvoices
       .filter((inv) => inv.status === 'late')
       .slice(0, 2)
       .forEach((inv) => {
@@ -125,7 +128,7 @@ export default function DashboardPage() {
         })
       })
 
-    projects
+    safeProjects
       .filter((p) => p.status === 'done' && !p.invoice_generated)
       .slice(0, 2)
       .forEach((p) => {
@@ -138,7 +141,7 @@ export default function DashboardPage() {
         })
       })
 
-    invoices
+    safeInvoices
       .filter((inv) => inv.status === 'draft')
       .slice(0, 1)
       .forEach((inv) => {
@@ -152,7 +155,7 @@ export default function DashboardPage() {
       })
 
     return alerts.slice(0, 3)
-  }, [invoices, projects])
+  }, [safeInvoices, safeProjects])
 
   // Revenue chart data
   const revenueData = useMemo(() => {
@@ -174,7 +177,7 @@ export default function DashboardPage() {
     })
   }, [paidInvoices])
 
-  const recentInvoices = invoices.slice(0, 5)
+  const recentInvoices = safeInvoices.slice(0, 5)
 
   // Loading skeleton
   if (loadingInv || loadingProj) {

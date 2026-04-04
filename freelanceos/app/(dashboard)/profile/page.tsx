@@ -10,18 +10,9 @@ import { useRouter } from 'next/navigation'
 import { uploadAvatar } from '@/lib/actions/avatar'
 import { createCheckoutSession, createBillingPortalSession } from '@/lib/actions/stripe'
 import type { Profile, PlanStatus, PlanType } from '@/types'
+import { Pencil, LogOut, CreditCard, Sparkles, DollarSign } from 'lucide-react'
 
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '8px 12px',
-  borderRadius: 6,
-  border: '1px solid var(--line)',
-  fontSize: 14,
-  outline: 'none',
-  background: 'var(--bg)',
-  color: 'var(--ink)',
-  boxSizing: 'border-box',
-}
+const inputCls = 'w-full px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 outline-none focus:border-[#00A3FF] focus:ring-1 focus:ring-[#00A3FF]/20 transition-all'
 
 export default function ProfilePage() {
   const supabase = createClient()
@@ -82,7 +73,8 @@ export default function ProfilePage() {
     fetchProfile()
   }, [fetchProfile])
 
-  const paidTotal = invoices
+  const safeInvoices = Array.isArray(invoices) ? invoices : []
+  const paidTotal = safeInvoices
     .filter((i) => i.status === 'paid')
     .reduce((sum, inv) => {
       const ht = calculateHT(inv.items ?? [])
@@ -108,6 +100,7 @@ export default function ProfilePage() {
       })
       .eq('id', userId)
 
+    setToast({ msg: 'Profil sauvegarde !', type: 'success' })
     setSaving(false)
   }
 
@@ -119,46 +112,61 @@ export default function ProfilePage() {
     try {
       const url = await uploadAvatar(file)
       setAvatarUrl(url)
-      setToast({ msg: 'Photo de profil mise à jour !', type: 'success' })
+      setToast({ msg: 'Photo de profil mise a jour !', type: 'success' })
     } catch (err: any) {
-      setToast({ msg: err?.message ?? 'Erreur lors de l\'upload.', type: 'error' })
+      setToast({ msg: err?.message ?? "Erreur lors de l'upload.", type: 'error' })
     }
     setUploading(false)
-    // Reset input so the same file can be re-selected
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  // Auto-dismiss toast
   useEffect(() => {
     if (!toast) return
     const t = setTimeout(() => setToast(null), 4000)
     return () => clearTimeout(t)
   }, [toast])
 
+  /* Loading skeleton */
   if (loading) {
-    return <div style={{ color: 'var(--muted)', fontSize: 14 }}>Chargement...</div>
+    return (
+      <div className="max-w-[640px] mx-auto">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 animate-pulse mb-7">
+          <div className="flex items-center gap-5">
+            <div className="w-[72px] h-[72px] rounded-full bg-gray-200" />
+            <div className="flex-1">
+              <div className="h-5 w-40 bg-gray-200 rounded mb-2" />
+              <div className="h-3 w-24 bg-gray-100 rounded mb-4" />
+              <div className="h-7 w-32 bg-gray-100 rounded" />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 animate-pulse mb-7">
+          <div className="h-5 w-28 bg-gray-200 rounded mb-6" />
+          <div className="h-10 w-full bg-gray-100 rounded" />
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 animate-pulse">
+          <div className="h-5 w-44 bg-gray-200 rounded mb-6" />
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="mb-4">
+              <div className="h-3 w-20 bg-gray-100 rounded mb-2" />
+              <div className="h-10 w-full bg-gray-100 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div style={{ maxWidth: 640, margin: '0 auto' }}>
-      {/* Profile Card */}
-      {/* Toast */}
+    <div className="max-w-[640px] mx-auto" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+
+      {/* ═══ TOAST ═══ */}
       {toast && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 24,
-            right: 24,
-            zIndex: 100,
-            background: toast.type === 'success' ? 'var(--success-bg)' : 'var(--danger-bg)',
-            color: toast.type === 'success' ? 'var(--success)' : 'var(--danger)',
-            padding: '12px 20px',
-            borderRadius: 8,
-            fontSize: 13,
-            fontWeight: 600,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-          }}
-        >
+        <div className={`fixed top-6 right-6 z-[100] flex items-center gap-2 px-5 py-3 rounded-xl text-[13px] font-semibold shadow-lg border ${
+          toast.type === 'success'
+            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            : 'bg-red-50 text-red-700 border-red-200'
+        }`}>
           {toast.msg}
         </div>
       )}
@@ -169,186 +177,98 @@ export default function ProfilePage() {
         type="file"
         accept="image/jpeg,image/png,image/webp,image/gif"
         onChange={handleAvatarChange}
-        style={{ display: 'none' }}
+        className="hidden"
       />
 
-      <div
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--line)',
-          borderRadius: 12,
-          padding: 32,
-          marginBottom: 28,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 20,
-        }}
-      >
-        {/* Avatar with upload */}
-        <div style={{ position: 'relative', flexShrink: 0 }}>
-          {avatarUrl ? (
-            <Image
-              src={avatarUrl}
-              alt="Avatar"
-              width={72}
-              height={72}
-              style={{
-                borderRadius: '50%',
-                objectFit: 'cover',
-                width: 72,
-                height: 72,
-              }}
-              unoptimized
-            />
-          ) : (
-            <div
-              style={{
-                width: 72,
-                height: 72,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #00B4D8 0%, #1A3FA3 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontWeight: 800,
-                fontSize: 28,
-              }}
-            >
-              {(form.full_name?.[0] ?? 'F').toUpperCase()}
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            style={{
-              position: 'absolute',
-              bottom: -2,
-              right: -2,
-              width: 28,
-              height: 28,
-              borderRadius: '50%',
-              background: 'var(--blue-primary)',
-              border: '2px solid var(--surface)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: uploading ? 'wait' : 'pointer',
-              padding: 0,
-            }}
-            title="Modifier la photo"
-          >
-            {uploading ? (
-              <span
-                style={{
-                  width: 12,
-                  height: 12,
-                  border: '2px solid rgba(255,255,255,0.3)',
-                  borderTopColor: '#fff',
-                  borderRadius: '50%',
-                  display: 'inline-block',
-                  animation: 'spin 0.6s linear infinite',
-                }}
+      {/* ═══ PROFILE CARD ═══ */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 mb-7">
+        <div className="flex items-center gap-5">
+
+          {/* Avatar */}
+          <div className="relative shrink-0">
+            {avatarUrl ? (
+              <Image
+                src={avatarUrl}
+                alt="Avatar"
+                width={72}
+                height={72}
+                className="rounded-full object-cover w-[72px] h-[72px]"
+                unoptimized
               />
             ) : (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-              </svg>
+              <div className="w-[72px] h-[72px] rounded-full bg-gradient-to-br from-[#00A3FF] to-[#0057FF] flex items-center justify-center text-white font-extrabold text-[28px]">
+                {(form.full_name?.[0] ?? 'F').toUpperCase()}
+              </div>
             )}
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className={`absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-[#0057FF] border-2 border-white flex items-center justify-center ${
+                uploading ? 'cursor-wait' : 'cursor-pointer hover:bg-[#00A3FF]'
+              } transition-colors`}
+              title="Modifier la photo"
+            >
+              {uploading ? (
+                <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full inline-block animate-spin" />
+              ) : (
+                <Pencil size={13} className="text-white" />
+              )}
+            </button>
+          </div>
 
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--ink)' }}>
-            {form.full_name || 'Freelance'}
-          </div>
-          <div
-            style={{
-              fontSize: 12,
-              color: 'var(--blue-primary)',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-              letterSpacing: 1,
-              marginTop: 2,
-            }}
-          >
-            {form.company_name || 'Metier'}
-          </div>
-          <div style={{ marginTop: 10 }}>
-            <div
-              style={{
-                fontSize: 9,
-                textTransform: 'uppercase',
-                letterSpacing: 2,
-                color: 'var(--muted)',
-                fontWeight: 500,
-              }}
-            >
-              TOTAL GAGNE
-            </div>
-            <div
-              style={{
-                fontSize: 24,
-                fontWeight: 800,
-                color: 'var(--blue-primary)',
-                marginTop: 2,
-              }}
-            >
-              {formatCurrency(paidTotal)}
+          {/* Name + stats */}
+          <div className="flex-1">
+            <h2 className="text-xl font-bold text-gray-900">
+              {form.full_name || 'Freelance'}
+            </h2>
+            <p className="text-xs font-semibold text-[#0057FF] uppercase tracking-wide mt-0.5">
+              {form.company_name || 'Metier'}
+            </p>
+            <div className="mt-3">
+              <p className="text-[9px] uppercase tracking-widest text-gray-400 font-medium">
+                Total gagne
+              </p>
+              <p className="text-2xl font-extrabold text-[#0057FF] mt-0.5">
+                {formatCurrency(paidTotal)}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Subscription Card */}
-      <div
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--line)',
-          borderRadius: 12,
-          padding: 32,
-          marginBottom: 28,
-        }}
-      >
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', marginTop: 0, marginBottom: 20 }}>
+      {/* ═══ SUBSCRIPTION CARD ═══ */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 mb-7">
+        <h2 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+          <CreditCard size={18} className="text-gray-400" />
           Abonnement
         </h2>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
             {/* Plan badge */}
-            <span
-              style={{
-                display: 'inline-block',
-                padding: '4px 14px',
-                borderRadius: 6,
-                fontSize: 13,
-                fontWeight: 700,
-                letterSpacing: 0.5,
-                background: planType === 'pro' ? 'linear-gradient(135deg, #00B4D8 0%, #1A3FA3 100%)' : 'var(--bg)',
-                color: planType === 'pro' ? '#fff' : 'var(--muted)',
-                border: planType === 'pro' ? 'none' : '1px solid var(--line)',
-              }}
-            >
-              {planType === 'pro' ? 'Pro' : 'Gratuit'}
-            </span>
+            {planType === 'pro' ? (
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-lg text-[13px] font-bold bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white">
+                <Sparkles size={13} />
+                Pro
+              </span>
+            ) : (
+              <span className="inline-block px-3.5 py-1 rounded-lg text-[13px] font-bold bg-gray-100 text-gray-500 border border-gray-200">
+                Gratuit
+              </span>
+            )}
 
             {/* Status */}
             {planType === 'pro' && (
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: planStatus === 'active' ? 'var(--success)' : planStatus === 'past_due' ? 'var(--warning)' : 'var(--danger)',
-                }}
-              >
-                {planStatus === 'active' ? 'Actif' : planStatus === 'past_due' ? 'Paiement en retard' : planStatus === 'canceled' ? 'Annulé' : 'Inactif'}
+              <span className={`text-xs font-semibold ${
+                planStatus === 'active' ? 'text-emerald-600' : planStatus === 'past_due' ? 'text-amber-600' : 'text-red-600'
+              }`}>
+                {planStatus === 'active' ? 'Actif' : planStatus === 'past_due' ? 'Paiement en retard' : planStatus === 'canceled' ? 'Annule' : 'Inactif'}
               </span>
             )}
           </div>
 
-          {/* Action button */}
+          {/* Action */}
           {planType === 'pro' ? (
             <button
               onClick={async () => {
@@ -362,19 +282,11 @@ export default function ProfilePage() {
                 setBillingLoading(false)
               }}
               disabled={billingLoading}
-              style={{
-                background: 'var(--surface)',
-                color: 'var(--ink)',
-                border: '1px solid var(--line)',
-                borderRadius: 6,
-                padding: '8px 20px',
-                fontWeight: 600,
-                fontSize: 13,
-                cursor: billingLoading ? 'wait' : 'pointer',
-                opacity: billingLoading ? 0.6 : 1,
-              }}
+              className={`px-5 py-2 rounded-lg text-sm font-semibold border border-gray-200 text-gray-700 bg-white hover:border-[#00A3FF] hover:text-[#0057FF] transition-all ${
+                billingLoading ? 'opacity-60 cursor-wait' : 'cursor-pointer'
+              }`}
             >
-              {billingLoading ? 'Chargement...' : 'Gérer mon abonnement'}
+              {billingLoading ? 'Chargement...' : 'Gerer mon abonnement'}
             </button>
           ) : (
             <button
@@ -382,7 +294,7 @@ export default function ProfilePage() {
                 setBillingLoading(true)
                 try {
                   const priceId = process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID
-                  if (!priceId) throw new Error('Price ID non configuré')
+                  if (!priceId) throw new Error('Price ID non configure')
                   const { url } = await createCheckoutSession(priceId)
                   if (url) window.location.href = url
                 } catch (err: any) {
@@ -391,41 +303,26 @@ export default function ProfilePage() {
                 setBillingLoading(false)
               }}
               disabled={billingLoading}
-              className="relative group overflow-hidden rounded-lg bg-black px-8 py-3 font-medium text-white transition-all duration-300 hover:scale-105 active:scale-95"
-              style={{
-                border: 'none',
-                cursor: billingLoading ? 'wait' : 'pointer',
-                opacity: billingLoading ? 0.6 : 1,
-                fontSize: 13,
-              }}
+              className={`px-6 py-2.5 rounded-lg text-sm font-bold text-white bg-gradient-to-br from-[#00A3FF] to-[#0057FF] hover:opacity-90 transition-opacity ${
+                billingLoading ? 'opacity-60 cursor-wait' : 'cursor-pointer'
+              }`}
             >
-              <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-20deg)]">
-                <div className="relative h-full w-10 bg-white/30 blur-md animate-shimmer" />
-              </div>
-              <span className="relative font-bold">
-                {billingLoading ? 'Chargement...' : 'Passer au plan Pro'}
-              </span>
+              {billingLoading ? 'Chargement...' : 'Passer au plan Pro'}
             </button>
           )}
         </div>
 
         {planType === 'free' && (
-          <div style={{ marginTop: 16, fontSize: 13, color: 'var(--muted)', lineHeight: 1.6 }}>
-            Le plan Pro inclut : export illimité, factures automatiques, accès prioritaire aux nouvelles fonctionnalités.
-          </div>
+          <p className="mt-4 text-sm text-gray-400 leading-relaxed">
+            Le plan Pro inclut : export illimite, factures automatiques, acces prioritaire aux nouvelles fonctionnalites.
+          </p>
         )}
       </div>
 
-      {/* Form */}
-      <div
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--line)',
-          borderRadius: 12,
-          padding: 32,
-        }}
-      >
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', marginTop: 0, marginBottom: 20 }}>
+      {/* ═══ PROFILE FORM ═══ */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+        <h2 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+          <DollarSign size={18} className="text-gray-400" />
           Informations du profil
         </h2>
 
@@ -439,67 +336,45 @@ export default function ProfilePage() {
           { key: 'tva_rate', label: 'Taux TVA par defaut (%)', type: 'number' },
           { key: 'payment_link', label: 'Lien de paiement (Stripe/PayPal)', type: 'url' },
         ].map((field) => (
-          <div key={field.key} style={{ marginBottom: 16 }}>
-            <label
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: 'var(--ink)',
-                display: 'block',
-                marginBottom: 4,
-              }}
-            >
+          <div key={field.key} className="mb-4">
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
               {field.label}
             </label>
             <input
               type={field.type ?? 'text'}
               value={form[field.key as keyof typeof form]}
               onChange={(e) => setForm((f) => ({ ...f, [field.key]: e.target.value }))}
-              style={inputStyle}
+              className={inputCls}
             />
           </div>
         ))}
 
-        <div style={{ marginTop: 24, display: 'flex', justifyContent: 'flex-end' }}>
+        <div className="mt-6 flex justify-end">
           <button
             onClick={handleSave}
             disabled={saving}
-            style={{
-              background: 'var(--blue-primary)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-              padding: '10px 28px',
-              fontWeight: 700,
-              fontSize: 14,
-              cursor: saving ? 'not-allowed' : 'pointer',
-              opacity: saving ? 0.7 : 1,
-            }}
+            className={`px-7 py-2.5 rounded-lg text-sm font-bold text-white bg-gradient-to-br from-[#00A3FF] to-[#0057FF] hover:opacity-90 transition-opacity ${
+              saving ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
+            }`}
           >
             {saving ? 'Sauvegarde...' : 'Sauvegarder le profil'}
           </button>
         </div>
       </div>
 
-      {/* Logout */}
-      <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center' }}>
+      {/* ═══ LOGOUT ═══ */}
+      <div className="mt-7 flex justify-center">
         <button
           onClick={async () => {
             await supabase.auth.signOut()
             router.push('/login')
           }}
-          style={{
-            background: 'none',
-            border: '1px solid var(--danger, #EF4444)',
-            color: 'var(--danger, #EF4444)',
-            borderRadius: 6,
-            padding: '10px 28px',
-            fontWeight: 600,
-            fontSize: 13,
-            cursor: 'pointer',
-          }}
+          className="px-7 py-2.5 rounded-lg text-sm font-semibold text-red-500 border border-red-200 bg-white hover:bg-red-50 transition-colors cursor-pointer"
         >
-          Déconnexion
+          <span className="flex items-center gap-2">
+            <LogOut size={15} />
+            Deconnexion
+          </span>
         </button>
       </div>
     </div>
