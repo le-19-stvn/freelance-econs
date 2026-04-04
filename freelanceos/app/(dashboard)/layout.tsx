@@ -4,17 +4,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { ReactNode, useState, useEffect } from 'react'
-import { Menu, X, Users, Bell, Search } from 'lucide-react'
+import { Menu, X, Users, Bell } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import { LegalFooter } from '@/components/ui/LegalFooter'
-
-/* ─────────────────────────────────────────
-   Design tokens (Swiss / eCons Blue)
-   ───────────────────────────────────────── */
-// bg: #F8FAFC  |  card: #FFFFFF  |  border: #E5E7EB
-// primary gradient: from-[#00A3FF] to-[#0057FF]
-// active sidebar: 3px left bar + bg-blue-50
 
 const navItems = [
   {
@@ -54,7 +47,7 @@ const navItems = [
     ),
   },
   {
-    label: 'Équipe',
+    label: 'Equipe',
     href: '/team',
     icon: <Users size={18} />,
   },
@@ -74,7 +67,7 @@ const pageTitles: Record<string, string> = {
   '/clients': 'Clients',
   '/projects': 'Projets',
   '/invoices': 'Factures',
-  '/team': 'Équipe',
+  '/team': 'Equipe',
   '/profile': 'Profil',
 }
 
@@ -147,12 +140,11 @@ function NavItem({
         relative flex items-center gap-3 px-4 py-2.5 mx-2 rounded-xl text-sm font-medium
         transition-all duration-150 group
         ${active
-          ? 'bg-blue-50 text-[#0057FF] font-semibold'
+          ? 'bg-[#00A3FF]/8 text-[#0057FF] font-semibold'
           : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
         }
       `}
     >
-      {/* Active indicator bar */}
       {active && (
         <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-gradient-to-b from-[#00A3FF] to-[#0057FF] rounded-r-full" />
       )}
@@ -198,10 +190,8 @@ function SidebarContent({
         </div>
       </div>
 
-      {/* Divider */}
       <div className="h-px bg-gray-100 mx-6 mb-2" />
 
-      {/* Nav */}
       <nav className="flex-1 py-2 flex flex-col gap-0.5 overflow-y-auto">
         {navItems.map((item) => (
           <NavItem
@@ -213,10 +203,8 @@ function SidebarContent({
         ))}
       </nav>
 
-      {/* Divider */}
       <div className="h-px bg-gray-100 mx-6 mt-2" />
 
-      {/* Bottom user */}
       <div className="px-3 py-4">
         <SidebarAvatar />
       </div>
@@ -273,10 +261,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* ── Main Area ── */}
       <div className="flex-1 flex flex-col min-w-0">
 
-        {/* ── Topbar ── */}
+        {/* ── Topbar (ultra-minimal) ── */}
         <header className="sticky top-0 z-30 flex items-center justify-between h-14 px-4 md:px-6 bg-white border-b border-gray-200">
           <div className="flex items-center gap-3">
-            {/* Hamburger — mobile only */}
             <button
               className="md:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100"
               onClick={() => setMobileOpen(true)}
@@ -290,16 +277,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Search bar — hidden on mobile */}
-            <div className="hidden sm:flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 w-52 focus-within:border-[#00A3FF] focus-within:ring-1 focus-within:ring-[#00A3FF]/20 transition-all">
-              <Search size={14} className="text-gray-400 shrink-0" />
-              <input
-                type="text"
-                placeholder="Rechercher..."
-                className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400 w-full"
-              />
-            </div>
-
             {/* Notification Bell */}
             <div className="relative">
               <button
@@ -309,7 +286,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               >
                 <Bell size={18} />
                 {notifications.length > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white" />
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#0057FF] border-2 border-white" />
                 )}
               </button>
 

@@ -10,9 +10,9 @@ import { FileText, Download, ChevronDown, Check, Send, Eye } from 'lucide-react'
 /* ── Status badge config ── */
 const statusBadge: Record<InvoiceStatus, { bg: string; text: string; dot: string; label: string }> = {
   draft: { bg: 'bg-gray-100', text: 'text-gray-600', dot: 'bg-gray-400', label: 'Brouillon' },
-  sent: { bg: 'bg-blue-50', text: 'text-[#0057FF]', dot: 'bg-[#0057FF]', label: 'Envoyee' },
-  paid: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500', label: 'Payee' },
-  late: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500', label: 'En retard' },
+  sent: { bg: 'bg-[#00A3FF]/10', text: 'text-[#0057FF]', dot: 'bg-[#0057FF]', label: 'Envoyee' },
+  paid: { bg: 'bg-gray-900', text: 'text-white', dot: 'bg-gray-900', label: 'Payee' },
+  late: { bg: 'bg-gray-200', text: 'text-gray-700', dot: 'bg-gray-600', label: 'En retard' },
 }
 
 /* ── Toast ── */
@@ -25,8 +25,8 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
   return (
     <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-2.5 px-5 py-3 rounded-xl text-[13px] font-semibold shadow-lg border ${
       type === 'success'
-        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-        : 'bg-red-50 text-red-700 border-red-200'
+        ? 'bg-[#00A3FF]/10 text-[#0057FF] border-[#00A3FF]/20'
+        : 'bg-gray-100 text-gray-700 border-gray-200'
     }`}>
       {type === 'success' ? <Check size={14} /> : <span className="text-sm">✕</span>} {message}
     </div>
@@ -81,7 +81,7 @@ function EmailButton({
       title={hasEmail ? `Envoyer a ${invoice.client?.email}` : "Pas d'email client"}
       className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
         hasEmail
-          ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white cursor-pointer'
+          ? 'bg-[#00A3FF]/10 text-[#0057FF] hover:bg-[#0057FF] hover:text-white cursor-pointer'
           : 'bg-gray-100 text-gray-400 cursor-not-allowed'
       } ${sending ? 'opacity-60 cursor-wait' : ''}`}
     >

@@ -164,8 +164,8 @@ export default function ProfilePage() {
       {toast && (
         <div className={`fixed top-6 right-6 z-[100] flex items-center gap-2 px-5 py-3 rounded-xl text-[13px] font-semibold shadow-lg border ${
           toast.type === 'success'
-            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-            : 'bg-red-50 text-red-700 border-red-200'
+            ? 'bg-[#00A3FF]/10 text-[#0057FF] border-[#00A3FF]/20'
+            : 'bg-gray-100 text-gray-700 border-gray-200'
         }`}>
           {toast.msg}
         </div>
@@ -261,7 +261,7 @@ export default function ProfilePage() {
             {/* Status */}
             {planType === 'pro' && (
               <span className={`text-xs font-semibold ${
-                planStatus === 'active' ? 'text-emerald-600' : planStatus === 'past_due' ? 'text-amber-600' : 'text-red-600'
+                planStatus === 'active' ? 'text-[#0057FF]' : planStatus === 'past_due' ? 'text-gray-500' : 'text-gray-400'
               }`}>
                 {planStatus === 'active' ? 'Actif' : planStatus === 'past_due' ? 'Paiement en retard' : planStatus === 'canceled' ? 'Annule' : 'Inactif'}
               </span>
@@ -369,7 +369,7 @@ export default function ProfilePage() {
             await supabase.auth.signOut()
             router.push('/login')
           }}
-          className="px-7 py-2.5 rounded-lg text-sm font-semibold text-red-500 border border-red-200 bg-white hover:bg-red-50 transition-colors cursor-pointer"
+          className="px-7 py-2.5 rounded-lg text-sm font-semibold text-gray-500 border border-gray-200 bg-white hover:bg-gray-50 hover:text-gray-700 transition-colors cursor-pointer"
         >
           <span className="flex items-center gap-2">
             <LogOut size={15} />

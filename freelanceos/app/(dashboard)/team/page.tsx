@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import { useTeams, useTeamMembers, useTeamProjects, useTeamTasks } from '@/hooks/useTeams'
+import { Users, Mail, X } from 'lucide-react'
 import type { TeamTask, TaskStatus, TeamMember } from '@/types'
 
 /* ── Constants ── */
@@ -19,17 +20,25 @@ const roleLabels: Record<string, string> = {
   member: 'Membre',
 }
 
-/* ── Simple Modal ── */
+const inputCls = 'w-full px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 outline-none focus:border-[#00A3FF] focus:ring-1 focus:ring-[#00A3FF]/20 transition-all'
+
+/* ── Swiss Modal ── */
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="bg-white rounded-lg p-6 w-full max-w-md"
+        className="bg-white/95 backdrop-blur-xl rounded-2xl border border-gray-200 shadow-xl p-6 w-full max-w-md mx-4 relative"
       >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+        >
+          <X size={16} />
+        </button>
         {children}
       </div>
     </div>
@@ -53,7 +62,7 @@ function TaskCard({
   const [showMenu, setShowMenu] = useState(false)
 
   return (
-    <div className="bg-white border border-gray-200 rounded p-3 mb-2 relative">
+    <div className="bg-white border border-gray-200 rounded-xl p-3 mb-2 relative hover:border-[#00A3FF]/30 transition-colors">
       <div className="flex justify-between items-start gap-2">
         <span className="text-sm text-gray-900">{task.title}</span>
         <button
@@ -71,14 +80,14 @@ function TaskCard({
       )}
 
       {showMenu && (
-        <div className="absolute top-8 right-2 z-10 bg-white border border-gray-200 rounded p-1 min-w-[150px]">
+        <div className="absolute top-8 right-2 z-10 bg-white border border-gray-200 rounded-xl shadow-lg p-1 min-w-[150px]">
           {columns.filter(c => c.key !== task.status).map(c => (
             <button
               key={c.key}
               onClick={() => { onMove(task.id, c.key); setShowMenu(false) }}
-              className="block w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 rounded"
+              className="block w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 rounded-lg"
             >
-              Deplacer → {c.label}
+              Deplacer &rarr; {c.label}
             </button>
           ))}
           <div className="border-t border-gray-100 my-1" />
@@ -89,8 +98,8 @@ function TaskCard({
             <button
               key={m.user_id}
               onClick={() => { onAssign(task.id, m.user_id); setShowMenu(false) }}
-              className={`block w-full text-left px-3 py-1.5 text-xs rounded ${
-                task.assigned_to === m.user_id ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'
+              className={`block w-full text-left px-3 py-1.5 text-xs rounded-lg ${
+                task.assigned_to === m.user_id ? 'bg-[#00A3FF]/10 text-[#0057FF]' : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
               {m.full_name ?? m.email}
@@ -99,7 +108,7 @@ function TaskCard({
           {task.assigned_to && (
             <button
               onClick={() => { onAssign(task.id, null); setShowMenu(false) }}
-              className="block w-full text-left px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded"
+              className="block w-full text-left px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-50 rounded-lg"
             >
               Retirer l&apos;assignation
             </button>
@@ -107,7 +116,7 @@ function TaskCard({
           <div className="border-t border-gray-100 my-1" />
           <button
             onClick={() => { onDelete(task.id); setShowMenu(false) }}
-            className="block w-full text-left px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded"
+            className="block w-full text-left px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-50 rounded-lg"
           >
             Supprimer
           </button>
@@ -140,19 +149,19 @@ function KanbanColumn({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-gray-900">{colDef.label}</span>
-          <span className="text-xs text-gray-400 bg-gray-100 rounded px-2 py-0.5">
+          <span className="text-xs text-gray-400 bg-gray-100 rounded-md px-2 py-0.5">
             {tasks.length}
           </span>
         </div>
         <button
           onClick={() => onAddTask(colDef.key)}
-          className="text-gray-400 hover:text-gray-600 text-lg leading-none"
+          className="text-gray-400 hover:text-[#0057FF] text-lg leading-none transition-colors"
           title="Ajouter une tache"
         >
           +
         </button>
       </div>
-      <div className="bg-gray-50 rounded-lg p-2 min-h-[100px]">
+      <div className="bg-gray-50 rounded-xl p-2 min-h-[100px]">
         {tasks.map(task => (
           <TaskCard
             key={task.id}
@@ -206,12 +215,10 @@ export default function TeamPage() {
     getAuthUserId(supabase).then(setCurrentUserId).catch(() => {})
   }, [supabase])
 
-  // Auto-select first team
   useEffect(() => {
     if (teams.length > 0 && !activeTeamId) setActiveTeamId(teams[0].id)
   }, [teams, activeTeamId])
 
-  // Auto-select first project
   useEffect(() => {
     if (projects.length > 0 && !activeProjectId) setActiveProjectId(projects[0].id)
     else if (projects.length === 0) setActiveProjectId(null)
@@ -276,43 +283,59 @@ export default function TeamPage() {
     setFormLoading(false)
   }
 
-  /* ── Loading ── */
+  /* ── Loading skeleton ── */
   if (teamsLoading) {
-    return <div className="text-gray-400 text-sm p-4">Chargement...</div>
+    return (
+      <div className="max-w-7xl mx-auto">
+        <div className="animate-pulse">
+          <div className="h-6 w-48 bg-gray-200 rounded mb-2" />
+          <div className="h-4 w-32 bg-gray-100 rounded mb-8" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="bg-white rounded-2xl border border-gray-200 p-4 h-20" />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
   }
 
   /* ── Empty state: no teams ── */
   if (teams.length === 0) {
     return (
       <div className="max-w-md mx-auto text-center py-20">
-        <UsersIcon size={48} className="mx-auto text-gray-300 mb-4" />
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Gestion de l&apos;Equipe</h2>
+        <Users size={48} className="mx-auto text-gray-300 mb-4" />
+        <h2 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+          Gestion de l&apos;Equipe
+        </h2>
         <p className="text-sm text-gray-500 mb-6 leading-relaxed">
           Collaborez avec d&apos;autres freelances sur des projets communs.
           Vos clients et factures restent prives.
         </p>
         <button
           onClick={() => { setShowCreateTeam(true); setFormError(null) }}
-          className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-blue-700"
+          className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
         >
           Creer une equipe
         </button>
 
         {showCreateTeam && (
           <Modal onClose={() => setShowCreateTeam(false)}>
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Nouvelle equipe</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-4" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+              Nouvelle equipe
+            </h3>
             <input
               value={newTeamName}
               onChange={e => setNewTeamName(e.target.value)}
               placeholder="Nom de l'equipe"
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-4 outline-none focus:border-blue-500"
+              className={inputCls + ' mb-4'}
               autoFocus
               onKeyDown={e => e.key === 'Enter' && handleCreateTeam()}
             />
-            {formError && <div className="text-sm text-red-600 mb-3">{formError}</div>}
+            {formError && <div className="text-sm text-gray-600 mb-3">{formError}</div>}
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowCreateTeam(false)} className="border border-gray-300 text-gray-500 px-4 py-2 rounded text-sm font-semibold">Annuler</button>
-              <button onClick={handleCreateTeam} disabled={formLoading} className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold disabled:opacity-50">
+              <button onClick={() => setShowCreateTeam(false)} className="border border-gray-200 text-gray-500 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">Annuler</button>
+              <button onClick={handleCreateTeam} disabled={formLoading} className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white px-5 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity">
                 {formLoading ? 'Creation...' : 'Creer'}
               </button>
             </div>
@@ -323,24 +346,25 @@ export default function TeamPage() {
   }
 
   /* ══════════════════════════════════════
-     MAIN LAYOUT — Full width, no sidebar
+     MAIN LAYOUT
      ══════════════════════════════════════ */
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
 
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestion de l&apos;Equipe</h1>
-          <p className="text-sm text-gray-500 mt-1">{members.length} membre(s) dans cette equipe</p>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Gestion de l&apos;Equipe</h1>
+          <p className="text-xs font-medium text-gray-400 uppercase tracking-widest mt-1">
+            {members.length} membre(s) dans cette equipe
+          </p>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Team Selector */}
           <select
             value={activeTeamId ?? ''}
             onChange={e => { setActiveTeamId(e.target.value); setActiveProjectId(null) }}
-            className="border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+            className={inputCls + ' !w-auto'}
           >
             {teams.map(team => (
               <option key={team.id} value={team.id}>{team.name}</option>
@@ -349,7 +373,7 @@ export default function TeamPage() {
 
           <button
             onClick={() => { setShowCreateTeam(true); setFormError(null) }}
-            className="border border-gray-300 text-gray-600 px-3 py-2 rounded text-sm font-semibold hover:bg-gray-50"
+            className="border border-gray-200 text-gray-600 px-3 py-2.5 rounded-lg text-sm font-semibold hover:border-[#00A3FF] hover:text-[#0057FF] transition-all cursor-pointer"
           >
             + Equipe
           </button>
@@ -357,17 +381,17 @@ export default function TeamPage() {
       </div>
 
       {/* ══════════════════════════════
-         SECTION 1: MEMBERS (Priority)
+         SECTION 1: MEMBERS
          ══════════════════════════════ */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Membres</h2>
           {canManage && (
             <button
-              onClick={() => { setShowInvite(true); setFormError(null) }}
-              className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-blue-700"
+              onClick={() => { setShowInvite(true); setFormError(null); setInviteEmail(''); setInviteRole('member') }}
+              className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
             >
-              + Inviter un membre
+              + Ajouter membre
             </button>
           )}
         </div>
@@ -379,24 +403,21 @@ export default function TeamPage() {
             {members.map(m => (
               <div
                 key={m.user_id}
-                className="flex items-center gap-3 border border-gray-200 rounded-lg p-4"
+                className="flex items-center gap-3 bg-white border border-gray-200 rounded-2xl shadow-sm p-4 hover:shadow-md hover:border-[#00A3FF]/30 transition-all"
               >
-                {/* Avatar */}
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-sm font-bold shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 text-sm font-bold shrink-0">
                   {(m.full_name ?? m.email)?.[0]?.toUpperCase() ?? '?'}
                 </div>
 
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-gray-900 truncate">
                     {m.full_name ?? 'Sans nom'}
                   </div>
-                  <div className="text-xs text-gray-500 truncate">{m.email}</div>
+                  <div className="text-xs text-gray-400 truncate">{m.email}</div>
                 </div>
 
-                {/* Role + Remove */}
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400 font-medium">
+                  <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wide">
                     {roleLabels[m.role] ?? m.role}
                   </span>
                   {canManage && m.user_id !== currentUserId && m.role !== 'owner' && (
@@ -406,10 +427,10 @@ export default function TeamPage() {
                           removeMember(m.user_id)
                         }
                       }}
-                      className="text-xs text-red-500 hover:text-red-700"
+                      className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
                       title="Retirer"
                     >
-                      x
+                      <X size={14} />
                     </button>
                   )}
                 </div>
@@ -420,7 +441,7 @@ export default function TeamPage() {
       </div>
 
       {/* ══════════════════════════════════════
-         SECTION 2: PROJECTS LINKED TO TEAM
+         SECTION 2: PROJECTS
          ══════════════════════════════════════ */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
@@ -429,7 +450,7 @@ export default function TeamPage() {
           </h2>
           <button
             onClick={() => { setShowCreateProject(true); setFormError(null) }}
-            className="border border-gray-300 text-gray-600 px-3 py-2 rounded text-sm font-semibold hover:bg-gray-50"
+            className="border border-gray-200 text-gray-600 px-3 py-2.5 rounded-lg text-sm font-semibold hover:border-[#00A3FF] hover:text-[#0057FF] transition-all cursor-pointer"
           >
             + Nouveau projet
           </button>
@@ -443,10 +464,10 @@ export default function TeamPage() {
               <button
                 key={p.id}
                 onClick={() => setActiveProjectId(p.id)}
-                className={`px-4 py-2 rounded text-sm font-medium border ${
+                className={`px-4 py-2.5 rounded-lg text-sm font-medium border transition-all cursor-pointer ${
                   p.id === activeProjectId
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                    ? 'bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white border-transparent'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-[#00A3FF]/40 hover:text-[#0057FF]'
                 }`}
               >
                 {p.name}
@@ -455,14 +476,13 @@ export default function TeamPage() {
           </div>
         )}
 
-        {/* Selected project: Kanban */}
         {activeProject && (
           <div>
             <div className="flex items-center justify-between mb-4 pt-4 border-t border-gray-200">
               <div>
                 <h3 className="text-base font-semibold text-gray-900">{activeProject.name}</h3>
                 {activeProject.description && (
-                  <p className="text-sm text-gray-500 mt-1">{activeProject.description}</p>
+                  <p className="text-sm text-gray-400 mt-1">{activeProject.description}</p>
                 )}
               </div>
               <button
@@ -472,7 +492,7 @@ export default function TeamPage() {
                     setActiveProjectId(null)
                   }
                 }}
-                className="text-xs text-red-500 border border-red-300 px-3 py-1.5 rounded hover:bg-red-50"
+                className="text-xs text-gray-400 border border-gray-200 px-3 py-1.5 rounded-lg hover:text-gray-600 hover:border-gray-300 transition-colors cursor-pointer"
               >
                 Supprimer le projet
               </button>
@@ -501,6 +521,7 @@ export default function TeamPage() {
          MODALS
          ══════════════════ */}
 
+      {/* Create Team Modal */}
       {showCreateTeam && (
         <Modal onClose={() => setShowCreateTeam(false)}>
           <h3 className="text-lg font-bold text-gray-900 mb-4">Nouvelle equipe</h3>
@@ -508,20 +529,21 @@ export default function TeamPage() {
             value={newTeamName}
             onChange={e => setNewTeamName(e.target.value)}
             placeholder="Nom de l'equipe"
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-4 outline-none focus:border-blue-500"
+            className={inputCls + ' mb-4'}
             autoFocus
             onKeyDown={e => e.key === 'Enter' && handleCreateTeam()}
           />
-          {formError && <div className="text-sm text-red-600 mb-3">{formError}</div>}
+          {formError && <div className="text-sm text-gray-600 mb-3">{formError}</div>}
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setShowCreateTeam(false)} className="border border-gray-300 text-gray-500 px-4 py-2 rounded text-sm font-semibold">Annuler</button>
-            <button onClick={handleCreateTeam} disabled={formLoading} className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold disabled:opacity-50">
+            <button onClick={() => setShowCreateTeam(false)} className="border border-gray-200 text-gray-500 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors cursor-pointer">Annuler</button>
+            <button onClick={handleCreateTeam} disabled={formLoading} className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white px-5 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity cursor-pointer">
               {formLoading ? 'Creation...' : 'Creer'}
             </button>
           </div>
         </Modal>
       )}
 
+      {/* Create Project Modal */}
       {showCreateProject && (
         <Modal onClose={() => setShowCreateProject(false)}>
           <h3 className="text-lg font-bold text-gray-900 mb-4">Nouveau projet</h3>
@@ -529,7 +551,7 @@ export default function TeamPage() {
             value={newProjectName}
             onChange={e => setNewProjectName(e.target.value)}
             placeholder="Nom du projet"
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3 outline-none focus:border-blue-500"
+            className={inputCls + ' mb-3'}
             autoFocus
             onKeyDown={e => e.key === 'Enter' && handleCreateProject()}
           />
@@ -538,48 +560,70 @@ export default function TeamPage() {
             onChange={e => setNewProjectDesc(e.target.value)}
             placeholder="Description (optionnel)"
             rows={3}
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-4 outline-none focus:border-blue-500 resize-y"
+            className={inputCls + ' mb-4 resize-y'}
           />
-          {formError && <div className="text-sm text-red-600 mb-3">{formError}</div>}
+          {formError && <div className="text-sm text-gray-600 mb-3">{formError}</div>}
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setShowCreateProject(false)} className="border border-gray-300 text-gray-500 px-4 py-2 rounded text-sm font-semibold">Annuler</button>
-            <button onClick={handleCreateProject} disabled={formLoading} className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold disabled:opacity-50">
+            <button onClick={() => setShowCreateProject(false)} className="border border-gray-200 text-gray-500 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors cursor-pointer">Annuler</button>
+            <button onClick={handleCreateProject} disabled={formLoading} className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white px-5 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity cursor-pointer">
               {formLoading ? 'Creation...' : 'Creer'}
             </button>
           </div>
         </Modal>
       )}
 
+      {/* ═══ INVITE MEMBER MODAL ═══ */}
       {showInvite && (
         <Modal onClose={() => setShowInvite(false)}>
-          <h3 className="text-lg font-bold text-gray-900 mb-1">Inviter un membre</h3>
-          <p className="text-sm text-gray-500 mb-4">L&apos;utilisateur doit deja avoir un compte Freelance.</p>
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00A3FF] to-[#0057FF] flex items-center justify-center text-white shrink-0">
+              <Mail size={18} />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Inviter un membre</h3>
+              <p className="text-xs text-gray-400 mt-0.5">L&apos;utilisateur doit deja avoir un compte Freelance.</p>
+            </div>
+          </div>
+
+          <label className="block text-xs font-semibold text-gray-700 mb-1">Adresse email</label>
           <input
             value={inviteEmail}
             onChange={e => setInviteEmail(e.target.value)}
             placeholder="email@exemple.com"
             type="email"
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3 outline-none focus:border-blue-500"
+            className={inputCls + ' mb-4'}
             autoFocus
+            onKeyDown={e => e.key === 'Enter' && handleInvite()}
           />
+
+          <label className="block text-xs font-semibold text-gray-700 mb-1">Role</label>
           <select
             value={inviteRole}
             onChange={e => setInviteRole(e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-4 outline-none focus:border-blue-500 bg-white"
+            className={inputCls + ' mb-5'}
           >
             <option value="admin">Admin</option>
             <option value="member">Membre</option>
           </select>
-          {formError && <div className="text-sm text-red-600 mb-3">{formError}</div>}
+
+          {formError && <div className="text-sm text-gray-600 mb-3">{formError}</div>}
+
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setShowInvite(false)} className="border border-gray-300 text-gray-500 px-4 py-2 rounded text-sm font-semibold">Annuler</button>
-            <button onClick={handleInvite} disabled={formLoading} className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold disabled:opacity-50">
-              {formLoading ? 'Ajout...' : 'Inviter'}
+            <button onClick={() => setShowInvite(false)} className="border border-gray-200 text-gray-500 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors cursor-pointer">
+              Annuler
+            </button>
+            <button
+              onClick={handleInvite}
+              disabled={formLoading || !inviteEmail.trim()}
+              className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white px-5 py-2.5 rounded-lg text-sm font-bold disabled:opacity-50 hover:opacity-90 transition-opacity cursor-pointer"
+            >
+              {formLoading ? 'Envoi...' : 'Envoyer l\'invitation'}
             </button>
           </div>
         </Modal>
       )}
 
+      {/* Add Task Modal */}
       {showAddTask !== null && (
         <Modal onClose={() => setShowAddTask(null)}>
           <h3 className="text-lg font-bold text-gray-900 mb-4">
@@ -589,31 +633,19 @@ export default function TeamPage() {
             value={newTaskTitle}
             onChange={e => setNewTaskTitle(e.target.value)}
             placeholder="Titre de la tache"
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-4 outline-none focus:border-blue-500"
+            className={inputCls + ' mb-4'}
             autoFocus
             onKeyDown={e => e.key === 'Enter' && handleAddTask()}
           />
-          {formError && <div className="text-sm text-red-600 mb-3">{formError}</div>}
+          {formError && <div className="text-sm text-gray-600 mb-3">{formError}</div>}
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setShowAddTask(null)} className="border border-gray-300 text-gray-500 px-4 py-2 rounded text-sm font-semibold">Annuler</button>
-            <button onClick={handleAddTask} disabled={formLoading} className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold disabled:opacity-50">
+            <button onClick={() => setShowAddTask(null)} className="border border-gray-200 text-gray-500 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors cursor-pointer">Annuler</button>
+            <button onClick={handleAddTask} disabled={formLoading} className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white px-5 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity cursor-pointer">
               {formLoading ? 'Ajout...' : 'Ajouter'}
             </button>
           </div>
         </Modal>
       )}
     </div>
-  )
-}
-
-/* ── Icon ── */
-function UsersIcon({ size = 24, className }: { size?: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
   )
 }

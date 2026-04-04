@@ -224,10 +224,10 @@ export default function ClientsPage() {
                     required={field.required}
                     value={form[field.key as keyof typeof form]}
                     onChange={(e) => setForm((f) => ({ ...f, [field.key]: e.target.value }))}
-                    className={`${inputCls} ${field.key === 'name' && nameError ? '!border-red-400 !ring-red-200' : ''}`}
+                    className={`${inputCls} ${field.key === 'name' && nameError ? '!border-gray-400 !ring-gray-200' : ''}`}
                   />
                   {field.key === 'name' && nameError && (
-                    <p className="text-xs text-red-600 mt-1">{nameError}</p>
+                    <p className="text-xs text-gray-600 mt-1">{nameError}</p>
                   )}
                 </div>
               ))}
@@ -242,7 +242,7 @@ export default function ClientsPage() {
                       await deleteClient(editing.id)
                       setShowModal(false)
                     }}
-                    className="text-red-600 bg-red-50 border border-red-200 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors"
+                    className="text-gray-500 bg-gray-50 border border-gray-200 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
                   >
                     Supprimer
                   </button>

@@ -36,9 +36,9 @@ import {
 
 const statusBadge: Record<string, { bg: string; text: string; label: string }> = {
   draft: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Brouillon' },
-  sent: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Envoyee' },
-  paid: { bg: 'bg-emerald-50', text: 'text-emerald-700', label: 'Payee' },
-  late: { bg: 'bg-red-50', text: 'text-red-700', label: 'En retard' },
+  sent: { bg: 'bg-[#00A3FF]/10', text: 'text-[#0057FF]', label: 'Envoyee' },
+  paid: { bg: 'bg-gray-900', text: 'text-white', label: 'Payee' },
+  late: { bg: 'bg-gray-200', text: 'text-gray-700', label: 'En retard' },
 }
 
 function getLast6Months(): string[] {
@@ -86,19 +86,19 @@ export default function DashboardPage() {
       label: 'Factures en attente',
       value: String(pendingCount),
       icon: <FileText size={20} />,
-      accent: 'from-amber-400 to-amber-600',
+      accent: 'from-gray-600 to-gray-800',
     },
     {
       label: 'Projets actifs',
       value: String(activeProjects),
       icon: <FolderOpen size={20} />,
-      accent: 'from-emerald-400 to-emerald-600',
+      accent: 'from-gray-400 to-gray-600',
     },
     {
       label: 'Taux TVA moyen',
       value: `${avgTVA.toFixed(1)}%`,
       icon: <Briefcase size={20} />,
-      accent: 'from-violet-400 to-violet-600',
+      accent: 'from-gray-300 to-gray-500',
     },
   ]
 
@@ -196,9 +196,9 @@ export default function DashboardPage() {
   }
 
   const alertStyles = {
-    warning: { iconColor: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
-    success: { iconColor: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
-    info: { iconColor: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
+    warning: { iconColor: 'text-gray-700', bg: 'bg-gray-100', border: 'border-gray-200' },
+    success: { iconColor: 'text-[#0057FF]', bg: 'bg-[#00A3FF]/8', border: 'border-[#00A3FF]/20' },
+    info: { iconColor: 'text-gray-500', bg: 'bg-gray-50', border: 'border-gray-200' },
   }
 
   return (
@@ -287,8 +287,8 @@ export default function DashboardPage() {
             const netIncome = grossRevenue - urssafTax
             return [
               { label: "Chiffre d'affaires brut", value: formatCurrency(grossRevenue), color: 'text-gray-900' },
-              { label: 'Cotisations URSSAF (21.2%)', value: `- ${formatCurrency(urssafTax)}`, color: 'text-red-600' },
-              { label: 'Revenu net estime', value: formatCurrency(netIncome), color: 'text-emerald-600' },
+              { label: 'Cotisations URSSAF (21.2%)', value: `- ${formatCurrency(urssafTax)}`, color: 'text-gray-500' },
+              { label: 'Revenu net estime', value: formatCurrency(netIncome), color: 'text-[#0057FF]' },
             ].map((item) => (
               <div key={item.label} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
                 <div className={`text-xl font-bold ${item.color} tracking-tight mb-1`} style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
