@@ -50,6 +50,7 @@ export function useTeamMembers(teamId: string | null) {
       team_id: m.team_id,
       user_id: m.user_id,
       role: m.role,
+      status: m.status ?? 'active',
       created_at: m.created_at,
       email: m.profile?.email ?? '',
       full_name: m.profile?.full_name ?? null,
@@ -61,16 +62,35 @@ export function useTeamMembers(teamId: string | null) {
   useEffect(() => { fetchMembers() }, [fetchMembers])
 
   const addMember = async (email: string, role: string = 'member') => {
+    // 1. Find the user by email
     const { data: profile, error: pErr } = await supabase
       .from('profiles')
       .select('id')
       .eq('email', email.trim())
       .single()
-    if (pErr || !profile) throw new Error("Aucun utilisateur trouvé avec cet email.")
+    if (pErr || !profile) throw new Error("Aucun utilisateur trouve avec cet email.")
+
+    // 2. Insert as pending
     const { error } = await supabase
       .from('team_members')
-      .insert({ team_id: teamId, user_id: profile.id, role })
+      .insert({ team_id: teamId, user_id: profile.id, role, status: 'pending' })
     if (error) throw error
+
+    // 3. Get team name for notification message
+    const { data: team } = await supabase
+      .from('teams')
+      .select('name')
+      .eq('id', teamId!)
+      .single()
+
+    // 4. Create TEAM_INVITE notification for the invited user
+    await supabase.from('notifications').insert({
+      user_id: profile.id,
+      type: 'TEAM_INVITE',
+      message: `Vous avez ete invite a rejoindre l'equipe "${team?.name ?? 'Equipe'}"`,
+      team_id: teamId,
+    })
+
     await fetchMembers()
   }
 

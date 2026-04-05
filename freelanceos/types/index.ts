@@ -112,14 +112,27 @@ export interface Team {
 
 export type TeamRole = 'owner' | 'admin' | 'member'
 
+export type TeamMemberStatus = 'pending' | 'active'
+
 export interface TeamMember {
   id: string
   team_id: string
   user_id: string
   role: TeamRole
+  status: TeamMemberStatus
   created_at: string
   email?: string
   full_name?: string | null
+}
+
+export interface Notification {
+  id: string
+  user_id: string
+  type: string
+  message: string
+  is_read: boolean
+  team_id: string | null
+  created_at: string
 }
 
 export interface TeamProject {

@@ -4,10 +4,12 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { ReactNode, useState, useEffect } from 'react'
-import { Menu, X, Users, Bell } from 'lucide-react'
+import { Menu, X, Users, Bell, Check, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
+import { useNotifications } from '@/hooks/useNotifications'
 import { LegalFooter } from '@/components/ui/LegalFooter'
+import type { Notification } from '@/types'
 
 const navItems = [
   {
@@ -212,12 +214,75 @@ function SidebarContent({
   )
 }
 
+/* ── Notification Item ── */
+function NotificationItem({
+  notif,
+  onAccept,
+  onDecline,
+  onDismiss,
+}: {
+  notif: Notification
+  onAccept: (n: Notification) => void
+  onDecline: (n: Notification) => void
+  onDismiss: (id: string) => void
+}) {
+  const [acting, setActing] = useState(false)
+  const isInvite = notif.type === 'TEAM_INVITE'
+  const timeAgo = getTimeAgo(notif.created_at)
+
+  return (
+    <div className="px-4 py-3">
+      <div className="text-sm text-gray-800 leading-snug">{notif.message}</div>
+      <div className="text-[11px] text-gray-400 mt-1">{timeAgo}</div>
+
+      {isInvite ? (
+        <div className="flex items-center gap-2 mt-2.5">
+          <button
+            onClick={async () => { setActing(true); await onAccept(notif) }}
+            disabled={acting}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-gradient-to-br from-[#00A3FF] to-[#0057FF] hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
+          >
+            <Check size={12} />
+            Accepter
+          </button>
+          <button
+            onClick={async () => { setActing(true); await onDecline(notif) }}
+            disabled={acting}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-500 bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50 cursor-pointer"
+          >
+            <XCircle size={12} />
+            Refuser
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => onDismiss(notif.id)}
+          className="mt-1.5 text-[11px] text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+        >
+          Marquer comme lu
+        </button>
+      )}
+    </div>
+  )
+}
+
+function getTimeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return "A l'instant"
+  if (mins < 60) return `Il y a ${mins}min`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `Il y a ${hours}h`
+  const days = Math.floor(hours / 24)
+  return `Il y a ${days}j`
+}
+
 /* ── Main Layout ── */
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
-  const [notifications] = useState<{ id: string; message: string; date: string }[]>([])
+  const { notifications, fetchNotifications, markAsRead, acceptTeamInvite, declineTeamInvite } = useNotifications()
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
@@ -225,6 +290,20 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   const currentTitle = pageTitles[pathname] ?? 'eCons Freelance'
+
+  const handleAccept = async (n: Notification) => {
+    await acceptTeamInvite(n)
+    await fetchNotifications()
+  }
+
+  const handleDecline = async (n: Notification) => {
+    await declineTeamInvite(n)
+    await fetchNotifications()
+  }
+
+  const handleDismiss = async (id: string) => {
+    await markAsRead(id)
+  }
 
   return (
     <div className="flex min-h-dvh bg-[#F8FAFC]">
@@ -261,7 +340,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* ── Main Area ── */}
       <div className="flex-1 flex flex-col min-w-0">
 
-        {/* ── Topbar (ultra-minimal) ── */}
+        {/* ── Topbar ── */}
         <header className="sticky top-0 z-30 flex items-center justify-between h-14 px-4 md:px-6 bg-white border-b border-gray-200">
           <div className="flex items-center gap-3">
             <button
@@ -293,21 +372,30 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               {notifOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
-                  <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-200 rounded-2xl shadow-lg z-50 overflow-hidden">
-                    <div className="px-4 py-3 border-b border-gray-100">
+                  <div className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white border border-gray-200 rounded-2xl shadow-lg z-50 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
                       <span className="text-sm font-semibold text-gray-900">Notifications</span>
+                      {notifications.length > 0 && (
+                        <span className="text-[11px] font-medium text-[#0057FF] bg-[#00A3FF]/10 px-2 py-0.5 rounded-md">
+                          {notifications.length}
+                        </span>
+                      )}
                     </div>
                     {notifications.length === 0 ? (
-                      <div className="px-4 py-8 text-center text-sm text-gray-400">
-                        Aucune nouvelle notification
+                      <div className="px-4 py-8 text-center">
+                        <Bell size={24} className="mx-auto text-gray-300 mb-2" />
+                        <p className="text-sm text-gray-400">Aucune nouvelle notification</p>
                       </div>
                     ) : (
-                      <div className="max-h-72 overflow-y-auto divide-y divide-gray-100">
+                      <div className="max-h-80 overflow-y-auto divide-y divide-gray-100">
                         {notifications.map((n) => (
-                          <div key={n.id} className="px-4 py-3">
-                            <div className="text-sm text-gray-800">{n.message}</div>
-                            <div className="text-xs text-gray-400 mt-0.5">{n.date}</div>
-                          </div>
+                          <NotificationItem
+                            key={n.id}
+                            notif={n}
+                            onAccept={handleAccept}
+                            onDecline={handleDecline}
+                            onDismiss={handleDismiss}
+                          />
                         ))}
                       </div>
                     )}

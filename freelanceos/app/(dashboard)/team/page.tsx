@@ -427,42 +427,58 @@ export default function TeamPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {members.map(m => (
-              <div
-                key={m.user_id}
-                className="flex items-center gap-3 bg-white border border-gray-200 rounded-2xl shadow-sm p-4 hover:shadow-md hover:border-[#00A3FF]/30 transition-all"
-              >
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 text-sm font-bold shrink-0">
-                  {(m.full_name ?? m.email)?.[0]?.toUpperCase() ?? '?'}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900 truncate">
-                    {m.full_name ?? 'Sans nom'}
+            {members.map(m => {
+              const isPending = m.status === 'pending'
+              return (
+                <div
+                  key={m.user_id}
+                  className={`flex items-center gap-3 bg-white border rounded-2xl shadow-sm p-4 transition-all ${
+                    isPending
+                      ? 'border-dashed border-gray-200 opacity-75'
+                      : 'border-gray-200 hover:shadow-md hover:border-[#00A3FF]/30'
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
+                    isPending ? 'bg-gray-50 text-gray-400' : 'bg-gray-100 text-gray-500'
+                  }`}>
+                    {(m.full_name ?? m.email)?.[0]?.toUpperCase() ?? '?'}
                   </div>
-                  <div className="text-xs text-gray-400 truncate">{m.email}</div>
-                </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wide">
-                    {roleLabels[m.role] ?? m.role}
-                  </span>
-                  {canManage && m.user_id !== currentUserId && m.role !== 'owner' && (
-                    <button
-                      onClick={() => {
-                        if (confirm('Retirer ce membre de l\'equipe ?')) {
-                          removeMember(m.user_id)
-                        }
-                      }}
-                      className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                      title="Retirer"
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-900 truncate">
+                        {m.full_name ?? 'Sans nom'}
+                      </span>
+                      {isPending && (
+                        <span className="shrink-0 inline-block px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide bg-[#00A3FF]/10 text-[#0057FF]">
+                          En attente
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-400 truncate">{m.email}</div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wide">
+                      {roleLabels[m.role] ?? m.role}
+                    </span>
+                    {canManage && m.user_id !== currentUserId && m.role !== 'owner' && (
+                      <button
+                        onClick={() => {
+                          if (confirm('Retirer ce membre de l\'equipe ?')) {
+                            removeMember(m.user_id)
+                          }
+                        }}
+                        className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                        title="Retirer"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
