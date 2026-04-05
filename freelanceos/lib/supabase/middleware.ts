@@ -47,6 +47,7 @@ export async function updateSession(request: NextRequest) {
 
   const isApiRoute = pathname.startsWith('/api/')
   const isCallbackRoute = pathname.startsWith('/auth/callback')
+  const isOnboardingPage = pathname.startsWith('/onboarding')
 
   // Not logged in and trying to access protected routes (skip API, auth, callback, and legal routes)
   if (!user && !isAuthPage && !isLegalPage && !isApiRoute && !isCallbackRoute) {
@@ -60,6 +61,22 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     return NextResponse.redirect(url)
+  }
+
+  // Logged in → check onboarding status (skip API, callback, onboarding itself)
+  if (user && !isApiRoute && !isCallbackRoute && !isOnboardingPage && !isAuthPage && !isLegalPage) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('onboarding_completed')
+      .eq('id', user.id)
+      .single()
+
+    // If profile exists and onboarding not completed → redirect to onboarding
+    if (profile && profile.onboarding_completed === false) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/onboarding'
+      return NextResponse.redirect(url)
+    }
   }
 
   return supabaseResponse

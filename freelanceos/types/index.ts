@@ -10,12 +10,15 @@ export interface Profile {
   siret: string | null
   tva_number: string | null
   tva_rate: number
+  iban: string | null
+  payment_link: string | null
   logo_url: string | null
   avatar_url: string | null
   stripe_customer_id: string | null
   stripe_subscription_id: string | null
   plan_status: PlanStatus
   plan_type: PlanType
+  onboarding_completed: boolean
 }
 
 export interface Workspace {
