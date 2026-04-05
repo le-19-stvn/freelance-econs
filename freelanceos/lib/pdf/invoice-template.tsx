@@ -21,7 +21,7 @@ const c = {
 const styles = StyleSheet.create({
   page: {
     padding: 48,
-    paddingBottom: 80,
+    paddingBottom: 100,
     fontSize: 9,
     fontFamily: 'Helvetica',
     color: c.dark,
@@ -182,6 +182,44 @@ const styles = StyleSheet.create({
   },
   notesText: { fontSize: 9, color: c.dark, lineHeight: 1.6 },
 
+  /* ── Payment details ── */
+  paymentBox: {
+    marginTop: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: c.faintRule,
+  },
+  paymentTitle: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: c.dark,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginBottom: 8,
+  },
+  paymentRow: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  paymentLabel: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: c.dark,
+    width: 100,
+  },
+  paymentValue: {
+    fontSize: 8.5,
+    color: c.dark,
+    flex: 1,
+    fontFamily: 'Courier',
+  },
+  paymentLink: {
+    fontSize: 8.5,
+    color: c.dark,
+    flex: 1,
+    textDecoration: 'underline',
+  },
+
   /* ── Footer ── */
   footer: {
     position: 'absolute',
@@ -326,6 +364,25 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
           <View style={styles.notesBox}>
             <Text style={styles.notesTitle}>Notes / Conditions</Text>
             <Text style={styles.notesText}>{invoice.notes}</Text>
+          </View>
+        )}
+
+        {/* ═══ PAYMENT DETAILS ═══ */}
+        {(profile.iban || profile.payment_link) && (
+          <View style={styles.paymentBox}>
+            <Text style={styles.paymentTitle}>Modalites de paiement</Text>
+            {profile.iban && (
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>IBAN</Text>
+                <Text style={styles.paymentValue}>{profile.iban}</Text>
+              </View>
+            )}
+            {profile.payment_link && (
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>Paiement en ligne</Text>
+                <Text style={styles.paymentLink}>{profile.payment_link}</Text>
+              </View>
+            )}
           </View>
         )}
 
