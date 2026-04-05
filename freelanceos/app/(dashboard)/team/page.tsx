@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import { useTeams, useTeamMembers, useTeamProjects, useTeamTasks } from '@/hooks/useTeams'
-import { Users, Mail, X } from 'lucide-react'
+import { Users, Mail, X, FolderOpen, UserPlus } from 'lucide-react'
 import type { TeamTask, TaskStatus, TeamMember } from '@/types'
 
 /* ── Constants ── */
@@ -26,12 +26,12 @@ const inputCls = 'w-full px-3 py-2.5 rounded-lg border border-gray-200 bg-white 
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm px-4"
       onClick={onClose}
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="bg-white/95 backdrop-blur-xl rounded-2xl border border-gray-200 shadow-xl p-6 w-full max-w-md mx-4 relative"
+        className="bg-white/95 backdrop-blur-xl rounded-2xl border border-gray-200 shadow-xl p-6 w-full max-w-md relative"
       >
         <button
           onClick={onClose}
@@ -230,6 +230,8 @@ export default function TeamPage() {
   const currentMember = members.find(m => m.user_id === currentUserId)
   const canManage = currentMember?.role === 'owner' || currentMember?.role === 'admin'
 
+  const openInviteModal = () => { setShowInvite(true); setFormError(null); setInviteEmail(''); setInviteRole('member') }
+
   /* ── Handlers ── */
   const handleCreateTeam = async () => {
     if (!newTeamName.trim()) return
@@ -286,13 +288,13 @@ export default function TeamPage() {
   /* ── Loading skeleton ── */
   if (teamsLoading) {
     return (
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="animate-pulse">
-          <div className="h-6 w-48 bg-gray-200 rounded mb-2" />
-          <div className="h-4 w-32 bg-gray-100 rounded mb-8" />
+          <div className="h-7 w-52 bg-gray-200 rounded mb-2" />
+          <div className="h-4 w-36 bg-gray-100 rounded mb-8" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {[1, 2, 3].map(i => (
-              <div key={i} className="bg-white rounded-2xl border border-gray-200 p-4 h-20" />
+              <div key={i} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 h-24" />
             ))}
           </div>
         </div>
@@ -303,44 +305,48 @@ export default function TeamPage() {
   /* ── Empty state: no teams ── */
   if (teams.length === 0) {
     return (
-      <div className="max-w-md mx-auto text-center py-20">
-        <Users size={48} className="mx-auto text-gray-300 mb-4" />
-        <h2 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
-          Gestion de l&apos;Equipe
-        </h2>
-        <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-          Collaborez avec d&apos;autres freelances sur des projets communs.
-          Vos clients et factures restent prives.
-        </p>
-        <button
-          onClick={() => { setShowCreateTeam(true); setFormError(null) }}
-          className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
-        >
-          Creer une equipe
-        </button>
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md mx-auto text-center py-20">
+          <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-5">
+            <Users size={28} className="text-gray-400" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+            Gestion de l&apos;Equipe
+          </h2>
+          <p className="text-sm text-gray-400 mb-8 leading-relaxed max-w-xs mx-auto">
+            Collaborez avec d&apos;autres freelances sur des projets communs.
+            Vos clients et factures restent prives.
+          </p>
+          <button
+            onClick={() => { setShowCreateTeam(true); setFormError(null) }}
+            className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+          >
+            Creer une equipe
+          </button>
 
-        {showCreateTeam && (
-          <Modal onClose={() => setShowCreateTeam(false)}>
-            <h3 className="text-lg font-bold text-gray-900 mb-4" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
-              Nouvelle equipe
-            </h3>
-            <input
-              value={newTeamName}
-              onChange={e => setNewTeamName(e.target.value)}
-              placeholder="Nom de l'equipe"
-              className={inputCls + ' mb-4'}
-              autoFocus
-              onKeyDown={e => e.key === 'Enter' && handleCreateTeam()}
-            />
-            {formError && <div className="text-sm text-gray-600 mb-3">{formError}</div>}
-            <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowCreateTeam(false)} className="border border-gray-200 text-gray-500 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">Annuler</button>
-              <button onClick={handleCreateTeam} disabled={formLoading} className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white px-5 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity">
-                {formLoading ? 'Creation...' : 'Creer'}
-              </button>
-            </div>
-          </Modal>
-        )}
+          {showCreateTeam && (
+            <Modal onClose={() => setShowCreateTeam(false)}>
+              <h3 className="text-lg font-bold text-gray-900 mb-4" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+                Nouvelle equipe
+              </h3>
+              <input
+                value={newTeamName}
+                onChange={e => setNewTeamName(e.target.value)}
+                placeholder="Nom de l'equipe"
+                className={inputCls + ' mb-4'}
+                autoFocus
+                onKeyDown={e => e.key === 'Enter' && handleCreateTeam()}
+              />
+              {formError && <div className="text-sm text-gray-600 mb-3">{formError}</div>}
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => setShowCreateTeam(false)} className="border border-gray-200 text-gray-500 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors cursor-pointer">Annuler</button>
+                <button onClick={handleCreateTeam} disabled={formLoading} className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white px-5 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity cursor-pointer">
+                  {formLoading ? 'Creation...' : 'Creer'}
+                </button>
+              </div>
+            </Modal>
+          )}
+        </div>
       </div>
     )
   }
@@ -349,7 +355,7 @@ export default function TeamPage() {
      MAIN LAYOUT
      ══════════════════════════════════════ */
   return (
-    <div className="max-w-7xl mx-auto" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
 
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -360,7 +366,7 @@ export default function TeamPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <select
             value={activeTeamId ?? ''}
             onChange={e => { setActiveTeamId(e.target.value); setActiveProjectId(null) }}
@@ -371,11 +377,22 @@ export default function TeamPage() {
             ))}
           </select>
 
+          {/* Ghost secondary button */}
           <button
             onClick={() => { setShowCreateTeam(true); setFormError(null) }}
-            className="border border-gray-200 text-gray-600 px-3 py-2.5 rounded-lg text-sm font-semibold hover:border-[#00A3FF] hover:text-[#0057FF] transition-all cursor-pointer"
+            className="bg-white border border-gray-200 text-gray-500 px-3 py-2.5 rounded-lg text-sm font-medium hover:border-gray-300 hover:text-gray-600 transition-all cursor-pointer"
           >
             + Equipe
+          </button>
+
+          {/* Primary invite button — always visible in header */}
+          <button
+            onClick={openInviteModal}
+            className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer inline-flex items-center gap-2"
+          >
+            <UserPlus size={15} />
+            <span className="hidden sm:inline">Inviter un membre</span>
+            <span className="sm:hidden">Inviter</span>
           </button>
         </div>
       </div>
@@ -386,18 +403,28 @@ export default function TeamPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Membres</h2>
-          {canManage && (
-            <button
-              onClick={() => { setShowInvite(true); setFormError(null); setInviteEmail(''); setInviteRole('member') }}
-              className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
-            >
-              + Ajouter membre
-            </button>
-          )}
         </div>
 
         {members.length === 0 ? (
-          <p className="text-sm text-gray-400">Aucun membre dans cette equipe.</p>
+          /* ── Beautiful empty state ── */
+          <div className="bg-white rounded-2xl border border-dashed border-gray-200 py-12 px-6 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-4">
+              <Users size={24} className="text-gray-300" />
+            </div>
+            <p className="text-sm font-medium text-gray-500 mb-1">
+              Aucun membre pour le moment
+            </p>
+            <p className="text-xs text-gray-400 mb-5 max-w-[260px] mx-auto leading-relaxed">
+              Invitez des collaborateurs pour commencer a travailler ensemble sur vos projets.
+            </p>
+            <button
+              onClick={openInviteModal}
+              className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer inline-flex items-center gap-2"
+            >
+              <UserPlus size={15} />
+              Inviter un membre
+            </button>
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {members.map(m => (
@@ -446,18 +473,35 @@ export default function TeamPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">
-            Projets associes a cette equipe
+            Projets
           </h2>
           <button
             onClick={() => { setShowCreateProject(true); setFormError(null) }}
-            className="border border-gray-200 text-gray-600 px-3 py-2.5 rounded-lg text-sm font-semibold hover:border-[#00A3FF] hover:text-[#0057FF] transition-all cursor-pointer"
+            className="bg-white border border-gray-200 text-gray-500 px-3 py-2.5 rounded-lg text-sm font-medium hover:border-gray-300 hover:text-gray-600 transition-all cursor-pointer"
           >
             + Nouveau projet
           </button>
         </div>
 
         {projects.length === 0 ? (
-          <p className="text-sm text-gray-400">Aucun projet pour cette equipe.</p>
+          /* ── Beautiful empty state ── */
+          <div className="bg-white rounded-2xl border border-dashed border-gray-200 py-12 px-6 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-4">
+              <FolderOpen size={24} className="text-gray-300" />
+            </div>
+            <p className="text-sm font-medium text-gray-500 mb-1">
+              Aucun projet pour cette equipe
+            </p>
+            <p className="text-xs text-gray-400 mb-5 max-w-[260px] mx-auto leading-relaxed">
+              Creez un projet pour organiser le travail avec votre equipe.
+            </p>
+            <button
+              onClick={() => { setShowCreateProject(true); setFormError(null) }}
+              className="bg-white border border-gray-200 text-gray-600 px-5 py-2.5 rounded-lg text-sm font-semibold hover:border-[#00A3FF] hover:text-[#0057FF] transition-all cursor-pointer"
+            >
+              + Creer un projet
+            </button>
+          </div>
         ) : (
           <div className="flex flex-wrap gap-2 mb-4">
             {projects.map(p => (
@@ -494,7 +538,7 @@ export default function TeamPage() {
                 }}
                 className="text-xs text-gray-400 border border-gray-200 px-3 py-1.5 rounded-lg hover:text-gray-600 hover:border-gray-300 transition-colors cursor-pointer"
               >
-                Supprimer le projet
+                Supprimer
               </button>
             </div>
 
