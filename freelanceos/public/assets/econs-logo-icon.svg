@@ -1,0 +1,39 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Blue ambient glow - bottom corners -->
+    <radialGradient id="glowBL" cx="0%" cy="100%" r="70%">
+      <stop offset="0%" stop-color="#00A3FF" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#00A3FF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowBR" cx="100%" cy="100%" r="70%">
+      <stop offset="0%" stop-color="#0057FF" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#0057FF" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Chrome metallic gradient -->
+    <linearGradient id="chrome" x1="0" y1="100" x2="0" y2="400">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="25%" stop-color="#E8E8E8"/>
+      <stop offset="50%" stop-color="#B8B8B8"/>
+      <stop offset="72%" stop-color="#8E8E8E"/>
+      <stop offset="100%" stop-color="#C8C8C8"/>
+    </linearGradient>
+    <!-- Subtle top edge highlight -->
+    <linearGradient id="topEdge" x1="256" y1="0" x2="256" y2="8">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="108" fill="#08080E"/>
+
+  <!-- Blue ambient glow layers -->
+  <rect width="512" height="512" rx="108" fill="url(#glowBL)"/>
+  <rect width="512" height="512" rx="108" fill="url(#glowBR)"/>
+
+  <!-- Subtle top highlight -->
+  <rect width="512" height="8" rx="4" fill="url(#topEdge)"/>
+
+  <!-- "eC" chrome text -->
+  <text x="256" y="345" text-anchor="middle" fill="url(#chrome)" font-family="Inter, -apple-system, Helvetica, Arial, sans-serif" font-weight="800" font-size="240" letter-spacing="-14">eC</text>
+</svg>

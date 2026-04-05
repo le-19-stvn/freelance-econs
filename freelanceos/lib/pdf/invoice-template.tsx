@@ -1,246 +1,359 @@
 import React from 'react'
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+import path from 'path'
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 import type { Invoice, Profile } from '@/types'
 import { calculateHT, calculateTVA, calculateTTC } from '@/lib/utils/calculations'
 
 /* ──────────────────────────────────────────────────────────
-   Swiss Design Invoice — 100% Black & White, Strict Grid
+   Premium Light Swiss Design Invoice — B&W Strict Grid
+   Helvetica · No vertical borders · Chrome-level precision
    ────────────────────────────────────────────────────────── */
+
+const LOGO_PATH = path.join(process.cwd(), 'public', 'assets', 'logo-noir-fr.png')
 
 const c = {
   black: '#000000',
   dark: '#1A1A1A',
-  grey: '#555555',
-  lightGrey: '#999999',
-  rule: '#CCCCCC',
-  faintRule: '#E0E0E0',
-  bgAlt: '#F5F5F5',
+  mid: '#444444',
+  grey: '#777777',
+  lightGrey: '#AAAAAA',
+  rule: '#D0D0D0',
+  faintRule: '#E8E8E8',
   white: '#FFFFFF',
 }
 
 const styles = StyleSheet.create({
+
+  /* ════════════════════════════════════════
+     PAGE
+     ════════════════════════════════════════ */
   page: {
-    padding: 48,
-    paddingBottom: 100,
+    paddingTop: 48,
+    paddingBottom: 110,
+    paddingHorizontal: 52,
     fontSize: 9,
     fontFamily: 'Helvetica',
     color: c.dark,
     backgroundColor: c.white,
   },
 
-  /* ── Top rule ── */
-  topRule: {
-    borderTopWidth: 4,
-    borderTopColor: c.black,
-    marginBottom: 32,
-  },
-
-  /* ── Header ── */
+  /* ════════════════════════════════════════
+     HEADER — Top Section
+     ════════════════════════════════════════ */
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 32,
+    alignItems: 'flex-start',
+    marginBottom: 36,
   },
-  headerLeft: { maxWidth: '55%' },
-  headerRight: { alignItems: 'flex-end', maxWidth: '40%' },
-  brandName: {
-    fontSize: 20,
-    fontWeight: 'bold',
+
+  /* -- Left column: FACTURE + logo + sender -- */
+  headerLeft: {
+    maxWidth: '50%',
+  },
+  factureTitle: {
+    fontSize: 32,
+    fontFamily: 'Helvetica-Bold',
     color: c.black,
-    letterSpacing: 1,
+    letterSpacing: 8,
     textTransform: 'uppercase',
+    marginBottom: 12,
+  },
+  logo: {
+    width: 100,
+    height: 40,
+    objectFit: 'contain',
+    marginBottom: 14,
+  },
+  senderName: {
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+    color: c.dark,
     marginBottom: 2,
   },
-  brandSub: {
-    fontSize: 7,
-    color: c.lightGrey,
-    letterSpacing: 3,
-    textTransform: 'uppercase',
-    marginBottom: 10,
-  },
-  infoText: { fontSize: 8.5, color: c.dark, lineHeight: 1.6 },
-  infoMuted: { fontSize: 8, color: c.grey, lineHeight: 1.6 },
-
-  /* ── Invoice title block ── */
-  invoiceTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: c.black,
-    letterSpacing: 3,
-    textTransform: 'uppercase',
-  },
-  invoiceNumber: {
-    fontSize: 10,
-    color: c.dark,
-    fontWeight: 'bold',
-    marginTop: 4,
-    marginBottom: 8,
+  senderLine: {
+    fontSize: 8,
+    color: c.grey,
+    lineHeight: 1.65,
   },
 
-  /* ── Divider ── */
-  divider: {
-    borderBottomWidth: 1,
-    borderBottomColor: c.rule,
-    marginBottom: 24,
+  /* -- Right column: Metadata grid -- */
+  headerRight: {
+    width: 200,
   },
-
-  /* ── Meta ── */
-  metaSection: {
+  metaRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  metaLabel: {
+    width: 80,
+    fontSize: 7.5,
+    fontFamily: 'Helvetica',
+    color: c.lightGrey,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  metaValue: {
+    flex: 1,
+    fontSize: 8.5,
+    fontFamily: 'Helvetica-Bold',
+    color: c.dark,
+    textAlign: 'right',
+  },
+
+  /* ════════════════════════════════════════
+     SEPARATOR
+     ════════════════════════════════════════ */
+  separator: {
+    borderBottomWidth: 1,
+    borderBottomColor: c.faintRule,
+    marginBottom: 28,
+  },
+
+  /* ════════════════════════════════════════
+     CLIENT BLOCK — "Facturer a"
+     ════════════════════════════════════════ */
+  clientSection: {
     marginBottom: 32,
   },
-  metaBlock: {},
-  label: {
+  sectionLabel: {
     fontSize: 7,
+    fontFamily: 'Helvetica-Bold',
     color: c.lightGrey,
     textTransform: 'uppercase',
-    letterSpacing: 2,
-    marginBottom: 4,
-    marginTop: 8,
+    letterSpacing: 2.5,
+    marginBottom: 6,
   },
-  clientName: { fontSize: 11, fontWeight: 'bold', color: c.black, marginBottom: 2 },
-  clientDetail: { fontSize: 8.5, color: c.dark, lineHeight: 1.6 },
+  clientName: {
+    fontSize: 12,
+    fontFamily: 'Helvetica-Bold',
+    color: c.black,
+    marginBottom: 3,
+  },
+  clientLine: {
+    fontSize: 8.5,
+    color: c.mid,
+    lineHeight: 1.6,
+  },
 
-  /* ── Table ── */
-  table: { marginBottom: 24 },
+  /* ════════════════════════════════════════
+     ITEMS TABLE — No vertical borders
+     ════════════════════════════════════════ */
+  table: {
+    marginBottom: 4,
+  },
+
+  /* -- Header row -- */
   tableHeader: {
     flexDirection: 'row',
-    paddingVertical: 8,
-    paddingHorizontal: 0,
-    borderBottomWidth: 2,
+    paddingBottom: 8,
+    borderBottomWidth: 1.5,
     borderBottomColor: c.black,
   },
+  thText: {
+    fontSize: 7,
+    fontFamily: 'Helvetica-Bold',
+    color: c.grey,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+  },
+
+  /* -- Body row -- */
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 9,
-    paddingHorizontal: 0,
+    paddingVertical: 10,
     borderBottomWidth: 0.5,
     borderBottomColor: c.faintRule,
   },
-  tableRowAlt: {
-    backgroundColor: c.bgAlt,
+  tdText: {
+    fontSize: 9,
+    fontFamily: 'Helvetica',
+    color: c.dark,
   },
-  thText: {
-    fontWeight: 'bold',
-    fontSize: 7,
-    color: c.black,
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
+  tdBold: {
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+    color: c.dark,
   },
-  tdText: { fontSize: 9, color: c.dark },
-  colDesc: { flex: 4, paddingRight: 8 },
-  colQty: { flex: 1, textAlign: 'center' },
-  colUnit: { flex: 1.2, textAlign: 'center' },
-  colPrice: { flex: 1.3, textAlign: 'right' },
-  colTotal: { flex: 1.3, textAlign: 'right' },
 
-  /* ── Totals ── */
+  /* -- Column widths -- */
+  colDesc:  { flex: 5, paddingRight: 12 },
+  colQty:   { width: 50, textAlign: 'right' },
+  colPU:    { width: 80, textAlign: 'right' },
+  colTotal: { width: 90, textAlign: 'right' },
+
+  /* ════════════════════════════════════════
+     TOTALS BLOCK — Right-aligned
+     ════════════════════════════════════════ */
   totalsWrapper: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginBottom: 24,
+    marginTop: 16,
+    marginBottom: 28,
   },
   totalsBox: {
     width: 220,
-    borderTopWidth: 1,
-    borderTopColor: c.rule,
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: 7,
-    paddingHorizontal: 0,
+    borderBottomWidth: 0.5,
+    borderBottomColor: c.faintRule,
   },
-  totalLabel: { fontSize: 9, color: c.grey },
-  totalValue: { fontSize: 9, fontWeight: 'bold', color: c.dark },
+  totalLabel: {
+    fontSize: 9,
+    fontFamily: 'Helvetica',
+    color: c.grey,
+  },
+  totalValue: {
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+    color: c.dark,
+  },
   ttcRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    backgroundColor: c.black,
+    alignItems: 'center',
+    paddingTop: 10,
+    paddingBottom: 4,
+    borderTopWidth: 2,
+    borderTopColor: c.black,
+    marginTop: 2,
   },
-  ttcLabel: { fontSize: 11, fontWeight: 'bold', color: c.white },
-  ttcValue: { fontSize: 11, fontWeight: 'bold', color: c.white },
+  ttcLabel: {
+    fontSize: 12,
+    fontFamily: 'Helvetica-Bold',
+    color: c.black,
+  },
+  ttcValue: {
+    fontSize: 12,
+    fontFamily: 'Helvetica-Bold',
+    color: c.black,
+  },
+  ttcUnderline: {
+    borderBottomWidth: 1,
+    borderBottomColor: c.black,
+    marginTop: 4,
+  },
 
-  /* ── Notes ── */
+  /* ════════════════════════════════════════
+     NOTES
+     ════════════════════════════════════════ */
   notesBox: {
-    marginTop: 8,
-    padding: 14,
-    borderLeftWidth: 3,
-    borderLeftColor: c.black,
-    backgroundColor: c.bgAlt,
+    marginBottom: 20,
+    paddingLeft: 12,
+    borderLeftWidth: 2,
+    borderLeftColor: c.faintRule,
   },
   notesTitle: {
     fontSize: 7,
-    fontWeight: 'bold',
-    color: c.black,
+    fontFamily: 'Helvetica-Bold',
+    color: c.lightGrey,
     textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginBottom: 4,
+    letterSpacing: 2,
+    marginBottom: 5,
   },
-  notesText: { fontSize: 9, color: c.dark, lineHeight: 1.6 },
+  notesText: {
+    fontSize: 8.5,
+    color: c.mid,
+    lineHeight: 1.65,
+  },
 
-  /* ── Payment details ── */
+  /* ════════════════════════════════════════
+     PAYMENT DETAILS — Bottom Left
+     ════════════════════════════════════════ */
   paymentBox: {
-    marginTop: 20,
+    marginTop: 4,
     paddingTop: 16,
-    borderTopWidth: 1,
+    borderTopWidth: 0.5,
     borderTopColor: c.faintRule,
+    maxWidth: 320,
   },
   paymentTitle: {
     fontSize: 7,
-    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
     color: c.dark,
     textTransform: 'uppercase',
-    letterSpacing: 2,
-    marginBottom: 8,
+    letterSpacing: 2.5,
+    marginBottom: 10,
   },
   paymentRow: {
     flexDirection: 'row',
-    marginBottom: 4,
+    marginBottom: 5,
+    alignItems: 'flex-start',
   },
   paymentLabel: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    color: c.dark,
-    width: 100,
+    width: 110,
+    fontSize: 7.5,
+    fontFamily: 'Helvetica-Bold',
+    color: c.grey,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
   paymentValue: {
-    fontSize: 8.5,
-    color: c.dark,
     flex: 1,
+    fontSize: 8.5,
     fontFamily: 'Courier',
+    color: c.dark,
+    letterSpacing: 0.5,
   },
   paymentLink: {
-    fontSize: 8.5,
-    color: c.dark,
     flex: 1,
+    fontSize: 8.5,
+    fontFamily: 'Helvetica',
+    color: c.dark,
     textDecoration: 'underline',
   },
 
-  /* ── Footer ── */
+  /* ════════════════════════════════════════
+     LEGAL — TVA exemption
+     ════════════════════════════════════════ */
+  legalText: {
+    fontSize: 7.5,
+    fontFamily: 'Helvetica-Oblique',
+    color: c.grey,
+    marginTop: 12,
+  },
+
+  /* ════════════════════════════════════════
+     FOOTER — Absolute bottom
+     ════════════════════════════════════════ */
   footer: {
     position: 'absolute',
-    bottom: 28,
-    left: 48,
-    right: 48,
-    borderTopWidth: 1,
+    bottom: 30,
+    left: 52,
+    right: 52,
+    borderTopWidth: 0.5,
     borderTopColor: c.rule,
     paddingTop: 10,
-    textAlign: 'center',
   },
-  footerText: { fontSize: 7, color: c.lightGrey, lineHeight: 1.6 },
+  footerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  footerCol: {
+    maxWidth: '48%',
+  },
   footerBrand: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    color: c.black,
+    fontSize: 7,
+    fontFamily: 'Helvetica-Bold',
+    color: c.dark,
     letterSpacing: 2,
     textTransform: 'uppercase',
-    marginBottom: 4,
+    marginBottom: 3,
+  },
+  footerText: {
+    fontSize: 6.5,
+    fontFamily: 'Helvetica',
+    color: c.lightGrey,
+    lineHeight: 1.55,
   },
 })
+
+/* ── Helpers ── */
 
 interface InvoicePDFProps {
   invoice: Invoice
@@ -248,161 +361,283 @@ interface InvoicePDFProps {
 }
 
 function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '—'
+  if (!dateStr) return '\u2014'
   const d = new Date(dateStr)
   return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
 function fmtEur(n: number): string {
-  return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' \u20AC'
+  return (
+    n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) +
+    ' \u20AC'
+  )
 }
 
-const unitLabels: Record<string, string> = { h: 'Heure', forfait: 'Forfait', jour: 'Jour' }
+const unitLabels: Record<string, string> = {
+  h: 'Heure',
+  forfait: 'Forfait',
+  jour: 'Jour',
+}
+
+/* ══════════════════════════════════════════════════════════
+   COMPONENT
+   ══════════════════════════════════════════════════════════ */
 
 export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
   const items = invoice.items ?? []
   const ht = calculateHT(items)
-  const tva = calculateTVA(ht, invoice.tva_rate)
-  const ttc = calculateTTC(ht, invoice.tva_rate)
+  const tvaRate = invoice.tva_rate ?? 0
+  const tva = calculateTVA(ht, tvaRate)
+  const ttc = calculateTTC(ht, tvaRate)
+  const isTvaExempt = tvaRate === 0
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
 
-        {/* ═══ TOP RULE — Bold black line ═══ */}
-        <View style={styles.topRule} />
-
-        {/* ═══ HEADER — Freelancer info ═══ */}
+        {/* ═══════════════════════════════════
+            HEADER
+            ═══════════════════════════════════ */}
         <View style={styles.header}>
+
+          {/* ── Left: FACTURE + Logo + Sender ── */}
           <View style={styles.headerLeft}>
-            <Text style={styles.brandName}>
+            <Text style={styles.factureTitle}>Facture</Text>
+
+            {/* Logo — eCons Freelance brand mark */}
+            <Image src={LOGO_PATH} style={styles.logo} />
+
+            <Text style={styles.senderName}>
               {profile.company_name ?? profile.full_name ?? 'Freelance'}
             </Text>
-            <Text style={styles.brandSub}>eCons Freelance</Text>
-            {profile.address && <Text style={styles.infoText}>{profile.address}</Text>}
-            {profile.email && <Text style={styles.infoText}>{profile.email}</Text>}
-            {profile.siret && <Text style={styles.infoMuted}>SIRET : {profile.siret}</Text>}
-            {profile.tva_number && <Text style={styles.infoMuted}>N° TVA : {profile.tva_number}</Text>}
+            {profile.address && (
+              <Text style={styles.senderLine}>{profile.address}</Text>
+            )}
+            {profile.email && (
+              <Text style={styles.senderLine}>{profile.email}</Text>
+            )}
+            {profile.siret && (
+              <Text style={styles.senderLine}>SIRET : {profile.siret}</Text>
+            )}
+            {profile.tva_number && (
+              <Text style={styles.senderLine}>TVA : {profile.tva_number}</Text>
+            )}
           </View>
+
+          {/* ── Right: Metadata grid ── */}
           <View style={styles.headerRight}>
-            <Text style={styles.invoiceTitle}>FACTURE</Text>
-            <Text style={styles.invoiceNumber}>N° {invoice.invoice_number}</Text>
-            <Text style={styles.infoMuted}>Date : {formatDate(invoice.issue_date)}</Text>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Numero</Text>
+              <Text style={styles.metaValue}>{invoice.invoice_number}</Text>
+            </View>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Date</Text>
+              <Text style={styles.metaValue}>{formatDate(invoice.issue_date)}</Text>
+            </View>
             {invoice.due_date && (
-              <Text style={styles.infoMuted}>Echeance : {formatDate(invoice.due_date)}</Text>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Echeance</Text>
+                <Text style={styles.metaValue}>{formatDate(invoice.due_date)}</Text>
+              </View>
+            )}
+            {invoice.client?.name && (
+              <View style={[styles.metaRow, { marginTop: 8 }]}>
+                <Text style={styles.metaLabel}>Client</Text>
+                <Text style={styles.metaValue}>{invoice.client.name}</Text>
+              </View>
+            )}
+            {invoice.project?.name && (
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Projet</Text>
+                <Text style={styles.metaValue}>{invoice.project.name}</Text>
+              </View>
             )}
           </View>
         </View>
 
-        {/* ═══ DIVIDER ═══ */}
-        <View style={styles.divider} />
+        {/* ═══════════════════════════════════
+            SEPARATOR
+            ═══════════════════════════════════ */}
+        <View style={styles.separator} />
 
-        {/* ═══ CLIENT BLOCK ═══ */}
-        <View style={styles.metaSection}>
-          <View style={styles.metaBlock}>
-            <Text style={styles.label}>Facture a</Text>
-            <Text style={styles.clientName}>{invoice.client?.name ?? 'Client'}</Text>
-            {invoice.client?.address && <Text style={styles.clientDetail}>{invoice.client.address}</Text>}
-            {invoice.client?.email && <Text style={styles.clientDetail}>{invoice.client.email}</Text>}
-            {invoice.client?.fiscal_id && (
-              <Text style={styles.clientDetail}>ID Fiscal : {invoice.client.fiscal_id}</Text>
-            )}
-          </View>
-          {invoice.project?.name && (
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.label}>Projet</Text>
-              <Text style={{ fontSize: 10, fontWeight: 'bold', color: c.black }}>{invoice.project.name}</Text>
-            </View>
+        {/* ═══════════════════════════════════
+            CLIENT BLOCK
+            ═══════════════════════════════════ */}
+        <View style={styles.clientSection}>
+          <Text style={styles.sectionLabel}>Facturer a</Text>
+          <Text style={styles.clientName}>
+            {invoice.client?.name ?? 'Client'}
+          </Text>
+          {invoice.client?.address && (
+            <Text style={styles.clientLine}>{invoice.client.address}</Text>
+          )}
+          {invoice.client?.email && (
+            <Text style={styles.clientLine}>{invoice.client.email}</Text>
+          )}
+          {invoice.client?.fiscal_id && (
+            <Text style={styles.clientLine}>ID Fiscal : {invoice.client.fiscal_id}</Text>
           )}
         </View>
 
-        {/* ═══ ITEMS TABLE ═══ */}
+        {/* ═══════════════════════════════════
+            DELIVERABLES TABLE
+            ═══════════════════════════════════ */}
         <View style={styles.table}>
+
           {/* Table Header */}
           <View style={styles.tableHeader}>
-            <Text style={[styles.thText, styles.colDesc]}>Description</Text>
-            <Text style={[styles.thText, styles.colQty]}>Qte</Text>
-            <Text style={[styles.thText, styles.colUnit]}>Unite</Text>
-            <Text style={[styles.thText, styles.colPrice]}>P.U. HT</Text>
-            <Text style={[styles.thText, styles.colTotal]}>Total HT</Text>
+            <View style={styles.colDesc}>
+              <Text style={styles.thText}>Description</Text>
+            </View>
+            <View style={styles.colQty}>
+              <Text style={[styles.thText, { textAlign: 'right' }]}>Qte</Text>
+            </View>
+            <View style={styles.colPU}>
+              <Text style={[styles.thText, { textAlign: 'right' }]}>PU</Text>
+            </View>
+            <View style={styles.colTotal}>
+              <Text style={[styles.thText, { textAlign: 'right' }]}>Total HT</Text>
+            </View>
           </View>
+
           {/* Table Rows */}
           {items.map((item, idx) => {
             const rowTotal = item.quantity * item.unit_price
+            const unit = unitLabels[item.unit_type] ?? item.unit_type
             return (
-              <View key={idx} style={[styles.tableRow, idx % 2 === 1 ? styles.tableRowAlt : {}]}>
-                <Text style={[styles.tdText, styles.colDesc]}>{item.description}</Text>
-                <Text style={[styles.tdText, styles.colQty]}>{item.quantity}</Text>
-                <Text style={[styles.tdText, styles.colUnit]}>{unitLabels[item.unit_type] ?? item.unit_type}</Text>
-                <Text style={[styles.tdText, styles.colPrice]}>{fmtEur(item.unit_price)}</Text>
-                <Text style={[styles.tdText, styles.colTotal, { fontWeight: 'bold' }]}>{fmtEur(rowTotal)}</Text>
+              <View key={idx} style={styles.tableRow}>
+                <View style={styles.colDesc}>
+                  <Text style={styles.tdText}>{item.description}</Text>
+                  <Text style={{ fontSize: 7, color: c.lightGrey, marginTop: 1 }}>
+                    {unit}
+                  </Text>
+                </View>
+                <View style={styles.colQty}>
+                  <Text style={[styles.tdText, { textAlign: 'right' }]}>
+                    {item.quantity}
+                  </Text>
+                </View>
+                <View style={styles.colPU}>
+                  <Text style={[styles.tdText, { textAlign: 'right' }]}>
+                    {fmtEur(item.unit_price)}
+                  </Text>
+                </View>
+                <View style={styles.colTotal}>
+                  <Text style={[styles.tdBold, { textAlign: 'right' }]}>
+                    {fmtEur(rowTotal)}
+                  </Text>
+                </View>
               </View>
             )
           })}
         </View>
 
-        {/* ═══ TOTALS ═══ */}
+        {/* ═══════════════════════════════════
+            TOTALS
+            ═══════════════════════════════════ */}
         <View style={styles.totalsWrapper}>
           <View style={styles.totalsBox}>
+            {/* Total HT */}
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Total HT</Text>
               <Text style={styles.totalValue}>{fmtEur(ht)}</Text>
             </View>
-            <View style={[styles.totalRow, { borderTopWidth: 0.5, borderTopColor: c.rule }]}>
-              <Text style={styles.totalLabel}>TVA ({invoice.tva_rate}%)</Text>
+
+            {/* TVA */}
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>
+                TVA {isTvaExempt ? '(0%)' : `(${tvaRate}%)`}
+              </Text>
               <Text style={styles.totalValue}>{fmtEur(tva)}</Text>
             </View>
+
+            {/* TOTAL TTC — Bold + thick top border + double underline */}
             <View style={styles.ttcRow}>
               <Text style={styles.ttcLabel}>Total TTC</Text>
               <Text style={styles.ttcValue}>{fmtEur(ttc)}</Text>
             </View>
+            <View style={styles.ttcUnderline} />
           </View>
         </View>
 
-        {/* ═══ NOTES ═══ */}
+        {/* ═══════════════════════════════════
+            NOTES
+            ═══════════════════════════════════ */}
         {invoice.notes && (
           <View style={styles.notesBox}>
-            <Text style={styles.notesTitle}>Notes / Conditions</Text>
+            <Text style={styles.notesTitle}>Notes</Text>
             <Text style={styles.notesText}>{invoice.notes}</Text>
           </View>
         )}
 
-        {/* ═══ PAYMENT DETAILS ═══ */}
-        {(profile.iban || profile.payment_link) && (
+        {/* ═══════════════════════════════════
+            PAYMENT & LEGAL — Bottom Left
+            ═══════════════════════════════════ */}
+        {(profile.iban || profile.payment_link || isTvaExempt) && (
           <View style={styles.paymentBox}>
-            <Text style={styles.paymentTitle}>Modalites de paiement</Text>
-            {profile.iban && (
-              <View style={styles.paymentRow}>
-                <Text style={styles.paymentLabel}>IBAN</Text>
-                <Text style={styles.paymentValue}>{profile.iban}</Text>
-              </View>
+
+            {(profile.iban || profile.payment_link) && (
+              <>
+                <Text style={styles.paymentTitle}>Modalites de paiement</Text>
+
+                {profile.iban && (
+                  <View style={styles.paymentRow}>
+                    <Text style={styles.paymentLabel}>IBAN</Text>
+                    <Text style={styles.paymentValue}>{profile.iban}</Text>
+                  </View>
+                )}
+
+                {profile.payment_link && (
+                  <View style={styles.paymentRow}>
+                    <Text style={styles.paymentLabel}>Paiement en ligne</Text>
+                    <Text style={styles.paymentLink}>{profile.payment_link}</Text>
+                  </View>
+                )}
+              </>
             )}
-            {profile.payment_link && (
-              <View style={styles.paymentRow}>
-                <Text style={styles.paymentLabel}>Paiement en ligne</Text>
-                <Text style={styles.paymentLink}>{profile.payment_link}</Text>
-              </View>
+
+            {/* Legal: TVA exemption notice */}
+            {isTvaExempt && (
+              <Text style={styles.legalText}>
+                TVA non applicable, art. 293 B du CGI
+              </Text>
             )}
           </View>
         )}
 
-        {/* ═══ FOOTER — Legal mentions ═══ */}
+        {/* ═══════════════════════════════════
+            FOOTER — Absolute bottom
+            ═══════════════════════════════════ */}
         <View style={styles.footer}>
-          <Text style={styles.footerBrand}>eCons</Text>
-          <Text style={styles.footerText}>
-            {profile.company_name ?? profile.full_name ?? 'eCons Freelance'} — {profile.email ?? ''}
-          </Text>
-          {profile.siret && (
-            <Text style={styles.footerText}>
-              SIRET : {profile.siret}{profile.tva_number ? ` | N° TVA : ${profile.tva_number}` : ''}
-            </Text>
-          )}
-          <Text style={styles.footerText}>
-            Paiement a reception de facture — En cas de retard, une penalite de 3x le taux d interet legal sera appliquee.
-          </Text>
-          <Text style={styles.footerText}>
-            Indemnite forfaitaire pour frais de recouvrement : 40,00 EUR
-          </Text>
+          <View style={styles.footerRow}>
+            {/* Left: Brand + identity */}
+            <View style={styles.footerCol}>
+              <Text style={styles.footerBrand}>eCons</Text>
+              <Text style={styles.footerText}>
+                {profile.company_name ?? profile.full_name ?? 'eCons Freelance'}
+                {profile.email ? ` — ${profile.email}` : ''}
+              </Text>
+              {profile.siret && (
+                <Text style={styles.footerText}>
+                  SIRET : {profile.siret}
+                  {profile.tva_number ? ` | TVA : ${profile.tva_number}` : ''}
+                </Text>
+              )}
+            </View>
+
+            {/* Right: Legal mentions */}
+            <View style={[styles.footerCol, { alignItems: 'flex-end' }]}>
+              <Text style={[styles.footerText, { textAlign: 'right' }]}>
+                Paiement a reception de facture
+              </Text>
+              <Text style={[styles.footerText, { textAlign: 'right' }]}>
+                Penalite de retard : 3x le taux d{"'"}interet legal
+              </Text>
+              <Text style={[styles.footerText, { textAlign: 'right' }]}>
+                Indemnite forfaitaire de recouvrement : 40,00 EUR
+              </Text>
+            </View>
+          </View>
         </View>
 
       </Page>
