@@ -375,119 +375,108 @@ export default function InvoiceDetailPage() {
       </div>
 
       {/* Items Table */}
-      <div
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--line)',
-          borderRadius: 12,
-          padding: 32,
-          marginBottom: 24,
-        }}
-      >
-        <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)', marginTop: 0, marginBottom: 16 }}>
+      <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 md:p-8 mb-6">
+        <h3 className="text-base font-bold text-gray-900 mt-0 mb-4">
           Lignes de facture
         </h3>
 
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              {['Description', 'Qte', 'Unite', 'Prix unitaire', 'Total', ''].map((h) => (
-                <th
-                  key={h}
-                  style={{
-                    textAlign: 'left',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: 'var(--muted)',
-                    textTransform: 'uppercase',
-                    letterSpacing: 1,
-                    padding: '8px 6px',
-                    borderBottom: '1px solid var(--line)',
-                  }}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, idx) => (
-              <tr key={idx}>
-                <td style={{ padding: '6px' }}>
-                  <input
-                    type="text"
-                    value={item.description}
-                    onChange={(e) => updateItem(idx, 'description', e.target.value)}
-                    placeholder="Description"
-                    style={{ ...inputStyle, minWidth: 180 }}
-                  />
-                </td>
-                <td style={{ padding: '6px' }}>
+        {/* Desktop header — hidden on mobile */}
+        <div className="hidden md:grid md:grid-cols-[1fr_70px_100px_110px_90px_40px] gap-2 px-1 pb-2 border-b border-gray-200">
+          {['Description', 'Qte', 'Unite', 'Prix unit.', 'Total', ''].map((h) => (
+            <span
+              key={h}
+              className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide"
+            >
+              {h}
+            </span>
+          ))}
+        </div>
+
+        {/* Item rows — responsive */}
+        <div className="flex flex-col gap-4 md:gap-0">
+          {items.map((item, idx) => (
+            <div
+              key={idx}
+              className="flex flex-col gap-2 py-3 border-b border-gray-100 md:grid md:grid-cols-[1fr_70px_100px_110px_90px_40px] md:items-center md:gap-2 md:py-2"
+            >
+              {/* Description — full width on mobile */}
+              <div className="w-full md:col-span-1">
+                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1 block md:hidden">
+                  Description
+                </label>
+                <input
+                  type="text"
+                  value={item.description}
+                  onChange={(e) => updateItem(idx, 'description', e.target.value)}
+                  placeholder="Description"
+                  className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm bg-[var(--bg)] text-[var(--ink)] outline-none focus:border-[#00A3FF] focus:ring-1 focus:ring-[#00A3FF]/20"
+                />
+              </div>
+
+              {/* Qte + Unite + Prix unitaire — 3-col sub-grid on mobile */}
+              <div className="grid grid-cols-3 gap-2 md:contents">
+                <div>
+                  <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1 block md:hidden">
+                    Qte
+                  </label>
                   <input
                     type="number"
                     min={0}
                     step="0.01"
                     value={item.quantity}
                     onChange={(e) => updateItem(idx, 'quantity', parseFloat(e.target.value) || 0)}
-                    style={{ ...inputStyle, width: 70 }}
+                    className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm bg-[var(--bg)] text-[var(--ink)] outline-none focus:border-[#00A3FF] focus:ring-1 focus:ring-[#00A3FF]/20"
                   />
-                </td>
-                <td style={{ padding: '6px' }}>
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1 block md:hidden">
+                    Unite
+                  </label>
                   <select
                     value={item.unit_type}
                     onChange={(e) => updateItem(idx, 'unit_type', e.target.value)}
-                    style={{ ...inputStyle, width: 100 }}
+                    className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm bg-[var(--bg)] text-[var(--ink)] outline-none focus:border-[#00A3FF] focus:ring-1 focus:ring-[#00A3FF]/20"
                   >
                     {unitOptions.map((u) => (
                       <option key={u.value} value={u.value}>{u.label}</option>
                     ))}
                   </select>
-                </td>
-                <td style={{ padding: '6px' }}>
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1 block md:hidden">
+                    Prix unit.
+                  </label>
                   <input
                     type="number"
                     min={0}
                     step="0.01"
                     value={item.unit_price}
                     onChange={(e) => updateItem(idx, 'unit_price', parseFloat(e.target.value) || 0)}
-                    style={{ ...inputStyle, width: 110 }}
+                    className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm bg-[var(--bg)] text-[var(--ink)] outline-none focus:border-[#00A3FF] focus:ring-1 focus:ring-[#00A3FF]/20"
                   />
-                </td>
-                <td
-                  style={{
-                    padding: '6px',
-                    fontWeight: 600,
-                    color: 'var(--ink)',
-                    fontSize: 14,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
+                </div>
+              </div>
+
+              {/* Total + Delete — flex row on mobile */}
+              <div className="flex items-center justify-between md:contents">
+                <span className="font-semibold text-[var(--ink)] text-sm whitespace-nowrap">
                   {formatCurrency(item.quantity * item.unit_price)}
-                </td>
-                <td style={{ padding: '6px' }}>
-                  {items.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeItem(idx)}
-                      style={{
-                        background: 'var(--danger-bg)',
-                        color: 'var(--danger)',
-                        border: 'none',
-                        borderRadius: 4,
-                        padding: '4px 10px',
-                        cursor: 'pointer',
-                        fontSize: 13,
-                        fontWeight: 600,
-                      }}
-                    >
-                      x
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </span>
+                {items.length > 1 ? (
+                  <button
+                    type="button"
+                    onClick={() => removeItem(idx)}
+                    className="bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 border-none rounded px-2.5 py-1 cursor-pointer text-[13px] font-semibold transition-colors"
+                  >
+                    x
+                  </button>
+                ) : (
+                  <span className="hidden md:block" />
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
 
         <button
           type="button"
