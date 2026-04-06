@@ -1,8 +1,9 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useInvoices } from '@/hooks/useInvoices'
 import { useProjects } from '@/hooks/useProjects'
+import { createClient } from '@/lib/supabase/client'
 import { calculateHT, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
 import Link from 'next/link'
 import {
@@ -52,6 +53,22 @@ function getLast6Months(): string[] {
 }
 
 export default function DashboardPage() {
+  const [profileTvaRate, setProfileTvaRate] = useState<number | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    ;(async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data } = await supabase
+        .from('profiles')
+        .select('tva_rate')
+        .eq('id', user.id)
+        .single()
+      if (data) setProfileTvaRate(data.tva_rate ?? 0)
+    })()
+  }, [])
+
   const { invoices, loading: loadingInv } = useInvoices()
   const { projects, loading: loadingProj } = useProjects()
 
@@ -70,10 +87,11 @@ export default function DashboardPage() {
 
   const activeProjects = safeProjects.filter((p) => p.status === 'ongoing').length
 
-  const avgTVA =
-    safeInvoices.length > 0
-      ? safeInvoices.reduce((sum, i) => sum + i.tva_rate, 0) / safeInvoices.length
-      : 0
+  const tvaDisplay = profileTvaRate === 0
+    ? 'Non assujetti'
+    : profileTvaRate !== null
+      ? `${profileTvaRate}%`
+      : '—'
 
   const kpis = [
     {
@@ -95,8 +113,8 @@ export default function DashboardPage() {
       accent: 'from-gray-400 to-gray-600',
     },
     {
-      label: 'Taux TVA moyen',
-      value: `${avgTVA.toFixed(1)}%`,
+      label: 'Taux TVA',
+      value: tvaDisplay,
       icon: <Briefcase size={20} />,
       accent: 'from-gray-300 to-gray-500',
     },
