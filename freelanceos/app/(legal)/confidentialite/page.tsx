@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Politique de Confidentialite - FreelanceOS',
+  title: 'Politique de confidentialite',
 }
 
 /* ── Shared styles ── */

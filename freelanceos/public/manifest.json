@@ -1,0 +1,16 @@
+{
+  "name": "Freelance by eCons",
+  "short_name": "Freelance",
+  "description": "Gestion tout-en-un pour independants : factures, projets, clients et equipe.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F6F7FA",
+  "theme_color": "#0057FF",
+  "icons": [
+    {
+      "src": "/assets/econs-logo-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

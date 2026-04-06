@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'CGV / CGU - FreelanceOS',
+  title: 'CGV / CGU',
 }
 
 /* ── Shared styles ── */
