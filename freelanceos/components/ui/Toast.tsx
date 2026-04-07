@@ -35,9 +35,9 @@ const TOAST_COLORS: Record<ToastType, { bg: string; border: string; text: string
     text: "var(--danger)",
   },
   info: {
-    bg: "var(--econic-black)",
-    border: "var(--econic-black)",
-    text: "var(--econic-white)",
+    bg: "var(--blue-surface)",
+    border: "var(--blue-primary)",
+    text: "var(--blue-primary)",
   },
 };
 
@@ -97,19 +97,17 @@ function ToastItem({
     <div
       style={{
         background: colors.bg,
-        border: `2px solid ${colors.border}`,
-        borderRadius: "0px",
+        border: `1px solid ${colors.border}`,
+        borderRadius: "8px",
         padding: "12px 16px",
-        fontSize: "12px",
-        fontWeight: 900,
+        fontSize: "13px",
+        fontWeight: 600,
         color: colors.text,
-        textTransform: "uppercase",
-        letterSpacing: "0.05em",
-        boxShadow: "4px 4px 0 var(--econic-black)",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
         pointerEvents: "auto",
         minWidth: "240px",
         maxWidth: "360px",
-        animation: "toast-in 0.15s ease-out",
+        animation: "toast-in 0.2s ease-out",
       }}
     >
       {toast.message}

@@ -15,53 +15,142 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center z-[9999]"
-      style={{ background: 'rgba(0, 0, 0, 0.6)' }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0, 0, 0, 0.45)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        animation: 'fadeIn 0.2s ease',
+      }}
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white border-[3px] border-zinc-950 p-8 w-[420px] max-w-[90vw] text-center relative"
+        style={{
+          background: 'var(--surface)',
+          borderRadius: 16,
+          padding: '40px 36px 32px',
+          width: 420,
+          maxWidth: '90vw',
+          boxShadow: '0 24px 80px rgba(0, 0, 0, 0.2)',
+          textAlign: 'center',
+          position: 'relative',
+        }}
       >
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-950 border-2 border-zinc-300 hover:border-zinc-950 transition-colors duration-100 cursor-pointer text-lg font-black"
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            background: 'none',
+            border: 'none',
+            color: 'var(--muted)',
+            fontSize: 20,
+            cursor: 'pointer',
+            width: 32,
+            height: 32,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 6,
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'none' }}
         >
           ✕
         </button>
 
         {/* Icon */}
-        <div className="w-16 h-16 bg-zinc-950 flex items-center justify-center mx-auto mb-5">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="square" strokeLinejoin="miter">
+        <div
+          style={{
+            width: 64,
+            height: 64,
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #00B4D8 0%, #1A3FA3 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 20px',
+          }}
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
           </svg>
         </div>
 
         {/* Title */}
-        <h2 className="text-2xl font-black text-zinc-950 uppercase tracking-tighter leading-none mb-2">
+        <h2
+          style={{
+            fontSize: 22,
+            fontWeight: 800,
+            color: 'var(--ink)',
+            marginTop: 0,
+            marginBottom: 8,
+          }}
+        >
           Passez au plan Pro
         </h2>
 
         {/* Message */}
-        <p className="text-sm text-zinc-500 leading-relaxed mb-6">
+        <p
+          style={{
+            fontSize: 14,
+            color: 'var(--muted)',
+            lineHeight: 1.6,
+            margin: '0 0 24px',
+          }}
+        >
           {message || 'Limite atteinte. Passez au plan Pro pour continuer !'}
         </p>
 
         {/* Features */}
-        <div className="bg-[#f4f4f0] border-2 border-zinc-950 p-4 mb-6 text-left">
+        <div
+          style={{
+            background: 'var(--bg)',
+            borderRadius: 10,
+            padding: '16px 20px',
+            marginBottom: 24,
+            textAlign: 'left',
+          }}
+        >
           {[
-            'Clients illimites',
-            'Projets actifs illimites',
-            'Factures illimitees',
-            'Export illimite',
-            'Acces prioritaire aux nouvelles fonctionnalites',
+            'Clients illimités',
+            'Projets actifs illimités',
+            'Factures illimitées',
+            'Export illimité',
+            'Accès prioritaire aux nouvelles fonctionnalités',
           ].map((feature) => (
             <div
               key={feature}
-              className="flex items-center gap-3 py-1.5 text-sm text-zinc-900 font-medium"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '6px 0',
+                fontSize: 13,
+                color: 'var(--ink)',
+              }}
             >
-              <span className="w-5 h-5 bg-zinc-950 text-white flex items-center justify-center text-[10px] font-black shrink-0">
+              <span
+                style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: '50%',
+                  background: 'var(--success-bg)',
+                  color: 'var(--success)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  flexShrink: 0,
+                }}
+              >
                 ✓
               </span>
               {feature}
@@ -70,10 +159,20 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
         </div>
 
         {/* CTA Buttons */}
-        <div className="flex gap-3">
+        <div style={{ display: 'flex', gap: 10 }}>
           <button
             onClick={onClose}
-            className="flex-1 bg-white text-zinc-500 border-2 border-zinc-300 hover:border-zinc-950 hover:text-zinc-950 py-3 px-5 font-bold text-sm uppercase tracking-wider transition-colors duration-100 cursor-pointer"
+            style={{
+              flex: 1,
+              background: 'var(--bg)',
+              color: 'var(--muted)',
+              border: '1px solid var(--line)',
+              borderRadius: 8,
+              padding: '12px 20px',
+              fontWeight: 600,
+              fontSize: 14,
+              cursor: 'pointer',
+            }}
           >
             Plus tard
           </button>
@@ -82,12 +181,13 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
               onClose()
               router.push('/profile')
             }}
-            className="relative flex-1 overflow-hidden bg-zinc-950 text-white border-2 border-zinc-950 py-3 px-5 font-black text-sm uppercase tracking-wider hover:bg-white hover:text-zinc-950 transition-colors duration-100 cursor-pointer group"
+            className="relative group overflow-hidden rounded-lg bg-black px-8 py-3 font-medium text-white transition-all duration-300 hover:scale-105 active:scale-95"
+            style={{ flex: 1, border: 'none', cursor: 'pointer', fontSize: 14 }}
           >
             <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-20deg)]">
-              <div className="relative h-full w-10 bg-white/20 blur-md animate-shimmer" />
+              <div className="relative h-full w-10 bg-white/30 blur-md animate-shimmer" />
             </div>
-            <span className="relative">Passer au Pro</span>
+            <span className="relative font-bold">Passer au Pro</span>
           </button>
         </div>
       </div>

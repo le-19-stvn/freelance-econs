@@ -2,44 +2,50 @@
 
 import React from 'react';
 
-interface InputProps {
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  /** Visual variant: 'default' = full border box, 'underline' = bottom border only */
+  variant?: 'default' | 'underline';
+  /** Abloh-style micro-label above the input */
   label?: string;
-  value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  type?: string;
-  required?: boolean;
-  placeholder?: string;
-  readOnly?: boolean;
-  className?: string;
+  error?: string;
 }
 
 export function Input({
+  variant = 'default',
   label,
-  value,
-  onChange,
-  type = 'text',
-  required = false,
-  placeholder,
-  readOnly = false,
+  error,
   className = '',
+  ...props
 }: InputProps) {
+  const base = [
+    'w-full px-3 py-2.5',
+    'text-[13px] font-medium text-zinc-900',
+    'bg-white',
+    'placeholder:text-zinc-400 placeholder:font-normal',
+    'outline-none',
+    'transition-colors duration-100',
+    'disabled:opacity-40 disabled:cursor-not-allowed',
+  ].join(' ');
+
+  const variants: Record<string, string> = {
+    default: 'border border-zinc-200 focus:border-zinc-900',
+    underline: 'border-0 border-b border-zinc-300 focus:border-zinc-900 px-0',
+  };
+
   return (
-    <div className={`flex flex-col gap-1.5 ${className}`}>
+    <div className="flex flex-col gap-1.5">
       {label && (
-        <label className="text-[9px] uppercase tracking-[0.15em] text-zinc-500 font-black">
-          {label}
-          {required && <span className="text-[var(--danger)] ml-0.5">*</span>}
-        </label>
+        <label className="label-abloh">{label}</label>
       )}
       <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        required={required}
-        placeholder={placeholder}
-        readOnly={readOnly}
-        className="bg-white border-2 border-zinc-950 px-3 py-2.5 text-sm text-zinc-950 font-medium placeholder:text-zinc-400 focus:outline-none focus:ring-0 focus:shadow-brutal-sm transition-shadow duration-100 read-only:opacity-60 read-only:cursor-default"
+        className={`${base} ${variants[variant]} ${error ? 'border-[#FF5C00]' : ''} ${className}`}
+        {...props}
       />
+      {error && (
+        <span className="text-[11px] font-semibold text-[#FF5C00] tracking-wide uppercase">
+          {error}
+        </span>
+      )}
     </div>
   );
 }

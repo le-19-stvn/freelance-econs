@@ -6,30 +6,45 @@ import Link from 'next/link'
  */
 export function LegalFooter() {
   return (
-    <footer className="px-6 py-4 text-center flex flex-col items-center gap-2">
-      <div className="flex gap-6 flex-wrap justify-center">
+    <footer
+      style={{
+        padding: '16px 24px',
+        textAlign: 'center',
+        fontSize: 11,
+        color: 'var(--muted)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 6,
+      }}
+    >
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
         <Link
           href="/mentions-legales"
-          className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-400 hover:text-zinc-950 transition-colors duration-100 border-b border-transparent hover:border-zinc-950"
+          style={{ color: 'var(--muted)', textDecoration: 'none' }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--ink)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--muted)' }}
         >
           Mentions legales
         </Link>
         <Link
           href="/cgv"
-          className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-400 hover:text-zinc-950 transition-colors duration-100 border-b border-transparent hover:border-zinc-950"
+          style={{ color: 'var(--muted)', textDecoration: 'none' }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--ink)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--muted)' }}
         >
           CGV / CGU
         </Link>
         <Link
           href="/confidentialite"
-          className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-400 hover:text-zinc-950 transition-colors duration-100 border-b border-transparent hover:border-zinc-950"
+          style={{ color: 'var(--muted)', textDecoration: 'none' }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--ink)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--muted)' }}
         >
           Politique de confidentialite
         </Link>
       </div>
-      <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-300">
-        &copy; {new Date().getFullYear()} eCons &mdash; FreelanceOS
-      </span>
+      <span>&copy; {new Date().getFullYear()} eCons &mdash; FreelanceOS</span>
     </footer>
   )
 }

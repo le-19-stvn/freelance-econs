@@ -34,27 +34,27 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
 
       {/* Panel */}
       <div
-        className="relative w-full max-w-lg mx-4 bg-white border-[3px] border-zinc-950 p-6"
+        className="relative w-full max-w-lg mx-4 bg-[var(--surface)] border border-[var(--line)] rounded-xl p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         {title && (
-          <div className="flex items-center justify-between mb-4 pb-4 border-b-2 border-zinc-950">
-            <h2 className="text-lg font-black text-zinc-950 uppercase tracking-tighter leading-none">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-[var(--ink)]">
               {title}
             </h2>
             <button
               onClick={onClose}
-              className="text-zinc-400 hover:text-zinc-950 transition-colors p-1 border-2 border-zinc-300 hover:border-zinc-950"
+              className="text-[var(--muted)] hover:text-[var(--ink)] transition-colors"
               aria-label="Close"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
+                className="h-5 w-5"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >

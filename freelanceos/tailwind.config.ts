@@ -7,6 +7,18 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    /* ── Kill all border-radius globally ── */
+    borderRadius: {
+      none: '0',
+      DEFAULT: '0',
+      sm: '0',
+      md: '0',
+      lg: '0',
+      xl: '0',
+      '2xl': '0',
+      '3xl': '0',
+      full: '0',
+    },
     extend: {
       fontFamily: {
         sans: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
@@ -27,6 +39,12 @@ const config: Config = {
         ink2: "var(--ink2)",
         muted: "var(--muted)",
         line: "var(--line)",
+        cobalt: "var(--cobalt)",
+        "cobalt-light": "var(--cobalt-light)",
+        "industrial-orange": "var(--industrial-orange)",
+        "industrial-orange-bg": "var(--industrial-orange-bg)",
+        "neon-green": "var(--neon-green)",
+        "neon-green-bg": "var(--neon-green-bg)",
         "blue-primary": "var(--blue-primary)",
         "blue-mid": "var(--blue-mid)",
         "blue-surface": "var(--blue-surface)",
@@ -37,6 +55,9 @@ const config: Config = {
         "warning-bg": "var(--warning-bg)",
         danger: "var(--danger)",
         "danger-bg": "var(--danger-bg)",
+        "ec-navy": "var(--ec-navy)",
+        "ec-blue": "var(--ec-blue)",
+        "ec-cyan": "var(--ec-cyan)",
       },
     },
   },

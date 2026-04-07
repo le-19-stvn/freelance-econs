@@ -11,53 +11,58 @@ import { useNotifications } from '@/hooks/useNotifications'
 import { LegalFooter } from '@/components/ui/LegalFooter'
 import type { Notification } from '@/types'
 
+/* ═══════════════════════════════════════════════
+   eConic Phase 2 — Virgil Abloh × Swiss Industrial
+   Dashboard Layout
+   ═══════════════════════════════════════════════ */
+
 const navItems = [
   {
-    label: 'Dashboard',
+    label: 'DASHBOARD',
     href: '/',
     icon: (
-      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="square" strokeLinejoin="miter" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" />
       </svg>
     ),
   },
   {
-    label: 'Clients',
+    label: 'CLIENTS',
     href: '/clients',
     icon: (
-      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="square" strokeLinejoin="miter" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m9.12 0A4 4 0 0016 8a4 4 0 00-4-4 4 4 0 00-4 4 4 4 0 000 8m0 0a4 4 0 013 3.87M15 8a4 4 0 11-8 0 4 4 0 018 0z" />
       </svg>
     ),
   },
   {
-    label: 'Projets',
+    label: 'PROJETS',
     href: '/projects',
     icon: (
-      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="square" strokeLinejoin="miter" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
       </svg>
     ),
   },
   {
-    label: 'Factures',
+    label: 'FACTURES',
     href: '/invoices',
     icon: (
-      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="square" strokeLinejoin="miter" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
     ),
   },
   {
-    label: 'Equipe',
+    label: 'EQUIPE',
     href: '/team',
-    icon: <Users size={18} />,
+    icon: <Users size={16} />,
   },
   {
-    label: 'Profil',
+    label: 'PROFIL',
     href: '/profile',
     icon: (
-      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="square" strokeLinejoin="miter" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
       </svg>
     ),
@@ -65,12 +70,12 @@ const navItems = [
 ]
 
 const pageTitles: Record<string, string> = {
-  '/': 'Dashboard',
-  '/clients': 'Clients',
-  '/projects': 'Projets',
-  '/invoices': 'Factures',
-  '/team': 'Equipe',
-  '/profile': 'Profil',
+  '/': 'DASHBOARD',
+  '/clients': 'CLIENTS',
+  '/projects': 'PROJETS',
+  '/invoices': 'FACTURES',
+  '/team': 'EQUIPE',
+  '/profile': 'PROFIL',
 }
 
 /* ── Sidebar Avatar ── */
@@ -99,34 +104,32 @@ function SidebarAvatar() {
   }, [supabase])
 
   return (
-    <Link href="/profile" className="flex items-center gap-3 p-3 border-2 border-zinc-950 hover:bg-zinc-950 hover:text-white transition-colors duration-100 group">
+    <Link href="/profile" className="flex items-center gap-3 p-3 border border-transparent hover:border-zinc-200 transition-colors group">
       {avatarUrl ? (
         <Image
           src={avatarUrl}
           alt="Avatar"
-          width={36}
-          height={36}
-          className="object-cover w-9 h-9 shrink-0 border-2 border-zinc-950"
+          width={32}
+          height={32}
+          className="object-cover w-8 h-8 shrink-0 border border-zinc-200"
           unoptimized
         />
       ) : (
-        <div className="w-9 h-9 bg-zinc-950 flex items-center justify-center text-white text-sm font-black shrink-0">
+        <div className="w-8 h-8 bg-zinc-900 flex items-center justify-center text-white text-[11px] font-black shrink-0">
           {initial}
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-bold truncate leading-tight uppercase tracking-tight">
+        <div className="text-[12px] font-black text-zinc-900 truncate leading-tight uppercase tracking-wide">
           {name || 'Mon profil'}
         </div>
-        <div className="text-[10px] font-bold tracking-widest uppercase leading-tight opacity-50">
-          eCons Freelance
-        </div>
+        <div className="text-[9px] font-bold text-zinc-400 leading-tight tracking-[0.15em] uppercase">eCons Freelance</div>
       </div>
     </Link>
   )
 }
 
-/* ── Nav Item ── */
+/* ── Nav Item — Abloh Style ── */
 function NavItem({
   item,
   active,
@@ -141,18 +144,19 @@ function NavItem({
       href={item.href}
       onClick={onClick}
       className={`
-        relative flex items-center gap-3 px-4 py-2.5 text-sm font-bold uppercase tracking-wide
-        transition-colors duration-100 border-b-2 border-zinc-200
+        relative flex items-center gap-3 px-4 py-2.5
+        text-[12px] font-black tracking-[0.06em]
+        transition-all duration-100
         ${active
-          ? 'bg-zinc-950 text-white border-zinc-950'
-          : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950'
+          ? 'bg-[#0052FF] text-white'
+          : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
         }
       `}
     >
-      <span className={active ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-950'}>
+      <span className={active ? 'text-white/80' : 'text-zinc-400'}>
         {item.icon}
       </span>
-      {item.label}
+      <span>&quot;{item.label}&quot;</span>
     </Link>
   )
 }
@@ -169,30 +173,31 @@ function SidebarContent({
 }) {
   return (
     <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className="px-5 pt-6 pb-4">
+      {/* Logo + System Label */}
+      <div className="px-5 pt-5 pb-4">
+        <span className="label-abloh block mb-2.5">SYSTEM_NAV</span>
         <div className="flex items-center gap-3">
           <Image
             src="/assets/logo_freelance.png"
             alt="Freelance Logo"
-            width={38}
-            height={38}
-            className="shrink-0 border-2 border-zinc-950"
+            width={34}
+            height={34}
+            className="shrink-0 border border-zinc-200"
           />
           <div>
-            <div className="text-[17px] font-black text-zinc-950 tracking-tighter leading-none uppercase">
+            <div className="text-[15px] font-black text-zinc-900 tracking-tight leading-tight uppercase">
               Freelance
             </div>
-            <div className="text-[10px] font-bold text-zinc-400 tracking-[0.2em] uppercase leading-tight mt-0.5">
+            <div className="text-[9px] font-bold text-zinc-400 tracking-[0.2em] uppercase leading-tight">
               by eCons
             </div>
           </div>
         </div>
       </div>
 
-      <div className="h-[2px] bg-zinc-950 mx-0" />
+      <div className="h-px bg-zinc-200 mx-5" />
 
-      <nav className="flex-1 flex flex-col overflow-y-auto">
+      <nav className="flex-1 py-3 flex flex-col gap-px overflow-y-auto">
         {navItems.map((item) => (
           <NavItem
             key={item.href}
@@ -203,9 +208,9 @@ function SidebarContent({
         ))}
       </nav>
 
-      <div className="h-[2px] bg-zinc-950 mx-0" />
+      <div className="h-px bg-zinc-200 mx-5" />
 
-      <div className="p-3">
+      <div className="px-2 py-3">
         <SidebarAvatar />
       </div>
     </div>
@@ -229,33 +234,33 @@ function NotificationItem({
   const timeAgo = getTimeAgo(notif.created_at)
 
   return (
-    <div className="px-4 py-3 border-b-2 border-zinc-200 last:border-b-0">
-      <div className="text-sm text-zinc-900 leading-snug font-medium">{notif.message}</div>
-      <div className="text-[10px] text-zinc-400 mt-1 uppercase tracking-wider font-bold">{timeAgo}</div>
+    <div className="px-4 py-3">
+      <div className="text-[12px] font-medium text-zinc-800 leading-snug">{notif.message}</div>
+      <div className="text-[10px] text-zinc-400 mt-1 font-mono">{timeAgo}</div>
 
       {isInvite ? (
         <div className="flex items-center gap-2 mt-2.5">
           <button
             onClick={async () => { setActing(true); await onAccept(notif) }}
             disabled={acting}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-black text-white bg-zinc-950 border-2 border-zinc-950 hover:bg-white hover:text-zinc-950 transition-colors duration-100 disabled:opacity-50 cursor-pointer uppercase tracking-wider"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-white bg-zinc-900 hover:bg-[#0052FF] transition-colors disabled:opacity-50 cursor-pointer"
           >
-            <Check size={12} />
+            <Check size={11} />
             Accepter
           </button>
           <button
             onClick={async () => { setActing(true); await onDecline(notif) }}
             disabled={acting}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-zinc-600 bg-white border-2 border-zinc-300 hover:border-zinc-950 hover:text-zinc-950 transition-colors duration-100 disabled:opacity-50 cursor-pointer uppercase tracking-wider"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-zinc-500 bg-zinc-100 border border-zinc-200 hover:bg-zinc-200 transition-colors disabled:opacity-50 cursor-pointer"
           >
-            <XCircle size={12} />
+            <XCircle size={11} />
             Refuser
           </button>
         </div>
       ) : (
         <button
           onClick={() => onDismiss(notif.id)}
-          className="mt-1.5 text-[10px] text-zinc-400 hover:text-zinc-950 transition-colors cursor-pointer uppercase tracking-wider font-bold border-b border-zinc-300 hover:border-zinc-950"
+          className="mt-1.5 text-[10px] text-zinc-400 hover:text-zinc-700 transition-colors cursor-pointer uppercase tracking-wide font-bold"
         >
           Marquer comme lu
         </button>
@@ -275,7 +280,9 @@ function getTimeAgo(dateStr: string): string {
   return `Il y a ${days}j`
 }
 
-/* ── Main Layout ── */
+/* ═══════════════════════════════════════════════
+   Main Layout — Industrial Blueprint Grid
+   ═══════════════════════════════════════════════ */
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -287,7 +294,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return pathname.startsWith(href)
   }
 
-  const currentTitle = pageTitles[pathname] ?? 'eCons Freelance'
+  const currentTitle = pageTitles[pathname] ?? 'eCONS FREELANCE'
 
   const handleAccept = async (n: Notification) => {
     await acceptTeamInvite(n)
@@ -304,27 +311,27 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-dvh bg-[#f4f4f0]">
+    <div className="flex min-h-dvh bg-[#F8F8F8]">
 
       {/* ── Desktop Sidebar ── */}
-      <aside className="hidden md:flex flex-col w-[240px] shrink-0 bg-white border-r-[3px] border-zinc-950">
+      <aside className="hidden md:flex flex-col w-[220px] shrink-0 bg-white border-r border-zinc-200">
         <SidebarContent pathname={pathname} isActive={isActive} />
       </aside>
 
       {/* ── Mobile Overlay Sidebar ── */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden" onClick={() => setMobileOpen(false)}>
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-black/50" />
           <aside
-            className="relative flex flex-col w-72 h-full bg-white border-r-[3px] border-zinc-950"
+            className="relative flex flex-col w-[260px] h-full bg-white border-r border-zinc-200"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setMobileOpen(false)}
-              className="absolute top-4 right-4 p-1.5 text-zinc-950 hover:bg-zinc-950 hover:text-white border-2 border-zinc-950 transition-colors duration-100"
+              className="absolute top-3 right-3 p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100"
               aria-label="Fermer le menu"
             >
-              <X size={18} />
+              <X size={16} />
             </button>
             <SidebarContent
               pathname={pathname}
@@ -339,53 +346,58 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* ── Topbar ── */}
-        <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 md:px-8 bg-white border-b-[3px] border-zinc-950">
-          <div className="flex items-center gap-4">
+        <header className="sticky top-0 z-30 flex items-center justify-between h-12 px-4 md:px-6 bg-white border-b border-zinc-200">
+          <div className="flex items-center gap-3">
             <button
-              className="md:hidden p-2 text-zinc-950 border-2 border-zinc-950 hover:bg-zinc-950 hover:text-white transition-colors duration-100"
+              className="md:hidden p-1.5 text-zinc-500 hover:bg-zinc-100"
               onClick={() => setMobileOpen(true)}
               aria-label="Ouvrir le menu"
             >
-              <Menu size={20} />
+              <Menu size={18} />
             </button>
-            <h1 className="text-xl md:text-2xl font-black text-zinc-950 tracking-tighter leading-none uppercase">
-              {currentTitle}
-            </h1>
+
+            <div className="flex items-center gap-3">
+              <span className="label-abloh hidden sm:inline">HEADER_BAR</span>
+              <div className="w-px h-4 bg-zinc-200 hidden sm:block" />
+              <h1 className="text-[13px] font-black text-zinc-900 tracking-[0.06em] uppercase">
+                &quot;{currentTitle}&quot;
+              </h1>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             {/* Notification Bell */}
             <div className="relative">
               <button
                 onClick={() => setNotifOpen(!notifOpen)}
-                className="relative p-2 text-zinc-950 border-2 border-zinc-950 hover:bg-zinc-950 hover:text-white transition-colors duration-100"
+                className="relative p-2 text-zinc-500 hover:bg-zinc-100 transition-colors"
                 aria-label="Notifications"
               >
-                <Bell size={18} />
+                <Bell size={16} />
                 {notifications.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-600 border-2 border-white" />
+                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#0052FF]" />
                 )}
               </button>
 
               {notifOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
-                  <div className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white border-2 border-zinc-950 z-50 overflow-hidden">
-                    <div className="px-4 py-3 border-b-2 border-zinc-950 flex items-center justify-between bg-zinc-950 text-white">
-                      <span className="text-xs font-black uppercase tracking-wider">Notifications</span>
+                  <div className="absolute top-full right-0 mt-1 w-80 sm:w-96 bg-white border border-zinc-200 z-50 overflow-hidden">
+                    <div className="px-4 py-2.5 border-b border-zinc-200 flex items-center justify-between">
+                      <span className="text-[11px] font-black text-zinc-900 uppercase tracking-wide">&quot;NOTIFICATIONS&quot;</span>
                       {notifications.length > 0 && (
-                        <span className="text-[10px] font-black uppercase tracking-wider bg-white text-zinc-950 px-2 py-0.5">
+                        <span className="text-[10px] font-black text-[#0052FF] bg-[#0052FF14] px-2 py-0.5">
                           {notifications.length}
                         </span>
                       )}
                     </div>
                     {notifications.length === 0 ? (
                       <div className="px-4 py-8 text-center">
-                        <Bell size={24} className="mx-auto text-zinc-300 mb-2" />
-                        <p className="text-xs text-zinc-400 uppercase tracking-wider font-bold">Aucune notification</p>
+                        <Bell size={20} className="mx-auto text-zinc-300 mb-2" />
+                        <p className="text-[11px] text-zinc-400 uppercase tracking-wide font-bold">Aucune notification</p>
                       </div>
                     ) : (
-                      <div className="max-h-80 overflow-y-auto">
+                      <div className="max-h-80 overflow-y-auto divide-y divide-zinc-100">
                         {notifications.map((n) => (
                           <NotificationItem
                             key={n.id}
@@ -410,7 +422,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </main>
 
         {/* ── Legal Footer ── */}
-        <div className="border-t-[3px] border-zinc-950 bg-white">
+        <div className="border-t border-zinc-200 bg-white">
           <LegalFooter />
         </div>
       </div>

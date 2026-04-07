@@ -2,45 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ═══════════════════════════════════════════════════
-   eConic Design System
-   Swiss Design + Neo-Brutalism
-   Zero rounded corners. Thick borders. Geometric type.
-   ═══════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   eConic Phase 2 — Virgil Abloh × Swiss Industrial
+   ══════════════════════════════════════════════ */
 
 :root {
-  /* ── Surfaces ── */
-  --bg: #f4f4f0;
+  /* ── Core palette ── */
+  --bg: #F8F8F8;
   --surface: #FFFFFF;
-  --ink: #09090b;
-  --ink2: #18181b;
-  --muted: #71717a;
-  --line: #09090b;
+  --ink: #18181B;
+  --ink2: #27272A;
+  --muted: #71717A;
+  --line: #E4E4E7;
 
   /* ── Brand ── */
-  --blue-primary: #09090b;
-  --blue-mid: #27272a;
-  --blue-surface: #f4f4f0;
-  --cyan: #09090b;
+  --cobalt: #0052FF;
+  --cobalt-light: #0052FF12;
 
-  /* ── Status ── */
-  --success: #166534;
-  --success-bg: #dcfce7;
-  --warning: #92400e;
-  --warning-bg: #fef3c7;
-  --danger: #991b1b;
-  --danger-bg: #fee2e2;
+  /* ── Status — Industrial accents ── */
+  --industrial-orange: #FF5C00;
+  --industrial-orange-bg: #FF5C0014;
+  --neon-green: #00E676;
+  --neon-green-bg: #00E67614;
+  --success: #00E676;
+  --success-bg: #00E67614;
+  --warning: #FF5C00;
+  --warning-bg: #FF5C0014;
+  --danger: #DC2626;
+  --danger-bg: #DC262614;
 
-  /* ── eConic accents ── */
-  --econic-black: #09090b;
-  --econic-paper: #f4f4f0;
-  --econic-white: #ffffff;
-  --econic-accent: #09090b;
+  /* ── Legacy compat ── */
+  --blue-primary: #0052FF;
+  --blue-mid: #0052FF;
+  --blue-surface: #0052FF0A;
+  --cyan: #0052FF;
+  --ec-navy: #0052FF;
+  --ec-blue: #0052FF;
+  --ec-cyan: #0052FF;
+  --ec-navy-light: #0052FF12;
+  --ec-blue-light: #0052FF14;
 }
 
+/* ── Global reset: razor angles everywhere ── */
 @layer base {
-  * {
-    border-color: var(--line);
+  *, *::before, *::after {
+    border-radius: 0 !important;
   }
 }
 
@@ -52,64 +58,32 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── eConic Utility Classes ── */
+/* ── Abloh micro-typography label ── */
 @layer utilities {
+  .label-abloh {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #A1A1AA;
+    font-family: 'Helvetica Neue', Helvetica, monospace;
+    line-height: 1;
+    user-select: none;
+  }
+
+  .label-abloh::before {
+    content: '"';
+  }
+
+  .label-abloh::after {
+    content: '"';
+  }
+
   .text-balance {
     text-wrap: balance;
   }
-
-  .econic-heading {
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: -0.04em;
-    line-height: 1;
-  }
-
-  .econic-label {
-    font-size: 9px;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    font-weight: 700;
-  }
-
-  .econic-border {
-    border: 2px solid var(--econic-black);
-  }
-
-  .econic-border-b {
-    border-bottom: 4px solid var(--econic-black);
-  }
-
-  .econic-card {
-    background: var(--econic-white);
-    border: 2px solid var(--econic-black);
-  }
-
-  .econic-card-hover {
-    transition: transform 100ms ease-out;
-  }
-  .econic-card-hover:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 4px 4px 0 var(--econic-black);
-  }
-
-  .econic-invert {
-    background: var(--econic-black);
-    color: var(--econic-white);
-  }
-}
-
-/* ── Selection ── */
-::selection {
-  background: var(--econic-black);
-  color: var(--econic-white);
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
-}
-
-@keyframes toast-in {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
 }
