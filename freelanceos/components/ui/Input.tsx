@@ -26,7 +26,7 @@ export function Input({
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
       {label && (
-        <label className="text-[9px] uppercase tracking-[1.5px] text-[var(--muted)] font-medium">
+        <label className="text-[9px] uppercase tracking-[0.15em] text-zinc-500 font-black">
           {label}
           {required && <span className="text-[var(--danger)] ml-0.5">*</span>}
         </label>
@@ -38,7 +38,7 @@ export function Input({
         required={required}
         placeholder={placeholder}
         readOnly={readOnly}
-        className="bg-[var(--bg)] border-[1.5px] border-[var(--line)] rounded-md px-3 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--blue-primary)] transition-colors duration-150 read-only:opacity-60 read-only:cursor-default"
+        className="bg-white border-2 border-zinc-950 px-3 py-2.5 text-sm text-zinc-950 font-medium placeholder:text-zinc-400 focus:outline-none focus:ring-0 focus:shadow-brutal-sm transition-shadow duration-100 read-only:opacity-60 read-only:cursor-default"
       />
     </div>
   );

@@ -2,37 +2,114 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════════════════
+   eConic Design System
+   Swiss Design + Neo-Brutalism
+   Zero rounded corners. Thick borders. Geometric type.
+   ═══════════════════════════════════════════════════ */
+
 :root {
-  --bg: #F6F7FA;
+  /* ── Surfaces ── */
+  --bg: #f4f4f0;
   --surface: #FFFFFF;
-  --ink: #0F1117;
-  --ink2: #2C2F3A;
-  --muted: #6B7280;
-  --line: #E4E6ED;
-  --blue-primary: #1A3FA3;
-  --blue-mid: #1E6FD9;
-  --blue-surface: #EBF2FA;
-  --cyan: #00B4D8;
-  --success: #0D9E6B;
-  --success-bg: #E6F7F2;
-  --warning-bg: #FEF3C7;
-  --warning: #B45309;
-  --danger: #C0152A;
-  --danger-bg: #FEE9EC;
+  --ink: #09090b;
+  --ink2: #18181b;
+  --muted: #71717a;
+  --line: #09090b;
+
+  /* ── Brand ── */
+  --blue-primary: #09090b;
+  --blue-mid: #27272a;
+  --blue-surface: #f4f4f0;
+  --cyan: #09090b;
+
+  /* ── Status ── */
+  --success: #166534;
+  --success-bg: #dcfce7;
+  --warning: #92400e;
+  --warning-bg: #fef3c7;
+  --danger: #991b1b;
+  --danger-bg: #fee2e2;
+
+  /* ── eConic accents ── */
+  --econic-black: #09090b;
+  --econic-paper: #f4f4f0;
+  --econic-white: #ffffff;
+  --econic-accent: #09090b;
+}
+
+@layer base {
+  * {
+    border-color: var(--line);
+  }
 }
 
 body {
   color: var(--ink);
   background: var(--bg);
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── eConic Utility Classes ── */
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+
+  .econic-heading {
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  .econic-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+  }
+
+  .econic-border {
+    border: 2px solid var(--econic-black);
+  }
+
+  .econic-border-b {
+    border-bottom: 4px solid var(--econic-black);
+  }
+
+  .econic-card {
+    background: var(--econic-white);
+    border: 2px solid var(--econic-black);
+  }
+
+  .econic-card-hover {
+    transition: transform 100ms ease-out;
+  }
+  .econic-card-hover:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 var(--econic-black);
+  }
+
+  .econic-invert {
+    background: var(--econic-black);
+    color: var(--econic-white);
+  }
+}
+
+/* ── Selection ── */
+::selection {
+  background: var(--econic-black);
+  color: var(--econic-white);
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes toast-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
