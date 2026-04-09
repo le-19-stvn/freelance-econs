@@ -8,6 +8,9 @@ import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import { InvoicePDFTemplate } from '@/lib/pdf/invoice-template'
 import InvoiceEmail from '@/components/emails/InvoiceEmail'
 import { calculateHT, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
+import { UuidParamSchema } from '@/lib/validations/api'
+import { checkRateLimit } from '@/lib/security/rate-limit'
+import { checkOrigin } from '@/lib/security/csrf'
 import type { Invoice, Profile } from '@/types'
 
 export async function POST(
@@ -15,6 +18,18 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Security checks
+    const originBlock = checkOrigin(_request)
+    if (originBlock) return originBlock
+    const rateLimitBlock = await checkRateLimit(_request)
+    if (rateLimitBlock) return rateLimitBlock
+    // Validate route param
+    const paramsParsed = UuidParamSchema.safeParse(params)
+    if (!paramsParsed.success) {
+      return NextResponse.json({ error: 'ID facture invalide' }, { status: 400 })
+    }
+    const invoiceId = paramsParsed.data.id
+
     // Verify Resend API key
     const apiKey = process.env.RESEND_API_KEY
     if (!apiKey) {
@@ -34,8 +49,6 @@ export async function POST(
     } catch {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
-
-    const invoiceId = params.id
 
     // Fetch invoice with relations
     const { data: invoice, error: invError } = await supabase
