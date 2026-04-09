@@ -20,22 +20,22 @@ const roleLabels: Record<string, string> = {
   member: 'Membre',
 }
 
-const inputCls = 'w-full px-3 py-2.5 border border-[#d9d9d9] bg-white text-sm text-[#080808] outline-none focus:border-[#080808] transition-all'
+const inputCls = 'w-full px-4 py-3 rounded-[10px] bg-[#f5f5f5] border-0 text-sm text-[#0a0a0a] outline-none focus:ring-2 focus:ring-[#0a0a0a]/10 transition-all tracking-[-0.04em]'
 
 /* ── Swiss Modal ── */
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
       onClick={onClose}
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="bg-white border border-[#d9d9d9] p-6 w-full max-w-md relative"
+        className="bg-white rounded-[18px] shadow-xl p-6 w-full max-w-md relative border-0"
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1 text-zinc-400 hover:text-[#080808] transition-colors"
+          className="absolute top-4 right-4 p-1 rounded-full text-zinc-400 hover:bg-[#f5f5f5] hover:text-[#0a0a0a] transition-colors"
         >
           <X size={16} />
         </button>
@@ -62,7 +62,7 @@ function TaskCard({
   const [showMenu, setShowMenu] = useState(false)
 
   return (
-    <div className="bg-white border border-[#d9d9d9] p-3 mb-2 relative hover:border-[#080808] transition-colors">
+    <div className="bg-white rounded-[10px] shadow-sm p-3 mb-2 relative hover:shadow-md border-0 transition-all">
       <div className="flex justify-between items-start gap-2">
         <span className="text-sm text-gray-900">{task.title}</span>
         <button
@@ -80,26 +80,26 @@ function TaskCard({
       )}
 
       {showMenu && (
-        <div className="absolute top-8 right-2 z-10 bg-white border border-[#d9d9d9] p-1 min-w-[150px]">
+        <div className="absolute top-8 right-2 z-10 bg-white rounded-[18px] shadow-lg border border-[#e7e7e7] p-1 min-w-[150px]">
           {columns.filter(c => c.key !== task.status).map(c => (
             <button
               key={c.key}
               onClick={() => { onMove(task.id, c.key); setShowMenu(false) }}
-              className="block w-full text-left px-3 py-1.5 text-xs text-[#080808] hover:bg-zinc-50"
+              className="block w-full text-left px-3 py-1.5 text-xs text-[#0a0a0a] rounded-[10px] hover:bg-[#f5f5f5]"
             >
               Deplacer &rarr; {c.label}
             </button>
           ))}
-          <div className="border-t border-zinc-100 my-1" />
-          <div className="px-3 py-1 text-[9px] font-bold text-zinc-400 uppercase tracking-[0.1em]">
-            Assigner
+          <div className="border-t border-[#e7e7e7] my-1" />
+          <div className="px-3 py-1 text-[11px] font-semibold text-[#0a0a0a]/40 tracking-[-0.04em]">
+            (Assigner)
           </div>
           {members.map(m => (
             <button
               key={m.user_id}
               onClick={() => { onAssign(task.id, m.user_id); setShowMenu(false) }}
-              className={`block w-full text-left px-3 py-1.5 text-xs ${
-                task.assigned_to === m.user_id ? 'bg-zinc-100 text-[#080808] font-bold' : 'text-[#080808] hover:bg-zinc-50'
+              className={`block w-full text-left px-3 py-1.5 text-xs rounded-[10px] ${
+                task.assigned_to === m.user_id ? 'bg-[#f5f5f5] text-[#0a0a0a] font-semibold' : 'text-[#0a0a0a] hover:bg-[#f5f5f5]'
               }`}
             >
               {m.full_name ?? m.email}
@@ -108,15 +108,15 @@ function TaskCard({
           {task.assigned_to && (
             <button
               onClick={() => { onAssign(task.id, null); setShowMenu(false) }}
-              className="block w-full text-left px-3 py-1.5 text-xs text-zinc-500 hover:bg-zinc-50"
+              className="block w-full text-left px-3 py-1.5 text-xs text-[#0a0a0a]/60 rounded-[10px] hover:bg-[#f5f5f5]"
             >
               Retirer l&apos;assignation
             </button>
           )}
-          <div className="border-t border-zinc-100 my-1" />
+          <div className="border-t border-[#e7e7e7] my-1" />
           <button
             onClick={() => { onDelete(task.id); setShowMenu(false) }}
-            className="block w-full text-left px-3 py-1.5 text-xs text-zinc-500 hover:bg-zinc-50"
+            className="block w-full text-left px-3 py-1.5 text-xs text-[#0a0a0a]/60 rounded-[10px] hover:bg-[#f5f5f5]"
           >
             Supprimer
           </button>
@@ -148,20 +148,20 @@ function KanbanColumn({
     <div className="flex-1 min-w-[220px]">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-black text-[#080808] uppercase tracking-[0.1em]">{colDef.label}</span>
-          <span className="text-[10px] text-zinc-400 font-mono border border-[#d9d9d9] px-2 py-0.5">
+          <span className="text-sm font-semibold text-[#0a0a0a] tracking-[-0.04em]">{colDef.label}</span>
+          <span className="text-[10px] text-[#0a0a0a]/40 bg-[#f5f5f5] rounded-full px-2 py-0.5">
             {tasks.length}
           </span>
         </div>
         <button
           onClick={() => onAddTask(colDef.key)}
-          className="text-zinc-400 hover:text-[#080808] text-lg leading-none transition-colors"
+          className="text-zinc-400 hover:text-[#0a0a0a] text-lg leading-none transition-colors"
           title="Ajouter une tache"
         >
           +
         </button>
       </div>
-      <div className="bg-[#fafafa] border border-[#d9d9d9] p-2 min-h-[100px]">
+      <div className="bg-[#f5f5f5] rounded-[18px] p-3 min-h-[100px]">
         {tasks.map(task => (
           <TaskCard
             key={task.id}
@@ -290,11 +290,11 @@ export default function TeamPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="animate-pulse">
-          <div className="h-7 w-52 bg-zinc-200 mb-2" />
-          <div className="h-4 w-36 bg-zinc-100 mb-8" />
+          <div className="h-7 w-52 bg-zinc-200 rounded-[10px] mb-2" />
+          <div className="h-4 w-36 bg-zinc-100 rounded-[10px] mb-8" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {[1, 2, 3].map(i => (
-              <div key={i} className="bg-white border border-[#d9d9d9] p-5 h-24" />
+              <div key={i} className="bg-white rounded-[18px] shadow-md p-5 h-24" />
             ))}
           </div>
         </div>
@@ -307,26 +307,26 @@ export default function TeamPage() {
     return (
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="max-w-md mx-auto text-center py-20">
-          <div className="w-16 h-16 bg-zinc-100 flex items-center justify-center mx-auto mb-5">
-            <Users size={28} className="text-zinc-400" />
+          <div className="w-16 h-16 rounded-[18px] bg-[#f5f5f5] flex items-center justify-center mx-auto mb-5">
+            <Users size={28} className="text-[#0a0a0a]/40" />
           </div>
-          <h2 className="text-xl font-black text-[#080808] mb-2 uppercase tracking-tight">
+          <h2 className="text-xl font-bold text-[#0a0a0a] mb-2 tracking-[-0.06em]">
             Gestion de l&apos;Equipe
           </h2>
-          <p className="text-sm text-zinc-400 mb-8 leading-relaxed max-w-xs mx-auto">
+          <p className="text-sm text-[#0a0a0a]/40 mb-8 leading-relaxed max-w-xs mx-auto">
             Collaborez avec d&apos;autres freelances sur des projets communs.
             Vos clients et factures restent prives.
           </p>
           <button
             onClick={() => { setShowCreateTeam(true); setFormError(null) }}
-            className="bg-[#080808] text-white px-6 py-2.5 text-[11px] font-black uppercase tracking-[0.1em] hover:bg-zinc-700 transition-colors cursor-pointer"
+            className="rounded-full bg-gradient-to-r from-[#2563EB] to-[#3B82F6] text-white px-6 py-2.5 text-sm font-semibold hover:from-[#1D4ED8] hover:to-[#2563EB] transition-all cursor-pointer"
           >
             Creer une equipe
           </button>
 
           {showCreateTeam && (
             <Modal onClose={() => setShowCreateTeam(false)}>
-              <h3 className="text-lg font-black text-[#080808] mb-4 uppercase tracking-tight">
+              <h3 className="text-lg font-bold text-[#0a0a0a] mb-4 tracking-[-0.06em]">
                 Nouvelle equipe
               </h3>
               <input
@@ -339,8 +339,8 @@ export default function TeamPage() {
               />
               {formError && <div className="text-sm text-gray-600 mb-3">{formError}</div>}
               <div className="flex gap-2 justify-end">
-                <button onClick={() => setShowCreateTeam(false)} className="border border-[#d9d9d9] text-zinc-500 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] hover:bg-zinc-50 transition-colors cursor-pointer">Annuler</button>
-                <button onClick={handleCreateTeam} disabled={formLoading} className="bg-[#080808] text-white px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.1em] disabled:opacity-50 hover:bg-zinc-700 transition-colors cursor-pointer">
+                <button onClick={() => setShowCreateTeam(false)} className="rounded-full border border-[#e7e7e7] text-[#0a0a0a]/60 px-4 py-2.5 text-sm font-semibold hover:bg-[#f5f5f5] transition-colors cursor-pointer">Annuler</button>
+                <button onClick={handleCreateTeam} disabled={formLoading} className="rounded-full bg-gradient-to-r from-[#2563EB] to-[#3B82F6] text-white px-5 py-2.5 text-sm font-semibold disabled:opacity-50 hover:from-[#1D4ED8] hover:to-[#2563EB] transition-all cursor-pointer">
                   {formLoading ? 'Creation...' : 'Creer'}
                 </button>
               </div>
@@ -360,8 +360,8 @@ export default function TeamPage() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-black text-[#080808] tracking-tight uppercase">Gestion de l&apos;Equipe</h1>
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.15em] mt-1">
+          <h1 className="text-2xl font-bold text-[#0a0a0a] tracking-[-0.06em]">Gestion de l&apos;Equipe</h1>
+          <p className="text-[13px] font-medium text-[#0a0a0a]/40 tracking-[-0.04em] mt-1">
             {members.length} membre(s) dans cette equipe
           </p>
         </div>
@@ -379,14 +379,14 @@ export default function TeamPage() {
 
           <button
             onClick={() => { setShowCreateTeam(true); setFormError(null) }}
-            className="bg-white border border-[#d9d9d9] text-zinc-500 px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] hover:border-[#080808] hover:text-[#080808] transition-all cursor-pointer"
+            className="rounded-full border border-[#e7e7e7] text-[#0a0a0a]/60 hover:border-[#0a0a0a] hover:text-[#0a0a0a] px-3 py-2.5 text-sm font-medium transition-all cursor-pointer"
           >
             + Equipe
           </button>
 
           <button
             onClick={openInviteModal}
-            className="bg-[#080808] text-white px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.1em] hover:bg-zinc-700 transition-colors cursor-pointer inline-flex items-center gap-2"
+            className="rounded-full bg-gradient-to-r from-[#2563EB] to-[#3B82F6] text-white px-4 py-2.5 text-sm font-semibold hover:from-[#1D4ED8] hover:to-[#2563EB] transition-all cursor-pointer inline-flex items-center gap-2"
           >
             <UserPlus size={15} />
             <span className="hidden sm:inline">Inviter un membre</span>
@@ -400,24 +400,24 @@ export default function TeamPage() {
          ══════════════════════════════ */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[13px] font-black text-[#080808] uppercase tracking-[0.1em]">Membres</h2>
+          <h2 className="text-base font-semibold text-[#0a0a0a] tracking-[-0.04em]">Membres</h2>
         </div>
 
         {members.length === 0 ? (
           /* ── Beautiful empty state ── */
-          <div className="bg-white border border-dashed border-[#d9d9d9] py-12 px-6 text-center">
-            <div className="w-14 h-14 bg-zinc-50 flex items-center justify-center mx-auto mb-4">
-              <Users size={24} className="text-zinc-300" />
+          <div className="rounded-[18px] border border-dashed border-[#e7e7e7] py-12 px-6 text-center">
+            <div className="w-14 h-14 rounded-[18px] bg-[#f5f5f5] flex items-center justify-center mx-auto mb-4">
+              <Users size={24} className="text-[#0a0a0a]/40" />
             </div>
-            <p className="text-sm font-bold text-zinc-500 mb-1">
+            <p className="text-sm font-bold text-[#0a0a0a] mb-1 tracking-[-0.04em]">
               Aucun membre pour le moment
             </p>
-            <p className="text-xs text-zinc-400 mb-5 max-w-[260px] mx-auto leading-relaxed">
+            <p className="text-xs text-[#0a0a0a]/40 mb-5 max-w-[260px] mx-auto leading-relaxed">
               Invitez des collaborateurs pour commencer a travailler ensemble sur vos projets.
             </p>
             <button
               onClick={openInviteModal}
-              className="bg-[#080808] text-white px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.1em] hover:bg-zinc-700 transition-colors cursor-pointer inline-flex items-center gap-2"
+              className="rounded-full bg-[#0a0a0a] text-white px-5 py-2.5 text-sm font-semibold hover:bg-zinc-700 transition-colors cursor-pointer inline-flex items-center gap-2"
             >
               <UserPlus size={15} />
               Inviter un membre
@@ -430,10 +430,10 @@ export default function TeamPage() {
               return (
                 <div
                   key={m.user_id}
-                  className={`flex items-center gap-3 bg-white border p-4 transition-all ${
+                  className={`flex items-center gap-3 bg-white rounded-[18px] p-4 transition-all ${
                     isPending
-                      ? 'border-dashed border-[#d9d9d9] opacity-75'
-                      : 'border-[#d9d9d9] hover:border-[#080808]'
+                      ? 'border border-dashed border-[#e7e7e7] opacity-75'
+                      : 'shadow-sm hover:shadow-md'
                   }`}
                 >
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
@@ -444,20 +444,20 @@ export default function TeamPage() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-[#080808] truncate">
+                      <span className="text-sm font-bold text-[#0a0a0a] truncate">
                         {m.full_name ?? 'Sans nom'}
                       </span>
                       {isPending && (
-                        <span className="shrink-0 inline-block px-2 py-0.5 border border-[#d9d9d9] text-[9px] font-bold uppercase tracking-[0.08em] text-[#080808] font-mono">
+                        <span className="shrink-0 inline-block px-2 py-0.5 rounded-full bg-[#f5f5f5] text-[10px] font-semibold text-[#0a0a0a]/60">
                           En attente
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-zinc-400 truncate font-mono">{m.email}</div>
+                    <div className="text-xs text-[#0a0a0a]/40 truncate tracking-[-0.04em]">{m.email}</div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-[0.1em]">
+                    <span className="text-[11px] text-[#0a0a0a]/40 font-medium">
                       {roleLabels[m.role] ?? m.role}
                     </span>
                     {canManage && m.user_id !== currentUserId && m.role !== 'owner' && (
@@ -486,12 +486,12 @@ export default function TeamPage() {
          ══════════════════════════════════════ */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[13px] font-black text-[#080808] uppercase tracking-[0.1em]">
+          <h2 className="text-base font-semibold text-[#0a0a0a] tracking-[-0.04em]">
             Projets
           </h2>
           <button
             onClick={() => { setShowCreateProject(true); setFormError(null) }}
-            className="bg-white border border-[#d9d9d9] text-zinc-500 px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] hover:border-[#080808] hover:text-[#080808] transition-all cursor-pointer"
+            className="rounded-full border border-[#e7e7e7] text-[#0a0a0a]/60 hover:border-[#0a0a0a] hover:text-[#0a0a0a] px-3 py-2.5 text-sm font-medium transition-all cursor-pointer"
           >
             + Nouveau projet
           </button>
@@ -499,19 +499,19 @@ export default function TeamPage() {
 
         {projects.length === 0 ? (
           /* ── Beautiful empty state ── */
-          <div className="bg-white border border-dashed border-[#d9d9d9] py-12 px-6 text-center">
-            <div className="w-14 h-14 bg-zinc-50 flex items-center justify-center mx-auto mb-4">
-              <FolderOpen size={24} className="text-zinc-300" />
+          <div className="rounded-[18px] border border-dashed border-[#e7e7e7] py-12 px-6 text-center">
+            <div className="w-14 h-14 rounded-[18px] bg-[#f5f5f5] flex items-center justify-center mx-auto mb-4">
+              <FolderOpen size={24} className="text-[#0a0a0a]/40" />
             </div>
-            <p className="text-sm font-bold text-zinc-500 mb-1">
+            <p className="text-sm font-bold text-[#0a0a0a] mb-1 tracking-[-0.04em]">
               Aucun projet pour cette equipe
             </p>
-            <p className="text-xs text-zinc-400 mb-5 max-w-[260px] mx-auto leading-relaxed">
+            <p className="text-xs text-[#0a0a0a]/40 mb-5 max-w-[260px] mx-auto leading-relaxed">
               Creez un projet pour organiser le travail avec votre equipe.
             </p>
             <button
               onClick={() => { setShowCreateProject(true); setFormError(null) }}
-              className="bg-white border border-[#d9d9d9] text-[#080808] px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] hover:border-[#080808] transition-all cursor-pointer"
+              className="rounded-full border border-[#e7e7e7] text-[#0a0a0a]/60 hover:border-[#0a0a0a] hover:text-[#0a0a0a] px-5 py-2.5 text-sm font-medium transition-all cursor-pointer"
             >
               + Creer un projet
             </button>
@@ -522,10 +522,10 @@ export default function TeamPage() {
               <button
                 key={p.id}
                 onClick={() => setActiveProjectId(p.id)}
-                className={`px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] border transition-all cursor-pointer ${
+                className={`px-4 py-2.5 text-sm font-medium transition-all cursor-pointer ${
                   p.id === activeProjectId
-                    ? 'bg-[#080808] text-white border-[#080808]'
-                    : 'bg-white text-zinc-600 border-[#d9d9d9] hover:border-[#080808] hover:text-[#080808]'
+                    ? 'rounded-full bg-[#0a0a0a] text-white'
+                    : 'rounded-full border border-[#e7e7e7] text-[#0a0a0a]/60 hover:border-[#0a0a0a]'
                 }`}
               >
                 {p.name}
@@ -536,9 +536,9 @@ export default function TeamPage() {
 
         {activeProject && (
           <div>
-            <div className="flex items-center justify-between mb-4 pt-4 border-t border-[#d9d9d9]">
+            <div className="flex items-center justify-between mb-4 pt-4 border-t border-[#e7e7e7]">
               <div>
-                <h3 className="text-base font-black text-[#080808]">{activeProject.name}</h3>
+                <h3 className="text-base font-bold text-[#0a0a0a] tracking-[-0.04em]">{activeProject.name}</h3>
                 {activeProject.description && (
                   <p className="text-sm text-zinc-400 mt-1">{activeProject.description}</p>
                 )}
@@ -550,7 +550,7 @@ export default function TeamPage() {
                     setActiveProjectId(null)
                   }
                 }}
-                className="text-[11px] text-zinc-400 border border-[#d9d9d9] px-3 py-1.5 uppercase tracking-[0.05em] hover:text-[#080808] hover:border-[#080808] transition-colors cursor-pointer"
+                className="rounded-full border border-[#e7e7e7] text-[#0a0a0a]/40 hover:text-[#0a0a0a] px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
               >
                 Supprimer
               </button>
@@ -582,7 +582,7 @@ export default function TeamPage() {
       {/* Create Team Modal */}
       {showCreateTeam && (
         <Modal onClose={() => setShowCreateTeam(false)}>
-          <h3 className="text-lg font-black text-[#080808] mb-4 uppercase tracking-tight">Nouvelle equipe</h3>
+          <h3 className="text-lg font-bold text-[#0a0a0a] mb-4 tracking-[-0.06em]">Nouvelle equipe</h3>
           <input
             value={newTeamName}
             onChange={e => setNewTeamName(e.target.value)}
@@ -593,8 +593,8 @@ export default function TeamPage() {
           />
           {formError && <div className="text-sm text-gray-600 mb-3">{formError}</div>}
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setShowCreateTeam(false)} className="border border-[#d9d9d9] text-zinc-500 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] hover:bg-zinc-50 transition-colors cursor-pointer">Annuler</button>
-            <button onClick={handleCreateTeam} disabled={formLoading} className="bg-[#080808] text-white px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.1em] disabled:opacity-50 hover:bg-zinc-700 transition-colors cursor-pointer">
+            <button onClick={() => setShowCreateTeam(false)} className="rounded-full border border-[#e7e7e7] text-[#0a0a0a]/60 px-4 py-2.5 text-sm font-semibold hover:bg-[#f5f5f5] transition-colors cursor-pointer">Annuler</button>
+            <button onClick={handleCreateTeam} disabled={formLoading} className="rounded-full bg-gradient-to-r from-[#2563EB] to-[#3B82F6] text-white px-5 py-2.5 text-sm font-semibold disabled:opacity-50 hover:from-[#1D4ED8] hover:to-[#2563EB] transition-all cursor-pointer">
               {formLoading ? 'Creation...' : 'Creer'}
             </button>
           </div>
@@ -604,7 +604,7 @@ export default function TeamPage() {
       {/* Create Project Modal */}
       {showCreateProject && (
         <Modal onClose={() => setShowCreateProject(false)}>
-          <h3 className="text-lg font-black text-[#080808] mb-4 uppercase tracking-tight">Nouveau projet</h3>
+          <h3 className="text-lg font-bold text-[#0a0a0a] mb-4 tracking-[-0.06em]">Nouveau projet</h3>
           <input
             value={newProjectName}
             onChange={e => setNewProjectName(e.target.value)}
@@ -622,8 +622,8 @@ export default function TeamPage() {
           />
           {formError && <div className="text-sm text-gray-600 mb-3">{formError}</div>}
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setShowCreateProject(false)} className="border border-[#d9d9d9] text-zinc-500 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] hover:bg-zinc-50 transition-colors cursor-pointer">Annuler</button>
-            <button onClick={handleCreateProject} disabled={formLoading} className="bg-[#080808] text-white px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.1em] disabled:opacity-50 hover:bg-zinc-700 transition-colors cursor-pointer">
+            <button onClick={() => setShowCreateProject(false)} className="rounded-full border border-[#e7e7e7] text-[#0a0a0a]/60 px-4 py-2.5 text-sm font-semibold hover:bg-[#f5f5f5] transition-colors cursor-pointer">Annuler</button>
+            <button onClick={handleCreateProject} disabled={formLoading} className="rounded-full bg-gradient-to-r from-[#2563EB] to-[#3B82F6] text-white px-5 py-2.5 text-sm font-semibold disabled:opacity-50 hover:from-[#1D4ED8] hover:to-[#2563EB] transition-all cursor-pointer">
               {formLoading ? 'Creation...' : 'Creer'}
             </button>
           </div>
@@ -634,16 +634,16 @@ export default function TeamPage() {
       {showInvite && (
         <Modal onClose={() => setShowInvite(false)}>
           <div className="flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 bg-zinc-900 flex items-center justify-center text-white shrink-0">
+            <div className="w-10 h-10 rounded-[10px] bg-[#0a0a0a] flex items-center justify-center text-white shrink-0">
               <Mail size={18} />
             </div>
             <div>
-              <h3 className="text-lg font-black text-[#080808] uppercase tracking-tight">Inviter un membre</h3>
-              <p className="text-xs text-zinc-400 mt-0.5">L&apos;utilisateur doit deja avoir un compte Freelance.</p>
+              <h3 className="text-lg font-bold text-[#0a0a0a] tracking-[-0.06em]">Inviter un membre</h3>
+              <p className="text-xs text-[#0a0a0a]/40 mt-0.5">L&apos;utilisateur doit deja avoir un compte Freelance.</p>
             </div>
           </div>
 
-          <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-[0.1em] mb-1">Adresse email</label>
+          <label className="block text-[13px] font-semibold text-[#0a0a0a]/60 tracking-[-0.04em] mb-1">Adresse email</label>
           <input
             value={inviteEmail}
             onChange={e => setInviteEmail(e.target.value)}
@@ -654,7 +654,7 @@ export default function TeamPage() {
             onKeyDown={e => e.key === 'Enter' && handleInvite()}
           />
 
-          <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-[0.1em] mb-1">Role</label>
+          <label className="block text-[13px] font-semibold text-[#0a0a0a]/60 tracking-[-0.04em] mb-1">Role</label>
           <select
             value={inviteRole}
             onChange={e => setInviteRole(e.target.value)}
@@ -667,13 +667,13 @@ export default function TeamPage() {
           {formError && <div className="text-sm text-gray-600 mb-3">{formError}</div>}
 
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setShowInvite(false)} className="border border-[#d9d9d9] text-zinc-500 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] hover:bg-zinc-50 transition-colors cursor-pointer">
+            <button onClick={() => setShowInvite(false)} className="rounded-full border border-[#e7e7e7] text-[#0a0a0a]/60 px-4 py-2.5 text-sm font-semibold hover:bg-[#f5f5f5] transition-colors cursor-pointer">
               Annuler
             </button>
             <button
               onClick={handleInvite}
               disabled={formLoading || !inviteEmail.trim()}
-              className="bg-[#080808] text-white px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.1em] disabled:opacity-50 hover:bg-zinc-700 transition-colors cursor-pointer"
+              className="rounded-full bg-gradient-to-r from-[#2563EB] to-[#3B82F6] text-white px-5 py-2.5 text-sm font-semibold disabled:opacity-50 hover:from-[#1D4ED8] hover:to-[#2563EB] transition-all cursor-pointer"
             >
               {formLoading ? 'Envoi...' : 'Envoyer l\'invitation'}
             </button>
@@ -684,7 +684,7 @@ export default function TeamPage() {
       {/* Add Task Modal */}
       {showAddTask !== null && (
         <Modal onClose={() => setShowAddTask(null)}>
-          <h3 className="text-lg font-black text-[#080808] mb-4 uppercase tracking-tight">
+          <h3 className="text-lg font-bold text-[#0a0a0a] mb-4 tracking-[-0.06em]">
             Nouvelle tache — {columns.find(c => c.key === showAddTask)?.label}
           </h3>
           <input
@@ -697,8 +697,8 @@ export default function TeamPage() {
           />
           {formError && <div className="text-sm text-gray-600 mb-3">{formError}</div>}
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setShowAddTask(null)} className="border border-[#d9d9d9] text-zinc-500 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] hover:bg-zinc-50 transition-colors cursor-pointer">Annuler</button>
-            <button onClick={handleAddTask} disabled={formLoading} className="bg-[#080808] text-white px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.1em] disabled:opacity-50 hover:bg-zinc-700 transition-colors cursor-pointer">
+            <button onClick={() => setShowAddTask(null)} className="rounded-full border border-[#e7e7e7] text-[#0a0a0a]/60 px-4 py-2.5 text-sm font-semibold hover:bg-[#f5f5f5] transition-colors cursor-pointer">Annuler</button>
+            <button onClick={handleAddTask} disabled={formLoading} className="rounded-full bg-gradient-to-r from-[#2563EB] to-[#3B82F6] text-white px-5 py-2.5 text-sm font-semibold disabled:opacity-50 hover:from-[#1D4ED8] hover:to-[#2563EB] transition-all cursor-pointer">
               {formLoading ? 'Ajout...' : 'Ajouter'}
             </button>
           </div>

@@ -6,45 +6,30 @@ import Link from 'next/link'
  */
 export function LegalFooter() {
   return (
-    <footer
-      style={{
-        padding: '16px 24px',
-        textAlign: 'center',
-        fontSize: 11,
-        color: 'var(--muted)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 6,
-      }}
-    >
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
+    <footer className="py-4 px-6 text-center flex flex-col items-center gap-1.5">
+      <div className="flex gap-4 flex-wrap justify-center">
         <Link
           href="/mentions-legales"
-          style={{ color: 'var(--muted)', textDecoration: 'none' }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--ink)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--muted)' }}
+          className="text-[12px] font-medium text-[#0a0a0a]/40 tracking-[-0.04em] hover:text-[#0a0a0a] transition-colors"
         >
           Mentions legales
         </Link>
         <Link
           href="/cgv"
-          style={{ color: 'var(--muted)', textDecoration: 'none' }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--ink)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--muted)' }}
+          className="text-[12px] font-medium text-[#0a0a0a]/40 tracking-[-0.04em] hover:text-[#0a0a0a] transition-colors"
         >
           CGV / CGU
         </Link>
         <Link
           href="/confidentialite"
-          style={{ color: 'var(--muted)', textDecoration: 'none' }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--ink)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--muted)' }}
+          className="text-[12px] font-medium text-[#0a0a0a]/40 tracking-[-0.04em] hover:text-[#0a0a0a] transition-colors"
         >
           Politique de confidentialite
         </Link>
       </div>
-      <span>&copy; {new Date().getFullYear()} eCons &mdash; FreelanceOS</span>
+      <span className="text-[10px] font-medium text-[#0a0a0a]/40 tracking-[-0.04em]">
+        &copy; {new Date().getFullYear()} eCons &mdash; FreelanceOS
+      </span>
     </footer>
   )
 }

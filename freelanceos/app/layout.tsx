@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
+import { IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["500", "600"],
+  variable: "--font-ibm-plex-mono",
+});
 
 const siteUrl = "https://econs-freelance.com";
 const siteName = "Freelance by eCons";
@@ -80,7 +87,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body className="antialiased">
+      <body className={`antialiased ${ibmPlexMono.variable}`}>
         <Providers>{children}</Providers>
       </body>
     </html>
