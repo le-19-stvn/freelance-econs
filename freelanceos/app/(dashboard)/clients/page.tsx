@@ -23,8 +23,8 @@ const emptyForm = {
   fiscal_id: '',
 }
 
-const inputCls = 'w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white outline-none focus:border-[#00A3FF] focus:ring-1 focus:ring-[#00A3FF]/20 transition-all'
-const labelCls = 'block text-xs font-semibold text-gray-700 mb-1.5'
+const inputCls = 'w-full px-3 py-2.5 border border-[#d9d9d9] text-sm text-[#080808] bg-white outline-none focus:border-[#080808] transition-all'
+const labelCls = 'block text-[10px] font-bold text-zinc-500 uppercase tracking-[0.1em] mb-1.5'
 
 export default function ClientsPage() {
   const { clients, loading, createClient, updateClient, deleteClient } = useClients()
@@ -94,9 +94,9 @@ export default function ClientsPage() {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 animate-pulse">
+            <div key={i} className="bg-white border border-[#d9d9d9] p-5 animate-pulse">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-gray-200 rounded-full" />
+                <div className="w-11 h-11 bg-zinc-200 rounded-full" />
                 <div>
                   <div className="h-4 w-28 bg-gray-200 rounded mb-2" />
                   <div className="h-3 w-36 bg-gray-100 rounded" />
@@ -122,16 +122,16 @@ export default function ClientsPage() {
       {/* ═══ HEADER ═══ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+          <h1 className="text-2xl font-black text-[#080808] tracking-tight uppercase">
             Clients
           </h1>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-widest mt-1">
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.15em] mt-1">
             {clients.length} client(s) enregistre(s)
           </p>
         </div>
         <button
           onClick={openCreate}
-          className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          className="bg-[#080808] text-white text-[11px] font-black px-5 py-2.5 uppercase tracking-[0.1em] hover:bg-zinc-700 transition-colors cursor-pointer"
         >
           + Nouveau Client
         </button>
@@ -140,8 +140,8 @@ export default function ClientsPage() {
       {/* ═══ CLIENT GRID ═══ */}
       {clients.length === 0 ? (
         <div className="text-center py-20">
-          <Users size={48} className="mx-auto text-gray-300 mb-4" />
-          <p className="text-sm text-gray-400" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+          <Users size={48} className="mx-auto text-zinc-300 mb-4" />
+          <p className="text-sm text-zinc-400">
             Pret a ajouter votre premier client ?
           </p>
         </div>
@@ -151,23 +151,23 @@ export default function ClientsPage() {
             <div
               key={client.id}
               onClick={() => openEdit(client)}
-              className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 cursor-pointer hover:shadow-md hover:border-[#00A3FF]/40 transition-all group"
+              className="bg-white border border-[#d9d9d9] p-5 cursor-pointer hover:border-[#080808] transition-all group"
             >
               <div className="flex items-center gap-4">
                 {/* Avatar */}
-                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#00A3FF] to-[#0057FF] flex items-center justify-center text-white text-sm font-bold shrink-0">
+                <div className="w-11 h-11 rounded-full bg-zinc-900 flex items-center justify-center text-white text-sm font-bold shrink-0">
                   {getInitials(client.name)}
                 </div>
 
                 {/* Info */}
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-semibold text-gray-900 truncate group-hover:text-[#0057FF] transition-colors" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+                  <h3 className="text-sm font-bold text-[#080808] truncate group-hover:text-zinc-600 transition-colors">
                     {client.name}
                   </h3>
                   {client.email && (
-                    <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-0.5 truncate">
+                    <div className="flex items-center gap-1.5 text-xs text-zinc-400 mt-0.5 truncate">
                       <Mail size={11} className="shrink-0" />
-                      <span className="truncate">{client.email}</span>
+                      <span className="truncate font-mono">{client.email}</span>
                     </div>
                   )}
                 </div>
@@ -175,9 +175,9 @@ export default function ClientsPage() {
 
               {/* Extra info row */}
               {(client.phone || client.address) && (
-                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 text-xs text-gray-400">
+                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-zinc-100 text-xs text-zinc-400">
                   {client.phone && (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 font-mono">
                       <Phone size={11} />
                       {client.phone}
                     </div>
@@ -203,9 +203,9 @@ export default function ClientsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl p-8 w-full max-w-md mx-4 shadow-xl"
+            className="bg-white border border-[#d9d9d9] p-8 w-full max-w-md mx-4"
           >
-            <h2 className="text-lg font-bold text-gray-900 mb-6" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+            <h2 className="text-lg font-black text-[#080808] mb-6 uppercase tracking-tight">
               {editing ? 'Modifier le client' : 'Nouveau client'}
             </h2>
 
@@ -242,7 +242,7 @@ export default function ClientsPage() {
                       await deleteClient(editing.id)
                       setShowModal(false)
                     }}
-                    className="text-gray-500 bg-gray-50 border border-gray-200 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
+                    className="text-zinc-500 border border-[#d9d9d9] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] hover:bg-zinc-50 transition-colors"
                   >
                     Supprimer
                   </button>
@@ -250,13 +250,13 @@ export default function ClientsPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="text-gray-500 bg-white border border-gray-200 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+                  className="text-zinc-500 bg-white border border-[#d9d9d9] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] hover:bg-zinc-50 transition-colors"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
+                  className="bg-[#080808] text-white px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.1em] hover:bg-zinc-700 transition-colors"
                 >
                   {editing ? 'Enregistrer' : 'Creer'}
                 </button>

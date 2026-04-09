@@ -12,7 +12,7 @@ import { createCheckoutSession, createBillingPortalSession } from '@/lib/actions
 import type { Profile, PlanStatus, PlanType } from '@/types'
 import { Pencil, LogOut, CreditCard, Sparkles, DollarSign } from 'lucide-react'
 
-const inputCls = 'w-full px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 outline-none focus:border-[#00A3FF] focus:ring-1 focus:ring-[#00A3FF]/20 transition-all'
+const inputCls = 'w-full px-3 py-2.5 border border-[#d9d9d9] bg-white text-sm text-[#080808] outline-none focus:border-[#080808] transition-all'
 
 export default function ProfilePage() {
   const supabase = createClient()
@@ -130,26 +130,26 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="max-w-[640px] mx-auto">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 animate-pulse mb-7">
+        <div className="bg-white border border-[#d9d9d9] p-8 animate-pulse mb-7">
           <div className="flex items-center gap-5">
-            <div className="w-[72px] h-[72px] rounded-full bg-gray-200" />
+            <div className="w-[72px] h-[72px] rounded-full bg-zinc-200" />
             <div className="flex-1">
-              <div className="h-5 w-40 bg-gray-200 rounded mb-2" />
-              <div className="h-3 w-24 bg-gray-100 rounded mb-4" />
-              <div className="h-7 w-32 bg-gray-100 rounded" />
+              <div className="h-5 w-40 bg-zinc-200 mb-2" />
+              <div className="h-3 w-24 bg-zinc-100 mb-4" />
+              <div className="h-7 w-32 bg-zinc-100" />
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 animate-pulse mb-7">
-          <div className="h-5 w-28 bg-gray-200 rounded mb-6" />
-          <div className="h-10 w-full bg-gray-100 rounded" />
+        <div className="bg-white border border-[#d9d9d9] p-8 animate-pulse mb-7">
+          <div className="h-5 w-28 bg-zinc-200 mb-6" />
+          <div className="h-10 w-full bg-zinc-100" />
         </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 animate-pulse">
-          <div className="h-5 w-44 bg-gray-200 rounded mb-6" />
+        <div className="bg-white border border-[#d9d9d9] p-8 animate-pulse">
+          <div className="h-5 w-44 bg-zinc-200 mb-6" />
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="mb-4">
-              <div className="h-3 w-20 bg-gray-100 rounded mb-2" />
-              <div className="h-10 w-full bg-gray-100 rounded" />
+              <div className="h-3 w-20 bg-zinc-100 mb-2" />
+              <div className="h-10 w-full bg-zinc-100" />
             </div>
           ))}
         </div>
@@ -158,14 +158,14 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-[640px] mx-auto" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+    <div className="max-w-[640px] mx-auto">
 
       {/* ═══ TOAST ═══ */}
       {toast && (
-        <div className={`fixed top-6 right-6 z-[100] flex items-center gap-2 px-5 py-3 rounded-xl text-[13px] font-semibold shadow-lg border ${
+        <div className={`fixed top-6 right-6 z-[100] flex items-center gap-2 px-5 py-3 text-[11px] font-bold uppercase tracking-[0.08em] border ${
           toast.type === 'success'
-            ? 'bg-[#00A3FF]/10 text-[#0057FF] border-[#00A3FF]/20'
-            : 'bg-gray-100 text-gray-700 border-gray-200'
+            ? 'bg-white text-[#080808] border-[#d9d9d9]'
+            : 'bg-white text-zinc-600 border-[#d9d9d9]'
         }`}>
           {toast.msg}
         </div>
@@ -181,7 +181,7 @@ export default function ProfilePage() {
       />
 
       {/* ═══ PROFILE CARD ═══ */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 mb-7">
+      <div className="bg-white border border-[#d9d9d9] p-8 mb-7">
         <div className="flex items-center gap-5">
 
           {/* Avatar */}
@@ -196,7 +196,7 @@ export default function ProfilePage() {
                 unoptimized
               />
             ) : (
-              <div className="w-[72px] h-[72px] rounded-full bg-gradient-to-br from-[#00A3FF] to-[#0057FF] flex items-center justify-center text-white font-extrabold text-[28px]">
+              <div className="w-[72px] h-[72px] rounded-full bg-zinc-900 flex items-center justify-center text-white font-extrabold text-[28px]">
                 {(form.full_name?.[0] ?? 'F').toUpperCase()}
               </div>
             )}
@@ -204,8 +204,8 @@ export default function ProfilePage() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className={`absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-[#0057FF] border-2 border-white flex items-center justify-center ${
-                uploading ? 'cursor-wait' : 'cursor-pointer hover:bg-[#00A3FF]'
+              className={`absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-zinc-900 border-2 border-white flex items-center justify-center ${
+                uploading ? 'cursor-wait' : 'cursor-pointer hover:bg-zinc-700'
               } transition-colors`}
               title="Modifier la photo"
             >
@@ -219,17 +219,17 @@ export default function ProfilePage() {
 
           {/* Name + stats */}
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-xl font-black text-[#080808]">
               {form.full_name || 'Freelance'}
             </h2>
-            <p className="text-xs font-semibold text-[#0057FF] uppercase tracking-wide mt-0.5">
+            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.15em] mt-0.5">
               {form.company_name || 'Metier'}
             </p>
             <div className="mt-3">
-              <p className="text-[9px] uppercase tracking-widest text-gray-400 font-medium">
+              <p className="text-[9px] uppercase tracking-[0.15em] text-zinc-400 font-bold">
                 Total gagne
               </p>
-              <p className="text-2xl font-extrabold text-[#0057FF] mt-0.5">
+              <p className="text-2xl font-black text-[#080808] mt-0.5 font-mono">
                 {formatCurrency(paidTotal)}
               </p>
             </div>
@@ -238,9 +238,9 @@ export default function ProfilePage() {
       </div>
 
       {/* ═══ SUBSCRIPTION CARD ═══ */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 mb-7">
-        <h2 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
-          <CreditCard size={18} className="text-gray-400" />
+      <div className="bg-white border border-[#d9d9d9] p-8 mb-7">
+        <h2 className="text-[13px] font-black text-[#080808] mb-5 flex items-center gap-2 uppercase tracking-[0.1em]">
+          <CreditCard size={18} className="text-zinc-400" />
           Abonnement
         </h2>
 
@@ -248,20 +248,20 @@ export default function ProfilePage() {
           <div className="flex items-center gap-3">
             {/* Plan badge */}
             {planType === 'pro' ? (
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-lg text-[13px] font-bold bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white">
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 border border-[#080808] text-[11px] font-black uppercase tracking-[0.08em] text-[#080808] font-mono">
                 <Sparkles size={13} />
                 Pro
               </span>
             ) : (
-              <span className="inline-block px-3.5 py-1 rounded-lg text-[13px] font-bold bg-gray-100 text-gray-500 border border-gray-200">
+              <span className="inline-block px-3.5 py-1 border border-[#d9d9d9] text-[11px] font-bold uppercase tracking-[0.08em] text-zinc-500 font-mono">
                 Gratuit
               </span>
             )}
 
             {/* Status */}
             {planType === 'pro' && (
-              <span className={`text-xs font-semibold ${
-                planStatus === 'active' ? 'text-[#0057FF]' : planStatus === 'past_due' ? 'text-gray-500' : 'text-gray-400'
+              <span className={`text-[10px] font-bold uppercase tracking-[0.1em] ${
+                planStatus === 'active' ? 'text-[#080808]' : planStatus === 'past_due' ? 'text-zinc-500' : 'text-zinc-400'
               }`}>
                 {planStatus === 'active' ? 'Actif' : planStatus === 'past_due' ? 'Paiement en retard' : planStatus === 'canceled' ? 'Annule' : 'Inactif'}
               </span>
@@ -282,7 +282,7 @@ export default function ProfilePage() {
                 setBillingLoading(false)
               }}
               disabled={billingLoading}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold border border-gray-200 text-gray-700 bg-white hover:border-[#00A3FF] hover:text-[#0057FF] transition-all ${
+              className={`px-5 py-2 border border-[#d9d9d9] text-[11px] font-bold uppercase tracking-[0.08em] text-[#080808] bg-white hover:border-[#080808] transition-all ${
                 billingLoading ? 'opacity-60 cursor-wait' : 'cursor-pointer'
               }`}
             >
@@ -303,7 +303,7 @@ export default function ProfilePage() {
                 setBillingLoading(false)
               }}
               disabled={billingLoading}
-              className={`px-6 py-2.5 rounded-lg text-sm font-bold text-white bg-gradient-to-br from-[#00A3FF] to-[#0057FF] hover:opacity-90 transition-opacity ${
+              className={`px-6 py-2.5 text-[11px] font-black text-white bg-[#080808] uppercase tracking-[0.1em] hover:bg-zinc-700 transition-colors ${
                 billingLoading ? 'opacity-60 cursor-wait' : 'cursor-pointer'
               }`}
             >
@@ -313,16 +313,16 @@ export default function ProfilePage() {
         </div>
 
         {planType === 'free' && (
-          <p className="mt-4 text-sm text-gray-400 leading-relaxed">
+          <p className="mt-4 text-sm text-zinc-400 leading-relaxed">
             Le plan Pro inclut : export illimite, factures automatiques, acces prioritaire aux nouvelles fonctionnalites.
           </p>
         )}
       </div>
 
       {/* ═══ PROFILE FORM ═══ */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
-        <h2 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
-          <DollarSign size={18} className="text-gray-400" />
+      <div className="bg-white border border-[#d9d9d9] p-8">
+        <h2 className="text-[13px] font-black text-[#080808] mb-5 flex items-center gap-2 uppercase tracking-[0.1em]">
+          <DollarSign size={18} className="text-zinc-400" />
           Informations du profil
         </h2>
 
@@ -331,20 +331,20 @@ export default function ProfilePage() {
           { key: 'company_name', label: 'Nom de la societe' },
           { key: 'email', label: 'Email' },
           { key: 'address', label: 'Adresse' },
-          { key: 'siret', label: 'SIRET' },
-          { key: 'tva_number', label: 'Numero TVA' },
-          { key: 'tva_rate', label: 'Taux TVA par defaut (%)', type: 'number' },
+          { key: 'siret', label: 'SIRET', mono: true },
+          { key: 'tva_number', label: 'Numero TVA', mono: true },
+          { key: 'tva_rate', label: 'Taux TVA par defaut (%)', type: 'number', mono: true },
           { key: 'payment_link', label: 'Lien de paiement (Stripe/PayPal)', type: 'url' },
         ].map((field) => (
           <div key={field.key} className="mb-4">
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-[0.1em] mb-1">
               {field.label}
             </label>
             <input
               type={field.type ?? 'text'}
               value={form[field.key as keyof typeof form]}
               onChange={(e) => setForm((f) => ({ ...f, [field.key]: e.target.value }))}
-              className={inputCls}
+              className={`${inputCls}${(field as any).mono ? ' font-mono' : ''}`}
             />
           </div>
         ))}
@@ -353,7 +353,7 @@ export default function ProfilePage() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className={`px-7 py-2.5 rounded-lg text-sm font-bold text-white bg-gradient-to-br from-[#00A3FF] to-[#0057FF] hover:opacity-90 transition-opacity ${
+            className={`px-7 py-2.5 text-[11px] font-black text-white bg-[#080808] uppercase tracking-[0.1em] hover:bg-zinc-700 transition-colors ${
               saving ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
             }`}
           >
@@ -369,7 +369,7 @@ export default function ProfilePage() {
             await supabase.auth.signOut()
             router.push('/login')
           }}
-          className="px-7 py-2.5 rounded-lg text-sm font-semibold text-gray-500 border border-gray-200 bg-white hover:bg-gray-50 hover:text-gray-700 transition-colors cursor-pointer"
+          className="px-7 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-zinc-500 border border-[#d9d9d9] bg-white hover:bg-zinc-50 hover:text-[#080808] transition-colors cursor-pointer"
         >
           <span className="flex items-center gap-2">
             <LogOut size={15} />

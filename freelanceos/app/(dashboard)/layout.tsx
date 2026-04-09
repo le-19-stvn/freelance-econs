@@ -104,14 +104,14 @@ function SidebarAvatar() {
   }, [supabase])
 
   return (
-    <Link href="/profile" className="flex items-center gap-3 p-3 border border-transparent hover:border-zinc-200 transition-colors group">
+    <Link href="/profile" className="flex items-center gap-3 p-3 border border-transparent hover:border-[#d9d9d9] transition-colors group">
       {avatarUrl ? (
         <Image
           src={avatarUrl}
           alt="Avatar"
           width={32}
           height={32}
-          className="object-cover w-8 h-8 shrink-0 border border-zinc-200"
+          className="object-cover w-8 h-8 shrink-0 border border-[#d9d9d9]"
           unoptimized
         />
       ) : (
@@ -148,8 +148,8 @@ function NavItem({
         text-[12px] font-black tracking-[0.06em]
         transition-all duration-100
         ${active
-          ? 'bg-[#0052FF] text-white'
-          : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
+          ? 'bg-[#080808] text-white'
+          : 'text-zinc-500 hover:bg-zinc-50 hover:text-[#080808]'
         }
       `}
     >
@@ -182,10 +182,10 @@ function SidebarContent({
             alt="Freelance Logo"
             width={34}
             height={34}
-            className="shrink-0 border border-zinc-200"
+            className="shrink-0 border border-[#d9d9d9]"
           />
           <div>
-            <div className="text-[15px] font-black text-zinc-900 tracking-tight leading-tight uppercase">
+            <div className="text-[15px] font-black text-[#080808] tracking-tight leading-tight uppercase">
               Freelance
             </div>
             <div className="text-[9px] font-bold text-zinc-400 tracking-[0.2em] uppercase leading-tight">
@@ -195,7 +195,7 @@ function SidebarContent({
         </div>
       </div>
 
-      <div className="h-px bg-zinc-200 mx-5" />
+      <div className="h-px bg-[#d9d9d9] mx-5" />
 
       <nav className="flex-1 py-3 flex flex-col gap-px overflow-y-auto">
         {navItems.map((item) => (
@@ -208,7 +208,7 @@ function SidebarContent({
         ))}
       </nav>
 
-      <div className="h-px bg-zinc-200 mx-5" />
+      <div className="h-px bg-[#d9d9d9] mx-5" />
 
       <div className="px-2 py-3">
         <SidebarAvatar />
@@ -243,7 +243,7 @@ function NotificationItem({
           <button
             onClick={async () => { setActing(true); await onAccept(notif) }}
             disabled={acting}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-white bg-zinc-900 hover:bg-[#0052FF] transition-colors disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-white bg-[#080808] hover:bg-zinc-700 transition-colors disabled:opacity-50 cursor-pointer"
           >
             <Check size={11} />
             Accepter
@@ -251,7 +251,7 @@ function NotificationItem({
           <button
             onClick={async () => { setActing(true); await onDecline(notif) }}
             disabled={acting}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-zinc-500 bg-zinc-100 border border-zinc-200 hover:bg-zinc-200 transition-colors disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-zinc-500 border border-[#d9d9d9] hover:bg-zinc-50 transition-colors disabled:opacity-50 cursor-pointer"
           >
             <XCircle size={11} />
             Refuser
@@ -311,10 +311,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-dvh bg-[#F8F8F8]">
+    <div className="flex min-h-dvh bg-[#fafafa]">
 
       {/* ── Desktop Sidebar ── */}
-      <aside className="hidden md:flex flex-col w-[220px] shrink-0 bg-white border-r border-zinc-200">
+      <aside className="hidden md:flex flex-col w-[220px] shrink-0 bg-white border-r border-[#d9d9d9]">
         <SidebarContent pathname={pathname} isActive={isActive} />
       </aside>
 
@@ -323,12 +323,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="fixed inset-0 z-50 md:hidden" onClick={() => setMobileOpen(false)}>
           <div className="absolute inset-0 bg-black/50" />
           <aside
-            className="relative flex flex-col w-[260px] h-full bg-white border-r border-zinc-200"
+            className="relative flex flex-col w-[260px] h-full bg-white border-r border-[#d9d9d9]"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setMobileOpen(false)}
-              className="absolute top-3 right-3 p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100"
+              className="absolute top-3 right-3 p-1.5 text-zinc-400 hover:text-[#080808] hover:bg-zinc-50"
               aria-label="Fermer le menu"
             >
               <X size={16} />
@@ -346,10 +346,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* ── Topbar ── */}
-        <header className="sticky top-0 z-30 flex items-center justify-between h-12 px-4 md:px-6 bg-white border-b border-zinc-200">
+        <header className="sticky top-0 z-30 flex items-center justify-between h-12 px-4 md:px-6 bg-white border-b border-[#d9d9d9]">
           <div className="flex items-center gap-3">
             <button
-              className="md:hidden p-1.5 text-zinc-500 hover:bg-zinc-100"
+              className="md:hidden p-1.5 text-[#080808] hover:bg-zinc-50"
               onClick={() => setMobileOpen(true)}
               aria-label="Ouvrir le menu"
             >
@@ -358,8 +358,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
             <div className="flex items-center gap-3">
               <span className="label-abloh hidden sm:inline">HEADER_BAR</span>
-              <div className="w-px h-4 bg-zinc-200 hidden sm:block" />
-              <h1 className="text-[13px] font-black text-zinc-900 tracking-[0.06em] uppercase">
+              <div className="w-px h-4 bg-[#d9d9d9] hidden sm:block" />
+              <h1 className="text-[13px] font-black text-[#080808] tracking-[0.06em] uppercase">
                 &quot;{currentTitle}&quot;
               </h1>
             </div>
@@ -370,23 +370,23 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <div className="relative">
               <button
                 onClick={() => setNotifOpen(!notifOpen)}
-                className="relative p-2 text-zinc-500 hover:bg-zinc-100 transition-colors"
+                className="relative p-2 text-[#080808] hover:bg-zinc-50 transition-colors"
                 aria-label="Notifications"
               >
                 <Bell size={16} />
                 {notifications.length > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#0052FF]" />
+                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#080808]" />
                 )}
               </button>
 
               {notifOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
-                  <div className="absolute top-full right-0 mt-1 w-80 sm:w-96 bg-white border border-zinc-200 z-50 overflow-hidden">
-                    <div className="px-4 py-2.5 border-b border-zinc-200 flex items-center justify-between">
+                  <div className="absolute top-full right-0 mt-1 w-80 sm:w-96 bg-white border border-[#d9d9d9] z-50 overflow-hidden">
+                    <div className="px-4 py-2.5 border-b border-[#d9d9d9] flex items-center justify-between">
                       <span className="text-[11px] font-black text-zinc-900 uppercase tracking-wide">&quot;NOTIFICATIONS&quot;</span>
                       {notifications.length > 0 && (
-                        <span className="text-[10px] font-black text-[#0052FF] bg-[#0052FF14] px-2 py-0.5">
+                        <span className="text-[10px] font-black text-[#080808] border border-[#d9d9d9] px-2 py-0.5 font-mono">
                           {notifications.length}
                         </span>
                       )}
@@ -422,7 +422,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </main>
 
         {/* ── Legal Footer ── */}
-        <div className="border-t border-zinc-200 bg-white">
+        <div className="border-t border-[#d9d9d9] bg-white">
           <LegalFooter />
         </div>
       </div>

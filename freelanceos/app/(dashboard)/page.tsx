@@ -30,10 +30,10 @@ import {
    ═══════════════════════════════════════════════ */
 
 const statusBadge: Record<string, { bg: string; text: string; label: string }> = {
-  draft: { bg: 'bg-zinc-100', text: 'text-zinc-500', label: 'BROUILLON' },
-  sent: { bg: 'bg-[#0052FF14]', text: 'text-[#0052FF]', label: 'ENVOYÉE' },
-  paid: { bg: 'bg-[#00E67614]', text: 'text-[#00C853]', label: 'PAYÉE' },
-  late: { bg: 'bg-[#FF5C0014]', text: 'text-[#FF5C00]', label: 'EN RETARD' },
+  draft: { bg: 'bg-transparent border-[#d9d9d9]', text: 'text-[#080808] font-mono', label: 'BROUILLON' },
+  sent: { bg: 'bg-transparent border-[#d9d9d9]', text: 'text-[#080808] font-mono', label: 'ENVOYÉE' },
+  paid: { bg: 'bg-transparent border-[#d9d9d9]', text: 'text-[#080808] font-mono', label: 'PAYÉE' },
+  late: { bg: 'bg-transparent border-[#d9d9d9]', text: 'text-[#080808] font-mono', label: 'EN RETARD' },
 }
 
 function getLast6Months(): string[] {
@@ -226,7 +226,7 @@ export default function DashboardPage() {
                 <ArrowUpRight size={11} />
               </Link>
             </div>
-            <div className="text-5xl sm:text-6xl md:text-7xl lg:text-[80px] font-black text-white tracking-tighter leading-none mb-2">
+            <div className="text-5xl sm:text-6xl md:text-7xl lg:text-[80px] font-black text-white tracking-tighter leading-none mb-2 font-mono">
               {formatCurrency(totalTTC)}
             </div>
             <div className="flex items-center gap-2 mt-4">
@@ -272,7 +272,7 @@ export default function DashboardPage() {
           <span className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.15em] block mb-3">
             &quot;{tvaSubtext.toUpperCase().replace(/ /g, '_')}&quot;
           </span>
-          <div className="text-4xl md:text-5xl font-black text-zinc-900 tracking-tighter leading-none">
+          <div className="text-4xl md:text-5xl font-black text-zinc-900 tracking-tighter leading-none font-mono">
             {tvaDisplay}
           </div>
           <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-[0.12em] mt-2 block">
@@ -366,7 +366,7 @@ export default function DashboardPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="border border-zinc-200 p-4">
-              <div className="text-2xl md:text-3xl font-black text-zinc-900 tracking-tighter leading-none mb-1">
+              <div className="text-2xl md:text-3xl font-black text-zinc-900 tracking-tighter leading-none mb-1 font-mono">
                 {formatCurrency(grossRevenue)}
               </div>
               <div className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.15em]">
@@ -374,7 +374,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="border border-zinc-200 p-4">
-              <div className="text-2xl md:text-3xl font-black text-zinc-400 tracking-tighter leading-none mb-1">
+              <div className="text-2xl md:text-3xl font-black text-zinc-400 tracking-tighter leading-none mb-1 font-mono">
                 - {formatCurrency(urssafTax)}
               </div>
               <div className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.15em]">
@@ -382,7 +382,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="border border-[#0052FF30] bg-[#0052FF08] p-4">
-              <div className="text-2xl md:text-3xl font-black text-[#0052FF] tracking-tighter leading-none mb-1">
+              <div className="text-2xl md:text-3xl font-black text-[#0052FF] tracking-tighter leading-none mb-1 font-mono">
                 {formatCurrency(netIncome)}
               </div>
               <div className="text-[9px] font-black text-[#0052FF]/50 uppercase tracking-[0.15em]">
@@ -517,7 +517,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                     </div>
-                    <span className="shrink-0 text-[13px] font-black text-zinc-900 tracking-tight">
+                    <span className="shrink-0 text-[13px] font-black text-zinc-900 tracking-tight font-mono">
                       {formatCurrency(ttc)}
                     </span>
                   </div>
