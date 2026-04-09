@@ -9,6 +9,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
+  const [siret, setSiret] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -32,7 +33,7 @@ export default function SignupPage() {
       email,
       password,
       options: {
-        data: { full_name: fullName },
+        data: { full_name: fullName, siret: siret || undefined },
       },
     })
 
@@ -125,6 +126,20 @@ export default function SignupPage() {
             minLength={6}
             placeholder="Minimum 6 caracteres"
             className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--line)] rounded-xl text-sm text-[var(--ink)] placeholder:text-[var(--muted)]/50 focus:border-[#00A3FF] focus:ring-2 focus:ring-[#00A3FF]/10 focus:outline-none transition-all"
+          />
+        </div>
+
+        <div>
+          <label className="flex items-center gap-2 text-[11px] uppercase tracking-[1.5px] text-[var(--muted)] font-medium mb-1.5">
+            SIRET
+            <span className="normal-case tracking-normal font-[var(--font-ibm-plex-mono)] text-[10px] text-[var(--muted)]/60">(Optionnel)</span>
+          </label>
+          <input
+            type="text"
+            value={siret}
+            onChange={(e) => setSiret(e.target.value)}
+            placeholder="123 456 789 00012"
+            className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--line)] rounded-xl text-sm text-[var(--ink)] placeholder:text-[var(--muted)]/50 focus:border-[#00A3FF] focus:ring-2 focus:ring-[#00A3FF]/10 focus:outline-none transition-all font-[var(--font-ibm-plex-mono)]"
           />
         </div>
 
