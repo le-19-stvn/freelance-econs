@@ -5,6 +5,7 @@ import { useProjects } from '@/hooks/useProjects'
 import { useClients } from '@/hooks/useClients'
 import { useToast } from '@/components/ui/Toast'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
+import { formatCurrency } from '@/lib/utils/calculations'
 import type { Project, ProjectStatus, Deliverable, UnitType } from '@/types'
 import { FolderOpen, Calendar, DollarSign, Plus, Trash2, X } from 'lucide-react'
 
@@ -216,7 +217,7 @@ export default function ProjectsPage() {
                   {project.budget > 0 && (
                     <div className="flex items-center gap-1">
                       <DollarSign size={12} />
-                      {project.budget.toLocaleString('fr-FR')} EUR
+                      {formatCurrency(project.budget)}
                     </div>
                   )}
                   {delCount > 0 && (
@@ -429,7 +430,7 @@ export default function ProjectsPage() {
                     {deliverables.some(d => d.description.trim()) && (
                       <div className="flex justify-end pt-2 border-t border-gray-100">
                         <span className="text-sm font-bold text-gray-900">
-                          Total HT : {deliverables.reduce((sum, d) => sum + d.quantity * d.unit_price, 0).toLocaleString('fr-FR')} EUR
+                          Total HT : {formatCurrency(deliverables.reduce((sum, d) => sum + d.quantity * d.unit_price, 0))}
                         </span>
                       </div>
                     )}

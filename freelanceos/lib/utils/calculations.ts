@@ -13,9 +13,10 @@ export function calculateTTC(ht: number, tvaRate: number): number {
 }
 
 export function formatCurrency(amount: number): string {
-  const formatted = new Intl.NumberFormat('fr-FR', {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount)
-  return `${formatted} €`
 }
