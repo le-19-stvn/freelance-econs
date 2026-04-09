@@ -6,10 +6,10 @@ import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import type { Profile } from '@/types'
 import { Save } from 'lucide-react'
 
-const inputCls = 'w-full px-4 py-3 rounded-none bg-[#f5f5f5] border border-[#d9d9d9] text-sm text-[#0a0a0a] outline-none focus:border-[#0a0a0a] transition-colors tracking-[-0.02em] font-[family-name:var(--font-inter)]'
-const labelCls = 'block text-[11px] font-semibold text-[#0a0a0a]/50 tracking-[-0.02em] mb-1.5 font-[family-name:var(--font-ibm-plex-mono)]'
+const inputCls = 'w-full px-4 py-3 rounded-none bg-[#f5f5f5] border border-[#d9d9d9] text-sm text-[#0a0a0a] outline-none focus:border-[#0a0a0a] transition-colors tracking-[-0.02em] font-sans'
+const labelCls = 'block text-[11px] font-semibold text-[#0a0a0a]/50 tracking-[-0.02em] mb-1.5 font-mono'
 const cardCls = 'bg-white border border-[#d9d9d9] p-6 md:p-8'
-const btnCls = 'px-6 py-2.5 rounded-none bg-[#0a0a0a] text-white text-sm font-semibold tracking-[-0.02em] hover:bg-[#0a0a0a]/90 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2'
+const btnCls = 'px-6 py-2.5 rounded-none bg-[#0a0a0a] text-white text-sm font-semibold tracking-[-0.02em] hover:bg-[#0a0a0a]/90 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 font-sans'
 
 export default function ParametresPage() {
   const supabase = createClient()
@@ -17,9 +17,15 @@ export default function ParametresPage() {
   const [saving, setSaving] = useState<string | null>(null)
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
 
-  // ── Form state split by card ──
-  const [profil, setProfil] = useState({ first_name: '', last_name: '', email: '' })
-  const [entreprise, setEntreprise] = useState({ company_name: '', siret: '', address: '', tva_assujetti: false, tva_number: '', tva_rate: '20' })
+  const [entreprise, setEntreprise] = useState({
+    company_name: '',
+    siret: '',
+    address: '',
+    tva_assujetti: false,
+    tva_number: '',
+    tva_rate: '20',
+  })
+
   const [banque, setBanque] = useState({ iban: '', bic: '' })
 
   const fetchProfile = useCallback(async () => {
@@ -30,11 +36,6 @@ export default function ParametresPage() {
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
     if (data) {
       const p = data as Profile
-      const names = (p.full_name ?? '').split(' ')
-      const firstName = names[0] ?? ''
-      const lastName = names.slice(1).join(' ')
-
-      setProfil({ first_name: firstName, last_name: lastName, email: p.email ?? '' })
       setEntreprise({
         company_name: p.company_name ?? '',
         siret: p.siret ?? '',
@@ -56,17 +57,14 @@ export default function ParametresPage() {
     return () => clearTimeout(t)
   }, [toast])
 
-  const saveSection = async (section: 'profil' | 'entreprise' | 'banque') => {
+  const saveSection = async (section: 'entreprise' | 'banque') => {
     setSaving(section)
     const userId = await getAuthUserId(supabase).catch(() => null)
     if (!userId) { setSaving(null); return }
 
     let updates: Record<string, unknown> = {}
 
-    if (section === 'profil') {
-      const fullName = [profil.first_name, profil.last_name].filter(Boolean).join(' ')
-      updates = { full_name: fullName || null, email: profil.email }
-    } else if (section === 'entreprise') {
+    if (section === 'entreprise') {
       updates = {
         company_name: entreprise.company_name || null,
         siret: entreprise.siret || null,
@@ -87,11 +85,10 @@ export default function ParametresPage() {
     setSaving(null)
   }
 
-  // ── Loading skeleton ──
   if (loading) {
     return (
       <div className="max-w-3xl mx-auto flex flex-col gap-8">
-        {[1, 2, 3].map((i) => (
+        {[1, 2].map((i) => (
           <div key={i} className={`${cardCls} animate-pulse`}>
             <div className="h-4 w-24 bg-[#f0f0f0] mb-6" />
             <div className="space-y-4">
@@ -105,11 +102,11 @@ export default function ParametresPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col gap-8">
+    <div className="max-w-3xl mx-auto flex flex-col gap-8 font-sans">
 
       {/* ═══ TOAST ═══ */}
       {toast && (
-        <div className={`fixed top-4 right-4 z-[100] px-5 py-3 text-[13px] font-medium tracking-[-0.02em] border ${
+        <div className={`fixed top-4 right-4 z-[100] px-5 py-3 text-[13px] font-medium tracking-[-0.02em] border font-sans ${
           toast.type === 'success'
             ? 'bg-white text-[#0a0a0a] border-[#d9d9d9]'
             : 'bg-red-50 text-red-700 border-red-200'
@@ -120,68 +117,17 @@ export default function ParametresPage() {
 
       {/* ═══ PAGE HEADER ═══ */}
       <div>
-        <span className="text-[11px] font-medium text-[#0a0a0a]/40 font-[family-name:var(--font-ibm-plex-mono)]">(Parametres)</span>
-        <h1 className="text-2xl font-bold text-[#0a0a0a] tracking-tight mt-1">Parametres</h1>
-        <p className="text-sm text-[#0a0a0a]/50 tracking-[-0.02em] mt-1">Gerez les informations de votre compte et de votre activite.</p>
+        <span className="text-[11px] font-medium text-[#0a0a0a]/40 font-mono">(Parametres)</span>
+        <h1 className="text-2xl font-bold text-[#0a0a0a] tracking-tight mt-1 font-sans">Parametres</h1>
+        <p className="text-sm text-[#0a0a0a]/50 tracking-[-0.02em] mt-1 font-sans">Informations de votre entite facturante.</p>
       </div>
 
-      {/* ═══ CARD 1 — PROFIL ═══ */}
-      <div className={cardCls}>
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <span className="text-[11px] font-medium text-[#0a0a0a]/40 font-[family-name:var(--font-ibm-plex-mono)]">(Profil)</span>
-            <h2 className="text-base font-semibold text-[#0a0a0a] tracking-tight">Informations personnelles</h2>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>(prenom)</label>
-            <input
-              type="text"
-              value={profil.first_name}
-              onChange={(e) => setProfil(f => ({ ...f, first_name: e.target.value }))}
-              placeholder="Jean"
-              className={inputCls}
-            />
-          </div>
-          <div>
-            <label className={labelCls}>(nom)</label>
-            <input
-              type="text"
-              value={profil.last_name}
-              onChange={(e) => setProfil(f => ({ ...f, last_name: e.target.value }))}
-              placeholder="Dupont"
-              className={inputCls}
-            />
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <label className={labelCls}>(email)</label>
-          <input
-            type="email"
-            value={profil.email}
-            onChange={(e) => setProfil(f => ({ ...f, email: e.target.value }))}
-            placeholder="jean@exemple.fr"
-            className={inputCls}
-          />
-        </div>
-
-        <div className="mt-6 flex justify-end">
-          <button onClick={() => saveSection('profil')} disabled={saving === 'profil'} className={btnCls}>
-            <Save size={14} />
-            {saving === 'profil' ? 'Sauvegarde...' : 'Sauvegarder'}
-          </button>
-        </div>
-      </div>
-
-      {/* ═══ CARD 2 — ENTREPRISE ═══ */}
+      {/* ═══ CARD 1 — ENTREPRISE ═══ */}
       <div className={cardCls}>
         <div className="mb-6">
-          <span className="text-[11px] font-medium text-[#0a0a0a]/40 font-[family-name:var(--font-ibm-plex-mono)]">(Entreprise)</span>
-          <h2 className="text-base font-semibold text-[#0a0a0a] tracking-tight">Informations de facturation</h2>
-          <p className="text-[12px] text-[#0a0a0a]/40 tracking-[-0.02em] mt-0.5">Ces informations apparaissent sur vos factures.</p>
+          <span className="text-[11px] font-medium text-[#0a0a0a]/40 font-mono">(Facturation)</span>
+          <h2 className="text-base font-semibold text-[#0a0a0a] tracking-tight font-sans">Informations de facturation</h2>
+          <p className="text-[12px] text-[#0a0a0a]/40 tracking-[-0.02em] mt-0.5 font-sans">Ces informations apparaissent sur vos factures.</p>
         </div>
 
         <div className="space-y-4">
@@ -203,7 +149,7 @@ export default function ParametresPage() {
               value={entreprise.siret}
               onChange={(e) => setEntreprise(f => ({ ...f, siret: e.target.value }))}
               placeholder="123 456 789 00012"
-              className={`${inputCls} font-[family-name:var(--font-ibm-plex-mono)]`}
+              className={`${inputCls} font-mono`}
             />
           </div>
 
@@ -223,7 +169,7 @@ export default function ParametresPage() {
             <div className="flex items-center justify-between">
               <div>
                 <label className={labelCls}>(tva)</label>
-                <p className="text-sm font-medium text-[#0a0a0a] tracking-[-0.02em]">Assujetti a la TVA</p>
+                <p className="text-sm font-medium text-[#0a0a0a] tracking-[-0.02em] font-sans">Assujetti a la TVA</p>
               </div>
               <button
                 type="button"
@@ -247,7 +193,7 @@ export default function ParametresPage() {
                     value={entreprise.tva_number}
                     onChange={(e) => setEntreprise(f => ({ ...f, tva_number: e.target.value }))}
                     placeholder="FR12345678901"
-                    className={`${inputCls} font-[family-name:var(--font-ibm-plex-mono)]`}
+                    className={`${inputCls} font-mono`}
                   />
                 </div>
                 <div>
@@ -257,7 +203,7 @@ export default function ParametresPage() {
                     value={entreprise.tva_rate}
                     onChange={(e) => setEntreprise(f => ({ ...f, tva_rate: e.target.value }))}
                     placeholder="20"
-                    className={`${inputCls} font-[family-name:var(--font-ibm-plex-mono)]`}
+                    className={`${inputCls} font-mono`}
                   />
                 </div>
               </div>
@@ -273,12 +219,12 @@ export default function ParametresPage() {
         </div>
       </div>
 
-      {/* ═══ CARD 3 — BANQUE ═══ */}
+      {/* ═══ CARD 2 — BANQUE ═══ */}
       <div className={cardCls}>
         <div className="mb-6">
-          <span className="text-[11px] font-medium text-[#0a0a0a]/40 font-[family-name:var(--font-ibm-plex-mono)]">(Banque)</span>
-          <h2 className="text-base font-semibold text-[#0a0a0a] tracking-tight">Coordonnees bancaires</h2>
-          <p className="text-[12px] text-[#0a0a0a]/40 tracking-[-0.02em] mt-0.5">Affichees en pied de facture pour le paiement par virement.</p>
+          <span className="text-[11px] font-medium text-[#0a0a0a]/40 font-mono">(Banque)</span>
+          <h2 className="text-base font-semibold text-[#0a0a0a] tracking-tight font-sans">Coordonnees bancaires</h2>
+          <p className="text-[12px] text-[#0a0a0a]/40 tracking-[-0.02em] mt-0.5 font-sans">Affichees en pied de facture pour le paiement par virement.</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -289,7 +235,7 @@ export default function ParametresPage() {
               value={banque.iban}
               onChange={(e) => setBanque(f => ({ ...f, iban: e.target.value }))}
               placeholder="FR76 1234 5678 9012 3456 7890 123"
-              className={`${inputCls} font-[family-name:var(--font-ibm-plex-mono)] tracking-wider`}
+              className={`${inputCls} font-mono tracking-wider`}
             />
           </div>
           <div>
@@ -299,9 +245,9 @@ export default function ParametresPage() {
               value={banque.bic}
               onChange={(e) => setBanque(f => ({ ...f, bic: e.target.value }))}
               placeholder="BNPAFRPP"
-              className={`${inputCls} font-[family-name:var(--font-ibm-plex-mono)] tracking-wider`}
+              className={`${inputCls} font-mono tracking-wider`}
             />
-            <p className="text-[10px] text-[#0a0a0a]/30 mt-1 font-[family-name:var(--font-ibm-plex-mono)]">Optionnel — sera ajoute dans une future version</p>
+            <p className="text-[10px] text-[#0a0a0a]/30 mt-1 font-mono">Optionnel</p>
           </div>
         </div>
 

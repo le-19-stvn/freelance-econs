@@ -199,23 +199,7 @@ function SidebarContent({
 
       <div className="mt-auto">
         <div className="h-px bg-[#e7e7e7] mx-5" />
-        <div className="px-3 py-3 flex flex-col gap-px">
-          <Link
-            href="/profil"
-            onClick={onNavigate}
-            className={`
-              flex items-center gap-2.5 px-4 py-2.5
-              text-[12px] font-medium tracking-[-0.04em]
-              transition-all duration-100 rounded-full
-              ${isActive('/profil')
-                ? 'bg-[#0a0a0a] text-white'
-                : 'text-[#0a0a0a]/40 hover:bg-[#f5f5f5] hover:text-[#0a0a0a]'
-              }
-            `}
-          >
-            <Users size={14} />
-            <span className="font-[var(--font-ibm-plex-mono)]">(Profil)</span>
-          </Link>
+        <div className="px-3 py-3">
           <Link
             href="/parametres"
             onClick={onNavigate}
