@@ -430,7 +430,7 @@ export default function DashboardPage() {
                   tick={{ fontSize: 10, fill: 'rgba(10,10,10,0.4)', fontWeight: 600 }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v) => `${v}\u00a0€`}
+                  tickFormatter={(v) => v + '\u00a0\u20ac'}
                   width={50}
                 />
                 <Tooltip

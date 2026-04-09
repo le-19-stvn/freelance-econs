@@ -17,5 +17,6 @@ export function formatCurrency(amount: number): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount)
-  return `${formatted}\u00a0€`
+  // U+00A0 = non-breaking space, U+20AC = €
+  return formatted + '\u00a0\u20ac'
 }

@@ -371,7 +371,8 @@ function fmtEur(n: number): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(n)
-  return `${formatted}\u00a0€`
+  // U+00A0 = non-breaking space, U+20AC = €
+  return formatted + '\u00a0\u20ac'
 }
 
 const unitLabels: Record<string, string> = {
@@ -635,7 +636,7 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
                 Penalite de retard : 3x le taux d{"'"}interet legal
               </Text>
               <Text style={[styles.footerText, { textAlign: 'right' }]}>
-                Indemnite forfaitaire de recouvrement : 40,00 €
+                Indemnite forfaitaire de recouvrement : 40,00{'\u00a0\u20ac'}
               </Text>
             </View>
           </View>
