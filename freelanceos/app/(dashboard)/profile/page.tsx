@@ -110,7 +110,9 @@ export default function ProfilePage() {
     setUploading(true)
     setToast(null)
     try {
-      const url = await uploadAvatar(file)
+      const formData = new FormData()
+      formData.append('file', file)
+      const url = await uploadAvatar(formData)
       setAvatarUrl(url)
       setToast({ msg: 'Photo de profil mise a jour !', type: 'success' })
     } catch (err: any) {

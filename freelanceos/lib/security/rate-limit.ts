@@ -16,7 +16,12 @@ function getRatelimit(): Ratelimit | null {
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
 
   if (!url || !token) {
-    // No Redis configured — skip rate limiting (dev mode)
+    if (process.env.NODE_ENV === 'production') {
+      console.warn(
+        '[SECURITY] UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN is not set. ' +
+        'Rate limiting is DISABLED in production. This is a security risk.'
+      )
+    }
     return null
   }
 

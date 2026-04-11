@@ -66,7 +66,6 @@ const pageTitles: Record<string, string> = {
   '/invoices': 'Factures',
   '/team': 'Equipe',
   '/profile': 'Profil',
-  '/profil': 'Profil',
   '/parametres': 'Parametres',
 }
 
