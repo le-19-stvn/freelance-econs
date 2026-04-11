@@ -11,6 +11,7 @@ import { calculateHT, calculateTTC, formatCurrency } from '@/lib/utils/calculati
 import { UuidParamSchema } from '@/lib/validations/api'
 import { checkRateLimit } from '@/lib/security/rate-limit'
 import { checkOrigin } from '@/lib/security/csrf'
+import { sanitizeFilename } from '@/lib/security/sanitize'
 import type { Invoice, Profile } from '@/types'
 
 export async function POST(
@@ -79,27 +80,14 @@ export async function POST(
       .eq('id', userId)
       .single()
 
-    const userProfile: Profile = profile
-      ? (profile as Profile)
-      : {
-          id: userId,
-          full_name: 'Freelance',
-          company_name: null,
-          email: '',
-          address: null,
-          siret: null,
-          tva_number: null,
-          tva_rate: 20,
-          iban: null,
-          payment_link: null,
-          logo_url: null,
-          avatar_url: null,
-          stripe_customer_id: null,
-          stripe_subscription_id: null,
-          plan_status: 'inactive' as const,
-          plan_type: 'free' as const,
-          onboarding_completed: false,
-        }
+    if (!profile) {
+      return NextResponse.json(
+        { error: 'Profil introuvable. Completez votre profil avant d\'envoyer une facture.' },
+        { status: 400 }
+      )
+    }
+
+    const userProfile = profile as Profile
 
     // Calculate totals
     const items = inv.items ?? []
@@ -150,7 +138,7 @@ export async function POST(
       html: emailHtml,
       attachments: [
         {
-          filename: `Facture_${inv.invoice_number}.pdf`,
+          filename: sanitizeFilename(`Facture_${inv.invoice_number}`) + '.pdf',
           content: Buffer.from(pdfBuffer).toString('base64'),
         },
       ],
@@ -159,7 +147,7 @@ export async function POST(
     if (sendError) {
       console.error('Resend error:', sendError)
       return NextResponse.json(
-        { error: "Erreur lors de l'envoi de l'email: " + sendError.message },
+        { error: "Erreur lors de l'envoi de l'email" },
         { status: 500 }
       )
     }

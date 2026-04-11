@@ -13,6 +13,7 @@ export async function getAuthUserId(supabase: SupabaseClient): Promise<string> {
 
   if (!isConfigured) {
     if (process.env.NODE_ENV === 'development') {
+      console.warn('[AUTH] Supabase not configured — using demo user ID. This must not happen in production.')
       return DEMO_USER_ID
     }
     throw new Error('Supabase is not configured. Cannot authenticate in production.')

@@ -4,13 +4,19 @@ import React from 'react'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import { InvoicePDFTemplate } from '@/lib/pdf/invoice-template'
+import { checkRateLimit } from '@/lib/security/rate-limit'
+import { sanitizeFilename } from '@/lib/security/sanitize'
 import type { Invoice, Profile } from '@/types'
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    // Rate limit check
+    const rateLimitBlock = await checkRateLimit(request)
+    if (rateLimitBlock) return rateLimitBlock
+
     const supabase = createServerSupabaseClient()
 
     // Auth check
@@ -18,7 +24,7 @@ export async function GET(
     try {
       userId = await getAuthUserId(supabase)
     } catch {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ error: 'Non autorise' }, { status: 401 })
     }
 
     const invoiceId = params.id
@@ -38,46 +44,32 @@ export async function GET(
       return NextResponse.json({ error: 'Facture introuvable' }, { status: 404 })
     }
 
-    // Fetch user profile
+    // Fetch user profile — required, no fallback
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single()
 
-    // Use a default profile if none found (demo mode)
-    const userProfile: Profile = (profileError || !profile)
-      ? {
-          id: userId,
-          full_name: 'Freelance',
-          company_name: null,
-          email: '',
-          address: null,
-          siret: null,
-          tva_number: null,
-          tva_rate: 20,
-          iban: null,
-          payment_link: null,
-          logo_url: null,
-          avatar_url: null,
-          stripe_customer_id: null,
-          stripe_subscription_id: null,
-          plan_status: 'inactive' as const,
-          plan_type: 'free' as const,
-          onboarding_completed: false,
-        }
-      : (profile as Profile)
+    if (profileError || !profile) {
+      return NextResponse.json(
+        { error: 'Profil introuvable. Completez votre profil avant de generer un PDF.' },
+        { status: 400 }
+      )
+    }
 
     // Generate PDF buffer
     const pdfBuffer = await renderToBuffer(
       React.createElement(InvoicePDFTemplate, {
         invoice: invoice as Invoice,
-        profile: userProfile,
+        profile: profile as Profile,
       }) as any
     )
 
-    // Return as downloadable PDF
-    const filename = `Facture_${invoice.invoice_number || 'draft'}.pdf`
+    // Sanitize filename from invoice number
+    const filename = sanitizeFilename(
+      `Facture_${invoice.invoice_number || 'draft'}`
+    ) + '.pdf'
 
     return new NextResponse(pdfBuffer as unknown as BodyInit, {
       status: 200,
@@ -90,7 +82,7 @@ export async function GET(
   } catch (err) {
     console.error('PDF generation error:', err)
     return NextResponse.json(
-      { error: 'Erreur lors de la génération du PDF' },
+      { error: 'Erreur lors de la generation du PDF' },
       { status: 500 }
     )
   }

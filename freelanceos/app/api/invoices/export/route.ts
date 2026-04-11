@@ -20,7 +20,8 @@ export async function GET() {
       .order('created_at', { ascending: false })
 
     if (invError) {
-      return NextResponse.json({ error: invError.message }, { status: 500 })
+      console.error('Invoice fetch error:', invError.message)
+      return NextResponse.json({ error: 'Erreur lors de la recuperation des factures' }, { status: 500 })
     }
 
     const buffer = generateInvoicesExcel(invoices as Invoice[])
