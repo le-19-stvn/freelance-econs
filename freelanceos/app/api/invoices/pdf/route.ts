@@ -4,10 +4,19 @@ import React from 'react'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import { InvoicePDFTemplate } from '@/lib/pdf/invoice-template'
+import { PdfGenerateSchema } from '@/lib/validations/api'
+import { checkRateLimit } from '@/lib/security/rate-limit'
+import { checkOrigin } from '@/lib/security/csrf'
 import type { Invoice, Profile } from '@/types'
 
 export async function POST(request: NextRequest) {
   try {
+    // Security checks
+    const originBlock = checkOrigin(request)
+    if (originBlock) return originBlock
+    const rateLimitBlock = await checkRateLimit(request)
+    if (rateLimitBlock) return rateLimitBlock
+
     const supabase = createServerSupabaseClient()
     let userId: string
     try {
@@ -16,10 +25,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
-    const { invoiceId } = await request.json()
-    if (!invoiceId) {
-      return NextResponse.json({ error: 'invoiceId requis' }, { status: 400 })
+    const body = await request.json()
+    const parsed = PdfGenerateSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues.map(i => i.message).join(', ') }, { status: 400 })
     }
+    const { invoiceId } = parsed.data
 
     // Fetch invoice with items and client
     const { data: invoice, error: invError } = await supabase

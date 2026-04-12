@@ -25,7 +25,7 @@ export default function InvoiceEmail({
   freelanceName = 'Freelance',
   clientName = 'Client',
   invoiceNumber = 'FAC-2026-001',
-  totalAmount = '0,00 €',
+  totalAmount = '0,00\u00a0\u20ac',
   dueDate = '—',
   invoiceUrl = '#',
   paymentLink,

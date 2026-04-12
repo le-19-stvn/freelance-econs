@@ -3,10 +3,19 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import { appendInvoicesToSheet } from '@/lib/export/sheets'
 import { generateInvoicesExcel } from '@/lib/export/excel'
+import { SheetsExportSchema } from '@/lib/validations/api'
+import { checkRateLimit } from '@/lib/security/rate-limit'
+import { checkOrigin } from '@/lib/security/csrf'
 import type { Invoice } from '@/types'
 
 export async function POST(request: NextRequest) {
   try {
+    // Security checks
+    const originBlock = checkOrigin(request)
+    if (originBlock) return originBlock
+    const rateLimitBlock = await checkRateLimit(request)
+    if (rateLimitBlock) return rateLimitBlock
+
     const supabase = createServerSupabaseClient()
     try {
       await getAuthUserId(supabase)
@@ -14,10 +23,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
-    const { spreadsheetId, accessToken, refreshToken } = await request.json()
-    if (!spreadsheetId || !accessToken) {
-      return NextResponse.json({ error: 'spreadsheetId et accessToken requis' }, { status: 400 })
+    const body = await request.json()
+    const parsed = SheetsExportSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues.map(i => i.message).join(', ') }, { status: 400 })
     }
+    const { spreadsheetId, accessToken, refreshToken } = parsed.data
 
     const { data: invoices, error: invError } = await supabase
       .from('invoices')
@@ -25,7 +36,8 @@ export async function POST(request: NextRequest) {
       .order('created_at', { ascending: false })
 
     if (invError) {
-      return NextResponse.json({ error: invError.message }, { status: 500 })
+      console.error('Invoice fetch error:', invError.message)
+      return NextResponse.json({ error: 'Erreur lors de la recuperation des factures' }, { status: 500 })
     }
 
     try {

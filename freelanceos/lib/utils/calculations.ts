@@ -13,8 +13,10 @@ export function calculateTTC(ht: number, tvaRate: number): number {
 }
 
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
+  const formatted = new Intl.NumberFormat('fr-FR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount)
+  // U+00A0 = non-breaking space, U+20AC = €
+  return formatted + '\u00a0\u20ac'
 }

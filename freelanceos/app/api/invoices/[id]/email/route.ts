@@ -8,6 +8,10 @@ import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import { InvoicePDFTemplate } from '@/lib/pdf/invoice-template'
 import InvoiceEmail from '@/components/emails/InvoiceEmail'
 import { calculateHT, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
+import { UuidParamSchema } from '@/lib/validations/api'
+import { checkRateLimit } from '@/lib/security/rate-limit'
+import { checkOrigin } from '@/lib/security/csrf'
+import { sanitizeFilename } from '@/lib/security/sanitize'
 import type { Invoice, Profile } from '@/types'
 
 export async function POST(
@@ -15,6 +19,18 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Security checks
+    const originBlock = checkOrigin(_request)
+    if (originBlock) return originBlock
+    const rateLimitBlock = await checkRateLimit(_request)
+    if (rateLimitBlock) return rateLimitBlock
+    // Validate route param
+    const paramsParsed = UuidParamSchema.safeParse(params)
+    if (!paramsParsed.success) {
+      return NextResponse.json({ error: 'ID facture invalide' }, { status: 400 })
+    }
+    const invoiceId = paramsParsed.data.id
+
     // Verify Resend API key
     const apiKey = process.env.RESEND_API_KEY
     if (!apiKey) {
@@ -34,8 +50,6 @@ export async function POST(
     } catch {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
-
-    const invoiceId = params.id
 
     // Fetch invoice with relations
     const { data: invoice, error: invError } = await supabase
@@ -66,27 +80,14 @@ export async function POST(
       .eq('id', userId)
       .single()
 
-    const userProfile: Profile = profile
-      ? (profile as Profile)
-      : {
-          id: userId,
-          full_name: 'Freelance',
-          company_name: null,
-          email: '',
-          address: null,
-          siret: null,
-          tva_number: null,
-          tva_rate: 20,
-          iban: null,
-          payment_link: null,
-          logo_url: null,
-          avatar_url: null,
-          stripe_customer_id: null,
-          stripe_subscription_id: null,
-          plan_status: 'inactive' as const,
-          plan_type: 'free' as const,
-          onboarding_completed: false,
-        }
+    if (!profile) {
+      return NextResponse.json(
+        { error: 'Profil introuvable. Completez votre profil avant d\'envoyer une facture.' },
+        { status: 400 }
+      )
+    }
+
+    const userProfile = profile as Profile
 
     // Calculate totals
     const items = inv.items ?? []
@@ -137,7 +138,7 @@ export async function POST(
       html: emailHtml,
       attachments: [
         {
-          filename: `Facture_${inv.invoice_number}.pdf`,
+          filename: sanitizeFilename(`Facture_${inv.invoice_number}`) + '.pdf',
           content: Buffer.from(pdfBuffer).toString('base64'),
         },
       ],
@@ -146,7 +147,7 @@ export async function POST(
     if (sendError) {
       console.error('Resend error:', sendError)
       return NextResponse.json(
-        { error: "Erreur lors de l'envoi de l'email: " + sendError.message },
+        { error: "Erreur lors de l'envoi de l'email" },
         { status: 500 }
       )
     }

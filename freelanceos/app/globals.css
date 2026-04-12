@@ -1,36 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --bg: #F6F7FA;
+  /* ── Core palette (rule of 3: zinc-50 / blue-700 / zinc-900) ── */
+  --bg: #F4F4F5;
   --surface: #FFFFFF;
-  --ink: #0F1117;
-  --ink2: #2C2F3A;
-  --muted: #6B7280;
-  --line: #E4E6ED;
-  --blue-primary: #1A3FA3;
-  --blue-mid: #1E6FD9;
-  --blue-surface: #EBF2FA;
-  --cyan: #00B4D8;
-  --success: #0D9E6B;
-  --success-bg: #E6F7F2;
-  --warning-bg: #FEF3C7;
-  --warning: #B45309;
-  --danger: #C0152A;
-  --danger-bg: #FEE9EC;
+  --ink: #18181B;
+  --ink2: #27272A;
+  --muted: #71717A;
+  --line: #E4E4E7;
+
+  /* ── Brand ── */
+  --cobalt: #1D4ED8;
+  --cobalt-light: #1D4ED812;
+
+  /* ── Status ── */
+  --success: #10B981;
+  --success-bg: #10B98114;
+  --warning: #F59E0B;
+  --warning-bg: #F59E0B14;
+  --danger: #EF4444;
+  --danger-bg: #EF444414;
+
+  /* ── Legacy compat ── */
+  --industrial-orange: #F59E0B;
+  --industrial-orange-bg: #F59E0B14;
+  --neon-green: #10B981;
+  --neon-green-bg: #10B98114;
+  --blue-primary: #1D4ED8;
+  --blue-mid: #1D4ED8;
+  --blue-surface: #1D4ED80A;
+  --cyan: #1D4ED8;
+  --ec-navy: #1D4ED8;
+  --ec-blue: #1D4ED8;
+  --ec-cyan: #1D4ED8;
+  --ec-navy-light: #1D4ED812;
+  --ec-blue-light: #1D4ED814;
 }
 
 body {
   color: var(--ink);
-  background: var(--bg);
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background: #F4F4F5;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+
+  .animate-stagger-1 { animation-delay: 0ms; }
+  .animate-stagger-2 { animation-delay: 50ms; }
+  .animate-stagger-3 { animation-delay: 100ms; }
+  .animate-stagger-4 { animation-delay: 150ms; }
+  .animate-stagger-5 { animation-delay: 200ms; }
+  .animate-stagger-6 { animation-delay: 250ms; }
+  .animate-stagger-7 { animation-delay: 300ms; }
+  .animate-stagger-8 { animation-delay: 350ms; }
 }
 
 @keyframes spin {

@@ -1,45 +1,48 @@
-'use client';
+'use client'
 
-import React from 'react';
+import React from 'react'
 
-interface InputProps {
-  label?: string;
-  value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  type?: string;
-  required?: boolean;
-  placeholder?: string;
-  readOnly?: boolean;
-  className?: string;
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string
+  error?: string
 }
 
 export function Input({
   label,
-  value,
-  onChange,
-  type = 'text',
-  required = false,
-  placeholder,
-  readOnly = false,
+  error,
   className = '',
+  id,
+  ...props
 }: InputProps) {
+  const inputId = id ?? (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined)
+
   return (
-    <div className={`flex flex-col gap-1.5 ${className}`}>
+    <div className="flex flex-col gap-1.5">
       {label && (
-        <label className="text-[9px] uppercase tracking-[1.5px] text-[var(--muted)] font-medium">
+        <label
+          htmlFor={inputId}
+          className="text-sm font-medium text-zinc-700"
+        >
           {label}
-          {required && <span className="text-[var(--danger)] ml-0.5">*</span>}
         </label>
       )}
       <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        required={required}
-        placeholder={placeholder}
-        readOnly={readOnly}
-        className="bg-[var(--bg)] border-[1.5px] border-[var(--line)] rounded-md px-3 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--blue-primary)] transition-colors duration-150 read-only:opacity-60 read-only:cursor-default"
+        id={inputId}
+        className={[
+          'w-full rounded-xl bg-zinc-50 border border-zinc-200 px-4 py-3',
+          'text-sm text-zinc-900',
+          'placeholder:text-zinc-400',
+          'outline-none transition-all duration-150',
+          'focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700',
+          'disabled:opacity-40 disabled:cursor-not-allowed',
+          error ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' : '',
+          className,
+        ].join(' ')}
+        {...props}
       />
+      {error && (
+        <span className="text-xs text-red-500">{error}</span>
+      )}
     </div>
-  );
+  )
 }

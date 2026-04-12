@@ -9,10 +9,10 @@ import { FileText, Download, ChevronDown, Check, Send, Eye } from 'lucide-react'
 
 /* ── Status badge config ── */
 const statusBadge: Record<InvoiceStatus, { bg: string; text: string; dot: string; label: string }> = {
-  draft: { bg: 'bg-gray-100', text: 'text-gray-600', dot: 'bg-gray-400', label: 'Brouillon' },
-  sent: { bg: 'bg-[#00A3FF]/10', text: 'text-[#0057FF]', dot: 'bg-[#0057FF]', label: 'Envoyee' },
-  paid: { bg: 'bg-gray-900', text: 'text-white', dot: 'bg-gray-900', label: 'Payee' },
-  late: { bg: 'bg-gray-200', text: 'text-gray-700', dot: 'bg-gray-600', label: 'En retard' },
+  draft: { bg: 'bg-[#f5f5f5]', text: 'text-[#0a0a0a]/60', dot: 'bg-[#e7e7e7]', label: 'Brouillon' },
+  sent: { bg: 'bg-[#0a0a0a]/5', text: 'text-[#0a0a0a]', dot: 'bg-[#0a0a0a]', label: 'Envoyée' },
+  paid: { bg: 'bg-[#0a0a0a]', text: 'text-white', dot: 'bg-[#0a0a0a]', label: 'Payée' },
+  late: { bg: 'bg-[#f5f5f5]', text: 'text-[#0a0a0a]/60', dot: 'bg-[#0a0a0a]/40', label: 'En retard' },
 }
 
 /* ── Toast ── */
@@ -23,11 +23,7 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
   }, [onClose])
 
   return (
-    <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-2.5 px-5 py-3 rounded-xl text-[13px] font-semibold shadow-lg border ${
-      type === 'success'
-        ? 'bg-[#00A3FF]/10 text-[#0057FF] border-[#00A3FF]/20'
-        : 'bg-gray-100 text-gray-700 border-gray-200'
-    }`}>
+    <div className="fixed bottom-6 right-6 z-[100] flex items-center gap-2.5 px-5 py-3 rounded-full shadow-lg border-0 bg-white text-[#0a0a0a] text-[13px] font-medium">
       {type === 'success' ? <Check size={14} /> : <span className="text-sm">✕</span>} {message}
     </div>
   )
@@ -79,10 +75,10 @@ function EmailButton({
       onClick={handleSend}
       disabled={sending}
       title={hasEmail ? `Envoyer a ${invoice.client?.email}` : "Pas d'email client"}
-      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-[#e7e7e7] text-xs font-semibold transition-all ${
         hasEmail
-          ? 'bg-[#00A3FF]/10 text-[#0057FF] hover:bg-[#0057FF] hover:text-white cursor-pointer'
-          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+          ? 'text-[#0a0a0a] hover:bg-[#0a0a0a] hover:text-white hover:border-[#0a0a0a] cursor-pointer'
+          : 'text-zinc-400 cursor-not-allowed'
       } ${sending ? 'opacity-60 cursor-wait' : ''}`}
     >
       <Send size={13} />
@@ -138,7 +134,7 @@ function PdfButton({ invoiceId }: { invoiceId: string }) {
       onClick={handleDownload}
       disabled={loading}
       title="Telecharger le PDF"
-      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-blue-50 text-[#0057FF] hover:bg-[#0057FF] hover:text-white transition-all ${
+      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-[#e7e7e7] text-xs font-semibold text-[#0a0a0a] hover:bg-[#0a0a0a] hover:text-white hover:border-[#0a0a0a] transition-all ${
         loading ? 'opacity-60 cursor-wait' : 'cursor-pointer'
       }`}
     >
@@ -192,7 +188,7 @@ function StatusDropdown({
           if (transitions.length > 0) setOpen(!open)
         }}
         disabled={updating || transitions.length === 0}
-        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-bold uppercase ${badge.bg} ${badge.text} ${
+        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold ${badge.bg} ${badge.text} ${
           transitions.length > 0 ? 'cursor-pointer' : 'cursor-default'
         } ${updating ? 'opacity-50' : ''} transition-all`}
       >
@@ -201,8 +197,8 @@ function StatusDropdown({
       </button>
 
       {open && (
-        <div className="absolute top-full right-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-lg z-50 min-w-[230px] overflow-hidden">
-          <div className="px-3.5 py-2 text-[9px] font-semibold uppercase tracking-[1.5px] text-gray-400 border-b border-gray-100">
+        <div className="absolute top-full right-0 mt-1.5 rounded-[18px] shadow-lg border border-[#e7e7e7] bg-white z-50 min-w-[230px] overflow-hidden">
+          <div className="px-3.5 py-2 text-[11px] font-semibold text-[#0a0a0a]/40 tracking-[-0.04em] border-b border-[#e7e7e7]">
             Changer le statut
           </div>
           {transitions.map((t) => {
@@ -214,11 +210,11 @@ function StatusDropdown({
                   e.stopPropagation()
                   handleSelect(t.to)
                 }}
-                className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-gray-800 text-left hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-[#0a0a0a] text-left hover:bg-[#f5f5f5] rounded-[10px] transition-colors"
               >
                 <span className={`w-2 h-2 rounded-full ${targetBadge.dot} shrink-0`} />
                 <span className="flex-1">{t.label}</span>
-                <Check size={13} className="text-gray-300" />
+                <Check size={13} className="text-zinc-300" />
               </button>
             )
           })}
@@ -277,14 +273,14 @@ export default function InvoicesPage() {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col gap-3 mt-8">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 animate-pulse">
+            <div key={i} className="bg-white rounded-[18px] shadow-md p-4 animate-pulse">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-gray-200 rounded-xl" />
+                <div className="w-10 h-10 bg-zinc-200" />
                 <div className="flex-1">
-                  <div className="h-4 w-28 bg-gray-200 rounded mb-2" />
-                  <div className="h-3 w-44 bg-gray-100 rounded" />
+                  <div className="h-4 w-28 bg-zinc-200 mb-2" />
+                  <div className="h-3 w-44 bg-zinc-100" />
                 </div>
-                <div className="h-8 w-20 bg-gray-100 rounded-lg" />
+                <div className="h-8 w-20 bg-zinc-100" />
               </div>
             </div>
           ))}
@@ -299,10 +295,10 @@ export default function InvoicesPage() {
       {/* ═══ HEADER ═══ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+          <h1 className="text-2xl font-bold text-[#0a0a0a] tracking-[-0.06em]">
             Factures
           </h1>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-widest mt-1">
+          <p className="text-[13px] font-medium text-[#0a0a0a]/40 tracking-[-0.04em] mt-1">
             {invoices.length} facture(s) enregistree(s)
           </p>
         </div>
@@ -310,10 +306,10 @@ export default function InvoicesPage() {
           <button
             onClick={handleExportCSV}
             disabled={invoices.length === 0}
-            className={`inline-flex items-center gap-2 bg-white text-gray-700 border border-gray-200 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${
+            className={`inline-flex items-center gap-2 bg-white text-[#0a0a0a] border border-[#e7e7e7] rounded-full px-4 py-2.5 text-sm font-semibold transition-all ${
               invoices.length === 0
                 ? 'opacity-50 cursor-not-allowed'
-                : 'hover:border-[#00A3FF] hover:text-[#0057FF] cursor-pointer'
+                : 'hover:border-[#0a0a0a] cursor-pointer'
             }`}
           >
             <Download size={15} />
@@ -321,7 +317,7 @@ export default function InvoicesPage() {
           </button>
           <Link
             href="/invoices/new"
-            className="bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:opacity-90 transition-opacity"
+            className="rounded-full bg-gradient-to-r from-[#2563EB] to-[#3B82F6] text-white text-sm font-semibold px-6 py-2.5 hover:from-[#1D4ED8] hover:to-[#2563EB] transition-all"
           >
             + Nouvelle Facture
           </Link>
@@ -331,8 +327,8 @@ export default function InvoicesPage() {
       {/* ═══ INVOICE LIST ═══ */}
       {invoices.length === 0 ? (
         <div className="text-center py-20">
-          <FileText size={48} className="mx-auto text-gray-300 mb-4" />
-          <p className="text-sm text-gray-400" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+          <FileText size={48} className="mx-auto text-[#0a0a0a]/20 mb-4" />
+          <p className="text-sm text-[#0a0a0a]/40">
             Aucune facture enregistree.
           </p>
         </div>
@@ -344,19 +340,19 @@ export default function InvoicesPage() {
             return (
               <div
                 key={inv.id}
-                className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 hover:shadow-md hover:border-[#00A3FF]/40 transition-all group"
+                className="bg-white rounded-[18px] shadow-md p-4 hover:shadow-lg transition-all group"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
 
                   {/* Left — icon + info */}
                   <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00A3FF] to-[#0057FF] flex items-center justify-center text-white shrink-0">
+                    <div className="w-10 h-10 rounded-[10px] bg-[#0a0a0a] flex items-center justify-center text-white shrink-0">
                       <FileText size={18} />
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2.5 flex-wrap">
-                        <span className="font-bold text-gray-900 font-mono text-sm group-hover:text-[#0057FF] transition-colors">
+                        <span className="font-semibold text-[#0a0a0a] text-sm tracking-[-0.04em] group-hover:text-zinc-600 transition-colors">
                           {inv.invoice_number}
                         </span>
                         <StatusDropdown
@@ -365,7 +361,7 @@ export default function InvoicesPage() {
                           onUpdate={updateStatus}
                         />
                       </div>
-                      <div className="text-sm text-gray-400 mt-0.5 truncate">
+                      <div className="text-sm text-zinc-400 mt-0.5 truncate">
                         {inv.client?.name ?? '---'}
                         {inv.project?.name && (
                           <span> &middot; {inv.project.name}</span>
@@ -382,10 +378,10 @@ export default function InvoicesPage() {
                   {/* Right — amount + actions */}
                   <div className="flex items-center gap-2.5 shrink-0">
                     <div className="text-right mr-2">
-                      <div className="font-extrabold text-[#0057FF] text-base">
+                      <div className="font-bold text-[#0a0a0a] text-base tracking-[-0.04em]">
                         {formatCurrency(ttc)}
                       </div>
-                      <div className="text-[10px] text-gray-400 uppercase font-medium">
+                      <div className="text-[10px] text-[#0a0a0a]/40 font-medium">
                         TTC
                       </div>
                     </div>
@@ -400,7 +396,7 @@ export default function InvoicesPage() {
 
                     <Link
                       href={`/invoices/${inv.id}`}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-blue-50 text-[#0057FF] hover:bg-[#0057FF] hover:text-white transition-all"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-[#e7e7e7] text-xs font-semibold text-[#0a0a0a] hover:bg-[#0a0a0a] hover:text-white hover:border-[#0a0a0a] transition-all"
                     >
                       <Eye size={13} />
                       Voir

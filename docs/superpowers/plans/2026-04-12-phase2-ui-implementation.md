@@ -1,3 +1,406 @@
+# Phase 2 — UI/UX Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Transform the dashboard from the Null Studio monochrome design to an Elevated Bento Grid with the zinc-50/blue-700/zinc-900 palette, creating KPICard, StatusBadge components and rewriting the dashboard page.
+
+**Architecture:** Create two new atomic components (KPICard, StatusBadge), update the existing Input component, add a fade-in animation keyframe to globals.css, update the tailwind config with new shadow/animation tokens, then rewrite the dashboard page to use these components in a Bento Grid layout. The existing Card component is NOT used by the dashboard — leave it untouched.
+
+**Tech Stack:** Next.js 14 (App Router), TypeScript strict, Tailwind CSS, Recharts, Lucide React, Inter font (already imported).
+
+**Design spec:** `docs/superpowers/specs/2026-04-12-phase2-ui-design.md`
+
+---
+
+## File Structure
+
+| File | Action | Responsibility |
+|------|--------|----------------|
+| `freelanceos/tailwind.config.ts` | Modify | Add fade-in keyframe + animation, elevated shadow token |
+| `freelanceos/app/globals.css` | Modify | Add fade-in animation class with stagger support |
+| `freelanceos/components/ui/KPICard.tsx` | Create | Reusable KPI display card (default + accent variant) |
+| `freelanceos/components/ui/StatusBadge.tsx` | Create | Dot + monochrome label badge |
+| `freelanceos/components/ui/Input.tsx` | Modify | Remove Abloh style, apply rounded-xl + blue-700 focus |
+| `freelanceos/app/(dashboard)/page.tsx` | Rewrite | Bento Grid layout using new components |
+
+---
+
+### Task 1: Tailwind config — add animation + shadow tokens
+
+**Files:**
+- Modify: `freelanceos/tailwind.config.ts`
+
+- [ ] **Step 1: Add keyframes, animation, and boxShadow to tailwind config**
+
+Open `freelanceos/tailwind.config.ts` and add these entries inside `theme.extend`:
+
+```typescript
+keyframes: {
+  shimmer: {
+    '0%': { transform: 'translateX(-500%) skewX(-20deg)' },
+    '100%': { transform: 'translateX(500%) skewX(-20deg)' },
+  },
+  'fade-in': {
+    '0%': { opacity: '0', transform: 'translateY(8px)' },
+    '100%': { opacity: '1', transform: 'translateY(0)' },
+  },
+},
+animation: {
+  shimmer: 'shimmer 2.5s infinite linear',
+  'fade-in': 'fade-in 0.4s ease-out both',
+},
+boxShadow: {
+  'elevated': '0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04)',
+  'elevated-lg': '0 4px 24px rgba(0,0,0,0.12)',
+  'blue-glow': '0 4px 16px rgba(29,78,216,0.25)',
+},
+```
+
+The existing `shimmer` keyframe and animation must be kept. Add `fade-in` alongside it. Add the new `boxShadow` key at the same level as `animation` inside `extend`.
+
+- [ ] **Step 2: Verify the config compiles**
+
+Run: `cd freelanceos && npx tailwindcss --content "./app/**/*.tsx" --output /dev/null 2>&1 | head -5`
+
+Expected: No errors.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add freelanceos/tailwind.config.ts
+git commit -m "feat(ui): add fade-in animation and elevated shadow tokens to tailwind config"
+```
+
+---
+
+### Task 2: globals.css — update palette variables + add stagger utility
+
+**Files:**
+- Modify: `freelanceos/app/globals.css`
+
+- [ ] **Step 1: Update the CSS custom properties in `:root`**
+
+Replace the entire `:root` block with the new palette. Keep the same variable names for backward compatibility but update the values:
+
+```css
+:root {
+  /* ── Core palette (rule of 3: zinc-50 / blue-700 / zinc-900) ── */
+  --bg: #F4F4F5;
+  --surface: #FFFFFF;
+  --ink: #18181B;
+  --ink2: #27272A;
+  --muted: #71717A;
+  --line: #E4E4E7;
+
+  /* ── Brand ── */
+  --cobalt: #1D4ED8;
+  --cobalt-light: #1D4ED812;
+
+  /* ── Status ── */
+  --success: #10B981;
+  --success-bg: #10B98114;
+  --warning: #F59E0B;
+  --warning-bg: #F59E0B14;
+  --danger: #EF4444;
+  --danger-bg: #EF444414;
+
+  /* ── Legacy compat ── */
+  --industrial-orange: #F59E0B;
+  --industrial-orange-bg: #F59E0B14;
+  --neon-green: #10B981;
+  --neon-green-bg: #10B98114;
+  --blue-primary: #1D4ED8;
+  --blue-mid: #1D4ED8;
+  --blue-surface: #1D4ED80A;
+  --cyan: #1D4ED8;
+  --ec-navy: #1D4ED8;
+  --ec-blue: #1D4ED8;
+  --ec-cyan: #1D4ED8;
+  --ec-navy-light: #1D4ED812;
+  --ec-blue-light: #1D4ED814;
+}
+```
+
+- [ ] **Step 2: Update body styles**
+
+The body selector should already have Inter and #FAFAFA from our earlier edit. Update the background to match the new zinc-50:
+
+```css
+body {
+  color: var(--ink);
+  background: #F4F4F5;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+```
+
+- [ ] **Step 3: Remove the old Abloh label utility**
+
+Delete the entire `.label-abloh` utility block (the class, `::before`, and `::after` rules) from the `@layer utilities` section. Keep `.text-balance` — it's useful.
+
+- [ ] **Step 4: Add stagger animation utilities**
+
+Add this inside `@layer utilities`, after `.text-balance`:
+
+```css
+  .animate-stagger-1 { animation-delay: 0ms; }
+  .animate-stagger-2 { animation-delay: 50ms; }
+  .animate-stagger-3 { animation-delay: 100ms; }
+  .animate-stagger-4 { animation-delay: 150ms; }
+  .animate-stagger-5 { animation-delay: 200ms; }
+  .animate-stagger-6 { animation-delay: 250ms; }
+  .animate-stagger-7 { animation-delay: 300ms; }
+  .animate-stagger-8 { animation-delay: 350ms; }
+```
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add freelanceos/app/globals.css
+git commit -m "feat(ui): update palette to zinc-50/blue-700/zinc-900, add stagger utilities"
+```
+
+---
+
+### Task 3: Create StatusBadge component
+
+**Files:**
+- Create: `freelanceos/components/ui/StatusBadge.tsx`
+
+- [ ] **Step 1: Create the StatusBadge component**
+
+Create `freelanceos/components/ui/StatusBadge.tsx` with this content:
+
+```tsx
+'use client'
+
+type StatusVariant = 'draft' | 'sent' | 'paid' | 'late' | 'ongoing' | 'done'
+
+interface StatusBadgeProps {
+  variant: StatusVariant
+  label?: string
+  className?: string
+}
+
+const dotColors: Record<StatusVariant, string> = {
+  draft: 'bg-zinc-400',
+  sent: 'bg-blue-700',
+  paid: 'bg-emerald-500',
+  late: 'bg-red-500',
+  ongoing: 'bg-blue-700',
+  done: 'bg-emerald-500',
+}
+
+const defaultLabels: Record<StatusVariant, string> = {
+  draft: 'Brouillon',
+  sent: 'Envoyée',
+  paid: 'Payée',
+  late: 'En retard',
+  ongoing: 'En cours',
+  done: 'Terminé',
+}
+
+export function StatusBadge({ variant, label, className = '' }: StatusBadgeProps) {
+  return (
+    <span
+      className={`inline-flex items-center gap-2 bg-zinc-100 rounded-full px-3 py-1.5 ${className}`}
+    >
+      <span className={`w-2 h-2 rounded-full ${dotColors[variant]}`} />
+      <span className="text-xs font-medium text-zinc-700">
+        {label ?? defaultLabels[variant]}
+      </span>
+    </span>
+  )
+}
+```
+
+- [ ] **Step 2: Verify it compiles**
+
+Run: `cd freelanceos && npx tsc --noEmit --pretty 2>&1 | grep -i "StatusBadge" | head -5`
+
+Expected: No errors mentioning StatusBadge (or no output at all).
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add freelanceos/components/ui/StatusBadge.tsx
+git commit -m "feat(ui): create StatusBadge component with dot + monochrome label"
+```
+
+---
+
+### Task 4: Create KPICard component
+
+**Files:**
+- Create: `freelanceos/components/ui/KPICard.tsx`
+
+- [ ] **Step 1: Create the KPICard component**
+
+Create `freelanceos/components/ui/KPICard.tsx` with this content:
+
+```tsx
+'use client'
+
+interface KPICardProps {
+  label: string
+  value: string | number
+  sub?: string
+  accent?: boolean
+  className?: string
+}
+
+export function KPICard({ label, value, sub, accent = false, className = '' }: KPICardProps) {
+  if (accent) {
+    return (
+      <div
+        className={`bg-blue-700 rounded-2xl p-6 shadow-blue-glow ${className}`}
+      >
+        <div className="text-[11px] uppercase tracking-[0.05em] font-medium text-white/70 mb-3">
+          {label}
+        </div>
+        <div className="text-4xl font-bold tracking-tight text-white leading-none">
+          {value}
+        </div>
+        {sub && (
+          <div className="text-xs text-white/50 mt-2">{sub}</div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className={`bg-white rounded-2xl p-6 shadow-elevated ${className}`}
+    >
+      <div className="text-[11px] uppercase tracking-[0.05em] font-medium text-zinc-500 mb-3">
+        {label}
+      </div>
+      <div className="text-4xl font-bold tracking-tight text-zinc-900 leading-none">
+        {value}
+      </div>
+      {sub && (
+        <div className="text-xs text-zinc-500 mt-2">{sub}</div>
+      )}
+    </div>
+  )
+}
+```
+
+- [ ] **Step 2: Verify it compiles**
+
+Run: `cd freelanceos && npx tsc --noEmit --pretty 2>&1 | grep -i "KPICard" | head -5`
+
+Expected: No errors.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add freelanceos/components/ui/KPICard.tsx
+git commit -m "feat(ui): create KPICard component with default and accent variants"
+```
+
+---
+
+### Task 5: Update Input component
+
+**Files:**
+- Modify: `freelanceos/components/ui/Input.tsx`
+
+- [ ] **Step 1: Check where Input is used**
+
+Run: `cd freelanceos && grep -r "import.*Input.*from.*components/ui/Input" --include="*.tsx" --include="*.ts" -l`
+
+Note the files that import Input. The interface stays the same (`label`, `error`, `className`, plus HTML input attrs) so consumers won't break. The `variant` prop is removed — check if any consumer passes `variant="underline"`. If yes, those will need updating too.
+
+- [ ] **Step 2: Rewrite Input.tsx**
+
+Replace the entire content of `freelanceos/components/ui/Input.tsx` with:
+
+```tsx
+'use client'
+
+import React from 'react'
+
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string
+  error?: string
+}
+
+export function Input({
+  label,
+  error,
+  className = '',
+  id,
+  ...props
+}: InputProps) {
+  const inputId = id ?? (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined)
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      {label && (
+        <label
+          htmlFor={inputId}
+          className="text-sm font-medium text-zinc-700"
+        >
+          {label}
+        </label>
+      )}
+      <input
+        id={inputId}
+        className={[
+          'w-full rounded-xl bg-zinc-50 border border-zinc-200 px-4 py-3',
+          'text-sm text-zinc-900',
+          'placeholder:text-zinc-400',
+          'outline-none transition-all duration-150',
+          'focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700',
+          'disabled:opacity-40 disabled:cursor-not-allowed',
+          error ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' : '',
+          className,
+        ].join(' ')}
+        {...props}
+      />
+      {error && (
+        <span className="text-xs text-red-500">{error}</span>
+      )}
+    </div>
+  )
+}
+```
+
+- [ ] **Step 3: Check for consumers using `variant` prop**
+
+Run: `cd freelanceos && grep -rn 'variant.*underline\|variant.*default' --include="*.tsx" -l | grep -v Input.tsx`
+
+If any file uses `variant="underline"`, remove that prop from the consumer. The new Input has a single style.
+
+- [ ] **Step 4: Verify it compiles**
+
+Run: `cd freelanceos && npx tsc --noEmit --pretty 2>&1 | head -10`
+
+Expected: No errors.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add freelanceos/components/ui/Input.tsx
+git commit -m "feat(ui): update Input with rounded-xl, zinc-50 bg, blue-700 focus ring"
+```
+
+---
+
+### Task 6: Rewrite Dashboard page — Bento Grid
+
+**Files:**
+- Modify: `freelanceos/app/(dashboard)/page.tsx`
+
+This is the largest task. The page keeps all its existing data logic (hooks, calculations, memos) but gets a completely new render. The imports change to use our new components.
+
+- [ ] **Step 1: Replace the entire dashboard page**
+
+Replace the full content of `freelanceos/app/(dashboard)/page.tsx` with:
+
+```tsx
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
@@ -188,7 +591,7 @@ export default function DashboardPage() {
         className="bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-3xl p-8 md:p-10 animate-fade-in animate-stagger-1"
       >
         <div className="text-[11px] uppercase tracking-[0.05em] font-medium text-white/40 mb-4">
-          Chiffre d&apos;affaires
+          Chiffre d'affaires
         </div>
         <div className="text-5xl sm:text-6xl md:text-7xl font-bold text-white tracking-tight leading-none">
           {formatCurrency(totalTTC)}
@@ -421,3 +824,64 @@ export default function DashboardPage() {
     </div>
   )
 }
+```
+
+- [ ] **Step 2: Verify the build compiles**
+
+Run: `cd freelanceos && npx next build 2>&1 | tail -15`
+
+Expected: Build succeeds with no errors. Warnings about unused variables from other pages are fine.
+
+- [ ] **Step 3: Visual verification**
+
+Start the dev server and verify in browser:
+- Background is zinc-50 (#F4F4F5)
+- Hero card is dark gradient with massive white text
+- KPI cards are white with shadows, no borders
+- Last KPI card (Total factures) is blue with glow
+- Status badges show colored dots with neutral text
+- Cards animate in with staggered fade-in
+- Chart uses blue-700 as stroke color
+- Tooltip has dark zinc-900 background with rounded corners
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add freelanceos/app/(dashboard)/page.tsx
+git commit -m "feat(ui): rewrite dashboard with Bento Grid layout and elevated design system"
+```
+
+---
+
+### Task 7: Final build verification + cleanup
+
+**Files:**
+- All modified files from Tasks 1-6
+
+- [ ] **Step 1: Run full build**
+
+Run: `cd freelanceos && npx next build 2>&1 | tail -20`
+
+Expected: Build succeeds. No TypeScript errors.
+
+- [ ] **Step 2: Check for unused imports of old Badge in dashboard**
+
+Run: `cd freelanceos && grep -rn "label-abloh" --include="*.tsx" --include="*.css"`
+
+Expected: No results — all Abloh references should be gone from modified files. If `label-abloh` still appears in other unmodified files (like the layout), that's fine — we're only changing dashboard-related files.
+
+- [ ] **Step 3: Check that no file imports the old statusBadge map**
+
+The old inline `statusBadge` record from the dashboard page should be gone, replaced by the StatusBadge component. Verify:
+
+Run: `cd freelanceos && grep -rn "statusBadge\[" --include="*.tsx"`
+
+Expected: No results.
+
+- [ ] **Step 4: Final commit if any cleanup was needed**
+
+If any cleanup was required, commit:
+```bash
+git add -A
+git commit -m "chore: cleanup Phase 2 UI refactoring"
+```

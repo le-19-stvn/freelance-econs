@@ -367,10 +367,12 @@ function formatDate(dateStr: string | null): string {
 }
 
 function fmtEur(n: number): string {
-  return (
-    n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) +
-    ' \u20AC'
-  )
+  const formatted = new Intl.NumberFormat('fr-FR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n)
+  // U+00A0 = non-breaking space, U+20AC = €
+  return formatted + '\u00a0\u20ac'
 }
 
 const unitLabels: Record<string, string> = {
@@ -634,7 +636,7 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
                 Penalite de retard : 3x le taux d{"'"}interet legal
               </Text>
               <Text style={[styles.footerText, { textAlign: 'right' }]}>
-                Indemnite forfaitaire de recouvrement : 40,00 EUR
+                Indemnite forfaitaire de recouvrement : 40,00{'\u00a0\u20ac'}
               </Text>
             </View>
           </View>
