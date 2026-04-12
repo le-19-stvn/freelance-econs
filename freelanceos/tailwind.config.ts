@@ -7,30 +7,28 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    /* ── Kill all border-radius globally ── */
-    borderRadius: {
-      none: '0',
-      DEFAULT: '0',
-      sm: '0',
-      md: '0',
-      lg: '0',
-      xl: '0',
-      '2xl': '0',
-      '3xl': '0',
-      full: '0',
-    },
     extend: {
       fontFamily: {
-        sans: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+        sans: ['Inter', 'sans-serif'],
       },
       keyframes: {
         shimmer: {
           '0%': { transform: 'translateX(-500%) skewX(-20deg)' },
           '100%': { transform: 'translateX(500%) skewX(-20deg)' },
         },
+        'fade-in': {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       animation: {
         shimmer: 'shimmer 2.5s infinite linear',
+        'fade-in': 'fade-in 0.4s ease-out both',
+      },
+      boxShadow: {
+        'elevated': '0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04)',
+        'elevated-lg': '0 4px 24px rgba(0,0,0,0.12)',
+        'blue-glow': '0 4px 16px rgba(29,78,216,0.25)',
       },
       colors: {
         bg: "var(--bg)",
