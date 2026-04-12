@@ -10,25 +10,25 @@ export function LegalFooter() {
       <div className="flex gap-4 flex-wrap justify-center">
         <Link
           href="/mentions-legales"
-          className="text-[12px] font-medium text-[#0a0a0a]/40 tracking-[-0.04em] hover:text-[#0a0a0a] transition-colors"
+          className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
         >
           Mentions legales
         </Link>
         <Link
           href="/cgv"
-          className="text-[12px] font-medium text-[#0a0a0a]/40 tracking-[-0.04em] hover:text-[#0a0a0a] transition-colors"
+          className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
         >
           CGV / CGU
         </Link>
         <Link
           href="/confidentialite"
-          className="text-[12px] font-medium text-[#0a0a0a]/40 tracking-[-0.04em] hover:text-[#0a0a0a] transition-colors"
+          className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
         >
           Politique de confidentialite
         </Link>
       </div>
-      <span className="text-[10px] font-medium text-[#0a0a0a]/40 tracking-[-0.04em]">
-        &copy; {new Date().getFullYear()} eCons &mdash; FreelanceOS
+      <span className="text-xs font-medium text-zinc-400">
+        &copy; {new Date().getFullYear()} eCons Freelance
       </span>
     </footer>
   )
