@@ -3,17 +3,10 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useInvoices } from '@/hooks/useInvoices'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { calculateHT, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
 import type { Invoice, InvoiceStatus } from '@/types'
 import { FileText, Download, ChevronDown, Check, Send, Eye } from 'lucide-react'
-
-/* ── Status badge config ── */
-const statusBadge: Record<InvoiceStatus, { bg: string; text: string; dot: string; label: string }> = {
-  draft: { bg: 'bg-[#f5f5f5]', text: 'text-[#0a0a0a]/60', dot: 'bg-[#e7e7e7]', label: 'Brouillon' },
-  sent: { bg: 'bg-[#0a0a0a]/5', text: 'text-[#0a0a0a]', dot: 'bg-[#0a0a0a]', label: 'Envoyée' },
-  paid: { bg: 'bg-[#0a0a0a]', text: 'text-white', dot: 'bg-[#0a0a0a]', label: 'Payée' },
-  late: { bg: 'bg-[#f5f5f5]', text: 'text-[#0a0a0a]/60', dot: 'bg-[#0a0a0a]/40', label: 'En retard' },
-}
 
 /* ── Toast ── */
 function Toast({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) {
@@ -23,8 +16,8 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
   }, [onClose])
 
   return (
-    <div className="fixed bottom-6 right-6 z-[100] flex items-center gap-2.5 px-5 py-3 rounded-full shadow-lg border-0 bg-white text-[#0a0a0a] text-[13px] font-medium">
-      {type === 'success' ? <Check size={14} /> : <span className="text-sm">✕</span>} {message}
+    <div className="fixed bottom-6 right-6 z-[100] flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-elevated bg-white text-zinc-900 text-[13px] font-medium">
+      {type === 'success' ? <Check size={14} className="text-emerald-500" /> : <span className="text-red-500 text-sm">✕</span>} {message}
     </div>
   )
 }
@@ -75,9 +68,9 @@ function EmailButton({
       onClick={handleSend}
       disabled={sending}
       title={hasEmail ? `Envoyer a ${invoice.client?.email}` : "Pas d'email client"}
-      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-[#e7e7e7] text-xs font-semibold transition-all ${
+      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 text-xs font-medium transition-all active:scale-[0.98] ${
         hasEmail
-          ? 'text-[#0a0a0a] hover:bg-[#0a0a0a] hover:text-white hover:border-[#0a0a0a] cursor-pointer'
+          ? 'text-zinc-900 hover:bg-blue-700 hover:text-white hover:border-blue-700 cursor-pointer'
           : 'text-zinc-400 cursor-not-allowed'
       } ${sending ? 'opacity-60 cursor-wait' : ''}`}
     >
@@ -134,7 +127,7 @@ function PdfButton({ invoiceId }: { invoiceId: string }) {
       onClick={handleDownload}
       disabled={loading}
       title="Telecharger le PDF"
-      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-[#e7e7e7] text-xs font-semibold text-[#0a0a0a] hover:bg-[#0a0a0a] hover:text-white hover:border-[#0a0a0a] transition-all ${
+      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 text-xs font-medium text-zinc-900 hover:bg-blue-700 hover:text-white hover:border-blue-700 transition-all active:scale-[0.98] ${
         loading ? 'opacity-60 cursor-wait' : 'cursor-pointer'
       }`}
     >
@@ -157,7 +150,6 @@ function StatusDropdown({
   const [open, setOpen] = useState(false)
   const [updating, setUpdating] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-  const badge = statusBadge[currentStatus]
   const transitions = getTransitions(currentStatus)
 
   useEffect(() => {
@@ -187,37 +179,35 @@ function StatusDropdown({
           e.stopPropagation()
           if (transitions.length > 0) setOpen(!open)
         }}
-        disabled={updating || transitions.length === 0}
-        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold ${badge.bg} ${badge.text} ${
-          transitions.length > 0 ? 'cursor-pointer' : 'cursor-default'
-        } ${updating ? 'opacity-50' : ''} transition-all`}
+        disabled={updating}
+        className={`${transitions.length > 0 ? 'cursor-pointer' : 'cursor-default'} ${updating ? 'opacity-50' : ''} transition-all`}
       >
-        {updating ? '...' : badge.label}
-        {transitions.length > 0 && <ChevronDown size={12} />}
+        <StatusBadge
+          variant={currentStatus}
+          className={transitions.length > 0 ? 'pr-2' : ''}
+        />
+        {transitions.length > 0 && (
+          <ChevronDown size={12} className="absolute right-1 top-1/2 -translate-y-1/2 text-zinc-400" />
+        )}
       </button>
 
       {open && (
-        <div className="absolute top-full right-0 mt-1.5 rounded-[18px] shadow-lg border border-[#e7e7e7] bg-white z-50 min-w-[230px] overflow-hidden">
-          <div className="px-3.5 py-2 text-[11px] font-semibold text-[#0a0a0a]/40 tracking-[-0.04em] border-b border-[#e7e7e7]">
+        <div className="absolute top-full right-0 mt-1.5 rounded-2xl shadow-elevated-lg border border-zinc-100 bg-white z-50 min-w-[230px] overflow-hidden">
+          <div className="px-3.5 py-2 text-[11px] font-medium text-zinc-400 border-b border-zinc-100">
             Changer le statut
           </div>
-          {transitions.map((t) => {
-            const targetBadge = statusBadge[t.to]
-            return (
-              <button
-                key={t.to}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleSelect(t.to)
-                }}
-                className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-[#0a0a0a] text-left hover:bg-[#f5f5f5] rounded-[10px] transition-colors"
-              >
-                <span className={`w-2 h-2 rounded-full ${targetBadge.dot} shrink-0`} />
-                <span className="flex-1">{t.label}</span>
-                <Check size={13} className="text-zinc-300" />
-              </button>
-            )
-          })}
+          {transitions.map((t) => (
+            <button
+              key={t.to}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleSelect(t.to)
+              }}
+              className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-zinc-900 text-left hover:bg-zinc-50 transition-colors"
+            >
+              <StatusBadge variant={t.to} />
+            </button>
+          ))}
         </div>
       )}
     </div>
@@ -242,6 +232,13 @@ export default function InvoicesPage() {
     const esc = (v: string) =>
       /[;\n\r"]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v
 
+    const statusLabels: Record<InvoiceStatus, string> = {
+      draft: 'Brouillon',
+      sent: 'Envoyee',
+      paid: 'Payee',
+      late: 'En retard',
+    }
+
     const header = 'Numero;Client;Date;Montant;Statut'
     const rows = invoices.map((inv) => {
       const ht = calculateHT(inv.items ?? [])
@@ -250,7 +247,7 @@ export default function InvoicesPage() {
       const date = inv.issue_date
         ? new Date(inv.issue_date).toLocaleDateString('fr-FR')
         : ''
-      const status = statusBadge[inv.status]?.label ?? inv.status
+      const status = statusLabels[inv.status] ?? inv.status
       return [inv.invoice_number, clientName, date, ttc.toFixed(2), status]
         .map(esc)
         .join(';')
@@ -273,14 +270,14 @@ export default function InvoicesPage() {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col gap-3 mt-8">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-white rounded-[18px] shadow-md p-4 animate-pulse">
+            <div key={i} className="bg-white rounded-2xl shadow-elevated p-4 animate-pulse">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-zinc-200" />
+                <div className="w-10 h-10 bg-zinc-100 rounded-xl" />
                 <div className="flex-1">
-                  <div className="h-4 w-28 bg-zinc-200 mb-2" />
-                  <div className="h-3 w-44 bg-zinc-100" />
+                  <div className="h-4 w-28 bg-zinc-100 rounded mb-2" />
+                  <div className="h-3 w-44 bg-zinc-50 rounded" />
                 </div>
-                <div className="h-8 w-20 bg-zinc-100" />
+                <div className="h-8 w-20 bg-zinc-50 rounded-xl" />
               </div>
             </div>
           ))}
@@ -290,15 +287,15 @@ export default function InvoicesPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto animate-fade-in">
 
       {/* ═══ HEADER ═══ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-[#0a0a0a] tracking-[-0.06em]">
+          <h1 className="text-2xl font-bold text-zinc-900">
             Factures
           </h1>
-          <p className="text-[13px] font-medium text-[#0a0a0a]/40 tracking-[-0.04em] mt-1">
+          <p className="text-sm text-zinc-500 mt-1">
             {invoices.length} facture(s) enregistree(s)
           </p>
         </div>
@@ -306,10 +303,10 @@ export default function InvoicesPage() {
           <button
             onClick={handleExportCSV}
             disabled={invoices.length === 0}
-            className={`inline-flex items-center gap-2 bg-white text-[#0a0a0a] border border-[#e7e7e7] rounded-full px-4 py-2.5 text-sm font-semibold transition-all ${
+            className={`inline-flex items-center gap-2 bg-zinc-100 text-zinc-900 rounded-xl px-5 py-2.5 text-sm font-medium transition-all active:scale-[0.98] ${
               invoices.length === 0
-                ? 'opacity-50 cursor-not-allowed'
-                : 'hover:border-[#0a0a0a] cursor-pointer'
+                ? 'opacity-40 cursor-not-allowed'
+                : 'hover:bg-zinc-200 cursor-pointer'
             }`}
           >
             <Download size={15} />
@@ -317,7 +314,7 @@ export default function InvoicesPage() {
           </button>
           <Link
             href="/invoices/new"
-            className="rounded-full bg-gradient-to-r from-[#2563EB] to-[#3B82F6] text-white text-sm font-semibold px-6 py-2.5 hover:from-[#1D4ED8] hover:to-[#2563EB] transition-all"
+            className="inline-flex items-center bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-blue-800 shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
           >
             + Nouvelle Facture
           </Link>
@@ -327,32 +324,32 @@ export default function InvoicesPage() {
       {/* ═══ INVOICE LIST ═══ */}
       {invoices.length === 0 ? (
         <div className="text-center py-20">
-          <FileText size={48} className="mx-auto text-[#0a0a0a]/20 mb-4" />
-          <p className="text-sm text-[#0a0a0a]/40">
+          <FileText size={48} className="mx-auto text-zinc-300 mb-4" />
+          <p className="text-sm text-zinc-400">
             Aucune facture enregistree.
           </p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {invoices.map((inv) => {
+          {invoices.map((inv, idx) => {
             const ht = calculateHT(inv.items ?? [])
             const ttc = calculateTTC(ht, inv.tva_rate)
             return (
               <div
                 key={inv.id}
-                className="bg-white rounded-[18px] shadow-md p-4 hover:shadow-lg transition-all group"
+                className={`bg-white rounded-2xl shadow-elevated p-4 hover:shadow-elevated-lg transition-all group animate-fade-in animate-stagger-${Math.min(idx + 1, 8)}`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
 
                   {/* Left — icon + info */}
                   <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className="w-10 h-10 rounded-[10px] bg-[#0a0a0a] flex items-center justify-center text-white shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-blue-700 flex items-center justify-center text-white shrink-0">
                       <FileText size={18} />
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2.5 flex-wrap">
-                        <span className="font-semibold text-[#0a0a0a] text-sm tracking-[-0.04em] group-hover:text-zinc-600 transition-colors">
+                        <span className="font-semibold text-zinc-900 text-sm group-hover:text-zinc-600 transition-colors">
                           {inv.invoice_number}
                         </span>
                         <StatusDropdown
@@ -378,10 +375,10 @@ export default function InvoicesPage() {
                   {/* Right — amount + actions */}
                   <div className="flex items-center gap-2.5 shrink-0">
                     <div className="text-right mr-2">
-                      <div className="font-bold text-[#0a0a0a] text-base tracking-[-0.04em]">
+                      <div className="font-bold text-zinc-900 text-base">
                         {formatCurrency(ttc)}
                       </div>
-                      <div className="text-[10px] text-[#0a0a0a]/40 font-medium">
+                      <div className="text-[10px] text-zinc-400 font-medium">
                         TTC
                       </div>
                     </div>
@@ -396,7 +393,7 @@ export default function InvoicesPage() {
 
                     <Link
                       href={`/invoices/${inv.id}`}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-[#e7e7e7] text-xs font-semibold text-[#0a0a0a] hover:bg-[#0a0a0a] hover:text-white hover:border-[#0a0a0a] transition-all"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 text-xs font-medium text-zinc-900 hover:bg-blue-700 hover:text-white hover:border-blue-700 transition-all active:scale-[0.98]"
                     >
                       <Eye size={13} />
                       Voir

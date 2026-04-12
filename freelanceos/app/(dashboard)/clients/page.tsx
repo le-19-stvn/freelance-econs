@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useClients } from '@/hooks/useClients'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
 import type { Client } from '@/types'
-import { Users, Mail, Phone, MapPin } from 'lucide-react'
+import { Users, Mail, Phone, MapPin, X } from 'lucide-react'
 
 function getInitials(name: string) {
   return name
@@ -23,8 +23,8 @@ const emptyForm = {
   fiscal_id: '',
 }
 
-const inputCls = 'w-full px-4 py-3 rounded-[10px] bg-[#f5f5f5] border-0 text-sm text-[#0a0a0a] outline-none focus:ring-2 focus:ring-[#0a0a0a]/10 transition-all tracking-[-0.04em]'
-const labelCls = 'block text-[13px] font-semibold text-[#0a0a0a]/60 mb-1.5 tracking-[-0.04em]'
+const inputCls = 'w-full px-4 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 transition-all'
+const labelCls = 'block text-xs font-medium text-zinc-500 mb-1.5'
 
 export default function ClientsPage() {
   const { clients, loading, createClient, updateClient, deleteClient } = useClients()
@@ -94,12 +94,12 @@ export default function ClientsPage() {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-[18px] shadow-md p-5 animate-pulse">
+            <div key={i} className="bg-white rounded-2xl shadow-elevated p-5 animate-pulse">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-[#e7e7e7] rounded-full" />
+                <div className="w-11 h-11 bg-zinc-100 rounded-xl" />
                 <div>
-                  <div className="h-4 w-28 bg-[#e7e7e7] rounded-full mb-2" />
-                  <div className="h-3 w-36 bg-[#f5f5f5] rounded-full" />
+                  <div className="h-4 w-28 bg-zinc-100 rounded mb-2" />
+                  <div className="h-3 w-36 bg-zinc-50 rounded" />
                 </div>
               </div>
             </div>
@@ -110,7 +110,7 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto animate-fade-in">
 
       {/* Upgrade Modal */}
       <UpgradeModal
@@ -122,16 +122,16 @@ export default function ClientsPage() {
       {/* ═══ HEADER ═══ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-[#0a0a0a] tracking-[-0.06em]">
+          <h1 className="text-2xl font-bold text-zinc-900">
             Clients
           </h1>
-          <p className="text-[13px] font-medium text-[#0a0a0a]/40 tracking-[-0.04em] mt-1">
+          <p className="text-sm text-zinc-500 mt-1">
             {clients.length} client(s) enregistre(s)
           </p>
         </div>
         <button
           onClick={openCreate}
-          className="rounded-full bg-gradient-to-r from-[#2563EB] to-[#3B82F6] text-white text-sm font-semibold px-6 py-2.5 hover:from-[#1D4ED8] hover:to-[#2563EB] transition-all cursor-pointer"
+          className="inline-flex items-center bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-blue-800 shadow-sm hover:shadow-md transition-all active:scale-[0.98] cursor-pointer"
         >
           + Nouveau Client
         </button>
@@ -140,32 +140,32 @@ export default function ClientsPage() {
       {/* ═══ CLIENT GRID ═══ */}
       {clients.length === 0 ? (
         <div className="text-center py-20">
-          <Users size={48} className="mx-auto text-[#0a0a0a]/20 mb-4" />
-          <p className="text-sm text-[#0a0a0a]/40">
+          <Users size={48} className="mx-auto text-zinc-300 mb-4" />
+          <p className="text-sm text-zinc-400">
             Pret a ajouter votre premier client ?
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {clients.map((client) => (
+          {clients.map((client, idx) => (
             <div
               key={client.id}
               onClick={() => openEdit(client)}
-              className="bg-white rounded-[18px] shadow-md p-5 cursor-pointer hover:shadow-lg transition-all group"
+              className={`bg-white rounded-2xl shadow-elevated p-5 cursor-pointer hover:shadow-elevated-lg transition-all group animate-fade-in animate-stagger-${Math.min(idx + 1, 8)}`}
             >
               <div className="flex items-center gap-4">
                 {/* Avatar */}
-                <div className="w-11 h-11 rounded-full bg-[#0a0a0a] flex items-center justify-center text-white text-sm font-bold shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-blue-700 flex items-center justify-center text-white text-sm font-bold shrink-0">
                   {getInitials(client.name)}
                 </div>
 
                 {/* Info */}
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-semibold text-[#0a0a0a] tracking-[-0.04em] truncate group-hover:text-[#0a0a0a]/60 transition-colors">
+                  <h3 className="text-sm font-semibold text-zinc-900 truncate group-hover:text-zinc-500 transition-colors">
                     {client.name}
                   </h3>
                   {client.email && (
-                    <div className="flex items-center gap-1.5 text-xs text-[#0a0a0a]/40 mt-0.5 truncate">
+                    <div className="flex items-center gap-1.5 text-xs text-zinc-400 mt-0.5 truncate">
                       <Mail size={11} className="shrink-0" />
                       <span className="truncate">{client.email}</span>
                     </div>
@@ -175,7 +175,7 @@ export default function ClientsPage() {
 
               {/* Extra info row */}
               {(client.phone || client.address) && (
-                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[#e7e7e7] text-xs text-[#0a0a0a]/40">
+                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-zinc-100 text-xs text-zinc-400">
                   {client.phone && (
                     <div className="flex items-center gap-1">
                       <Phone size={11} />
@@ -203,9 +203,16 @@ export default function ClientsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-[18px] shadow-xl p-8 w-full max-w-md mx-4"
+            className="bg-white rounded-2xl shadow-elevated-lg p-8 w-full max-w-md mx-4 relative"
           >
-            <h2 className="text-lg font-bold text-[#0a0a0a] mb-6 tracking-[-0.06em]">
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-xl text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors"
+            >
+              <X size={16} />
+            </button>
+
+            <h2 className="text-lg font-bold text-zinc-900 mb-6">
               {editing ? 'Modifier le client' : 'Nouveau client'}
             </h2>
 
@@ -224,10 +231,10 @@ export default function ClientsPage() {
                     required={field.required}
                     value={form[field.key as keyof typeof form]}
                     onChange={(e) => setForm((f) => ({ ...f, [field.key]: e.target.value }))}
-                    className={`${inputCls} ${field.key === 'name' && nameError ? '!ring-2 !ring-[#0a0a0a]/20' : ''}`}
+                    className={`${inputCls} ${field.key === 'name' && nameError ? '!ring-2 !ring-red-500/20 !border-red-500' : ''}`}
                   />
                   {field.key === 'name' && nameError && (
-                    <p className="text-xs text-[#0a0a0a]/60 mt-1">{nameError}</p>
+                    <p className="text-xs text-red-500 mt-1">{nameError}</p>
                   )}
                 </div>
               ))}
@@ -242,7 +249,7 @@ export default function ClientsPage() {
                       await deleteClient(editing.id)
                       setShowModal(false)
                     }}
-                    className="rounded-full border border-[#e7e7e7] text-[#0a0a0a]/60 px-4 py-2.5 text-sm font-semibold hover:bg-[#f5f5f5] transition-colors"
+                    className="rounded-xl bg-red-500 text-white px-4 py-2.5 text-sm font-medium hover:bg-red-600 transition-all active:scale-[0.98] cursor-pointer"
                   >
                     Supprimer
                   </button>
@@ -250,13 +257,13 @@ export default function ClientsPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="rounded-full border border-[#e7e7e7] text-[#0a0a0a]/60 px-4 py-2.5 text-sm font-semibold hover:bg-[#f5f5f5] transition-colors"
+                  className="rounded-xl bg-zinc-100 text-zinc-900 px-4 py-2.5 text-sm font-medium hover:bg-zinc-200 transition-all active:scale-[0.98] cursor-pointer"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="rounded-full bg-gradient-to-r from-[#2563EB] to-[#3B82F6] text-white px-6 py-2.5 text-sm font-semibold hover:from-[#1D4ED8] hover:to-[#2563EB] transition-all"
+                  className="rounded-xl bg-blue-700 text-white px-5 py-2.5 text-sm font-medium hover:bg-blue-800 shadow-sm hover:shadow-md transition-all active:scale-[0.98] cursor-pointer"
                 >
                   {editing ? 'Enregistrer' : 'Creer'}
                 </button>
