@@ -1,14 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ══════════════════════════════════════════════
-   eConic Phase 2 — Virgil Abloh × Swiss Industrial
-   ══════════════════════════════════════════════ */
-
 :root {
-  /* ── Core palette ── */
-  --bg: #F8F8F8;
+  /* ── Core palette (rule of 3: zinc-50 / blue-700 / zinc-900) ── */
+  --bg: #F4F4F5;
   --surface: #FFFFFF;
   --ink: #18181B;
   --ink2: #27272A;
@@ -16,72 +14,54 @@
   --line: #E4E4E7;
 
   /* ── Brand ── */
-  --cobalt: #0052FF;
-  --cobalt-light: #0052FF12;
+  --cobalt: #1D4ED8;
+  --cobalt-light: #1D4ED812;
 
-  /* ── Status — Industrial accents ── */
-  --industrial-orange: #FF5C00;
-  --industrial-orange-bg: #FF5C0014;
-  --neon-green: #00E676;
-  --neon-green-bg: #00E67614;
-  --success: #00E676;
-  --success-bg: #00E67614;
-  --warning: #FF5C00;
-  --warning-bg: #FF5C0014;
-  --danger: #DC2626;
-  --danger-bg: #DC262614;
+  /* ── Status ── */
+  --success: #10B981;
+  --success-bg: #10B98114;
+  --warning: #F59E0B;
+  --warning-bg: #F59E0B14;
+  --danger: #EF4444;
+  --danger-bg: #EF444414;
 
   /* ── Legacy compat ── */
-  --blue-primary: #0052FF;
-  --blue-mid: #0052FF;
-  --blue-surface: #0052FF0A;
-  --cyan: #0052FF;
-  --ec-navy: #0052FF;
-  --ec-blue: #0052FF;
-  --ec-cyan: #0052FF;
-  --ec-navy-light: #0052FF12;
-  --ec-blue-light: #0052FF14;
-}
-
-/* ── Global reset: razor angles everywhere ── */
-@layer base {
-  *, *::before, *::after {
-    border-radius: 0 !important;
-  }
+  --industrial-orange: #F59E0B;
+  --industrial-orange-bg: #F59E0B14;
+  --neon-green: #10B981;
+  --neon-green-bg: #10B98114;
+  --blue-primary: #1D4ED8;
+  --blue-mid: #1D4ED8;
+  --blue-surface: #1D4ED80A;
+  --cyan: #1D4ED8;
+  --ec-navy: #1D4ED8;
+  --ec-blue: #1D4ED8;
+  --ec-cyan: #1D4ED8;
+  --ec-navy-light: #1D4ED812;
+  --ec-blue-light: #1D4ED814;
 }
 
 body {
   color: var(--ink);
-  background: var(--bg);
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background: #F4F4F5;
+  font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Abloh micro-typography label ── */
 @layer utilities {
-  .label-abloh {
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #A1A1AA;
-    font-family: 'Helvetica Neue', Helvetica, monospace;
-    line-height: 1;
-    user-select: none;
-  }
-
-  .label-abloh::before {
-    content: '"';
-  }
-
-  .label-abloh::after {
-    content: '"';
-  }
-
   .text-balance {
     text-wrap: balance;
   }
+
+  .animate-stagger-1 { animation-delay: 0ms; }
+  .animate-stagger-2 { animation-delay: 50ms; }
+  .animate-stagger-3 { animation-delay: 100ms; }
+  .animate-stagger-4 { animation-delay: 150ms; }
+  .animate-stagger-5 { animation-delay: 200ms; }
+  .animate-stagger-6 { animation-delay: 250ms; }
+  .animate-stagger-7 { animation-delay: 300ms; }
+  .animate-stagger-8 { animation-delay: 350ms; }
 }
 
 @keyframes spin {
