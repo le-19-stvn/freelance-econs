@@ -67,11 +67,11 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
 
         {/* Icon */}
         <div
+          className="bg-gradient-to-br from-blue-600 to-blue-800"
           style={{
             width: 64,
             height: 64,
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #00B4D8 0%, #1A3FA3 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -119,11 +119,11 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
           }}
         >
           {[
-            'Clients illimités',
-            'Projets actifs illimités',
-            'Factures illimitées',
-            'Export illimité',
-            'Accès prioritaire aux nouvelles fonctionnalités',
+            'Clients, projets et factures illimites',
+            'Simulateur URSSAF',
+            'Branding sur les factures (logo + couleurs)',
+            'Relances automatiques',
+            'Previsionnel de revenus',
           ].map((feature) => (
             <div
               key={feature}
