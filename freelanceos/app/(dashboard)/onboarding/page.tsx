@@ -6,8 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import { User, Receipt } from 'lucide-react'
 
-const inputCls = 'w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 outline-none focus:border-[#00A3FF] focus:ring-2 focus:ring-[#00A3FF]/20 transition-all'
-const labelCls = 'block text-xs font-semibold text-gray-700 mb-1.5'
+const inputCls = 'w-full px-4 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 transition-all'
+const labelCls = 'block text-xs font-medium text-zinc-500 mb-1.5'
 
 const steps = [
   { id: 1, label: 'Informations legales', icon: User },
@@ -109,21 +109,21 @@ export default function OnboardingPage() {
   if (loading) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-gray-200 border-t-[#0057FF] rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-zinc-200 border-t-blue-700 rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4" style={{ fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif' }}>
+    <div className="min-h-[80vh] flex items-center justify-center px-4 animate-fade-in">
       <div className="w-full max-w-lg">
 
         {/* ═══ HEADER ═══ */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight mb-1">
+          <h1 className="text-2xl font-bold text-zinc-900 mb-1">
             Bienvenue sur eCons Freelance
           </h1>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-zinc-400">
             Completez votre profil pour commencer a facturer.
           </p>
         </div>
@@ -136,14 +136,14 @@ export default function OnboardingPage() {
               const isActive = step >= s.id
               return (
                 <div key={s.id} className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
                     isActive
-                      ? 'bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white'
-                      : 'bg-gray-100 text-gray-400'
+                      ? 'bg-blue-700 text-white'
+                      : 'bg-zinc-100 text-zinc-400'
                   }`}>
                     <Icon size={15} />
                   </div>
-                  <span className={`text-xs font-medium hidden sm:block ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
+                  <span className={`text-xs font-medium hidden sm:block ${isActive ? 'text-zinc-900' : 'text-zinc-400'}`}>
                     {s.label}
                   </span>
                 </div>
@@ -151,26 +151,26 @@ export default function OnboardingPage() {
             })}
           </div>
           {/* Bar */}
-          <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-1 bg-zinc-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-[#00A3FF] to-[#0057FF] rounded-full transition-all duration-500"
+              className="h-full bg-blue-700 rounded-full transition-all duration-500"
               style={{ width: step === 1 ? '50%' : '100%' }}
             />
           </div>
-          <div className="text-[11px] text-gray-400 mt-2 text-right">
+          <div className="text-[11px] text-zinc-400 mt-2 text-right">
             Etape {step} sur 2
           </div>
         </div>
 
         {/* ═══ CARD ═══ */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+        <div className="bg-white rounded-2xl shadow-elevated p-8">
 
           {/* ── STEP 1: Legal ── */}
           {step === 1 && (
             <div className="flex flex-col gap-5">
               <div>
-                <h2 className="text-lg font-bold text-gray-900 mb-1">Informations legales</h2>
-                <p className="text-xs text-gray-400">Ces informations apparaitront sur vos factures.</p>
+                <h2 className="text-lg font-bold text-zinc-900 mb-1">Informations legales</h2>
+                <p className="text-xs text-zinc-400">Ces informations apparaitront sur vos factures.</p>
               </div>
 
               <div>
@@ -180,14 +180,14 @@ export default function OnboardingPage() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Jean Dupont"
-                  className={`${inputCls} ${errors.fullName ? '!border-gray-400' : ''}`}
+                  className={`${inputCls} ${errors.fullName ? '!border-red-500 !ring-red-500/20' : ''}`}
                   autoFocus
                 />
-                {errors.fullName && <p className="text-xs text-gray-500 mt-1">{errors.fullName}</p>}
+                {errors.fullName && <p className="text-xs text-red-500 mt-1">{errors.fullName}</p>}
               </div>
 
               <div>
-                <label className={labelCls}>Nom de l&apos;entreprise <span className="text-gray-400 font-normal">(optionnel)</span></label>
+                <label className={labelCls}>Nom de l&apos;entreprise <span className="text-zinc-400 font-normal">(optionnel)</span></label>
                 <input
                   type="text"
                   value={companyName}
@@ -204,9 +204,9 @@ export default function OnboardingPage() {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="12 rue de la Paix, 75002 Paris"
-                  className={`${inputCls} ${errors.address ? '!border-gray-400' : ''}`}
+                  className={`${inputCls} ${errors.address ? '!border-red-500 !ring-red-500/20' : ''}`}
                 />
-                {errors.address && <p className="text-xs text-gray-500 mt-1">{errors.address}</p>}
+                {errors.address && <p className="text-xs text-red-500 mt-1">{errors.address}</p>}
               </div>
 
               <div>
@@ -216,14 +216,14 @@ export default function OnboardingPage() {
                   value={siret}
                   onChange={(e) => setSiret(e.target.value)}
                   placeholder="123 456 789 00012"
-                  className={`${inputCls} ${errors.siret ? '!border-gray-400' : ''}`}
+                  className={`${inputCls} ${errors.siret ? '!border-red-500 !ring-red-500/20' : ''}`}
                 />
-                {errors.siret && <p className="text-xs text-gray-500 mt-1">{errors.siret}</p>}
+                {errors.siret && <p className="text-xs text-red-500 mt-1">{errors.siret}</p>}
               </div>
 
               <button
                 onClick={handleNext}
-                className="w-full mt-2 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-br from-[#00A3FF] to-[#0057FF] hover:opacity-90 transition-opacity cursor-pointer"
+                className="w-full mt-2 py-3 rounded-xl text-sm font-medium text-white bg-blue-700 hover:bg-blue-800 shadow-sm hover:shadow-md transition-all active:scale-[0.98] cursor-pointer"
               >
                 Etape suivante
               </button>
@@ -234,8 +234,8 @@ export default function OnboardingPage() {
           {step === 2 && (
             <div className="flex flex-col gap-5">
               <div>
-                <h2 className="text-lg font-bold text-gray-900 mb-1">Fiscalite & Paiement</h2>
-                <p className="text-xs text-gray-400">Configurez votre TVA et vos moyens de paiement.</p>
+                <h2 className="text-lg font-bold text-zinc-900 mb-1">Fiscalite & Paiement</h2>
+                <p className="text-xs text-zinc-400">Configurez votre TVA et vos moyens de paiement.</p>
               </div>
 
               {/* TVA Toggle */}
@@ -245,10 +245,10 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     onClick={() => setTvaSubject(true)}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all cursor-pointer ${
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all active:scale-[0.98] cursor-pointer ${
                       tvaSubject
-                        ? 'bg-gradient-to-br from-[#00A3FF] to-[#0057FF] text-white border-transparent'
-                        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
+                        ? 'bg-blue-700 text-white border-blue-700'
+                        : 'bg-white text-zinc-500 border-zinc-200 hover:border-zinc-300'
                     }`}
                   >
                     Oui
@@ -256,17 +256,17 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     onClick={() => setTvaSubject(false)}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all cursor-pointer ${
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all active:scale-[0.98] cursor-pointer ${
                       !tvaSubject
-                        ? 'bg-gray-900 text-white border-transparent'
-                        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
+                        ? 'bg-zinc-900 text-white border-zinc-900'
+                        : 'bg-white text-zinc-500 border-zinc-200 hover:border-zinc-300'
                     }`}
                   >
                     Non
                   </button>
                 </div>
                 {!tvaSubject && (
-                  <p className="text-[11px] text-gray-400 mt-2 leading-relaxed">
+                  <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">
                     TVA non applicable, art. 293 B du CGI — cette mention sera ajoutee automatiquement sur vos factures.
                   </p>
                 )}
@@ -291,7 +291,7 @@ export default function OnboardingPage() {
 
               {/* IBAN */}
               <div>
-                <label className={labelCls}>IBAN <span className="text-gray-400 font-normal">(optionnel)</span></label>
+                <label className={labelCls}>IBAN <span className="text-zinc-400 font-normal">(optionnel)</span></label>
                 <input
                   type="text"
                   value={iban}
@@ -303,7 +303,7 @@ export default function OnboardingPage() {
 
               {/* Payment Link */}
               <div>
-                <label className={labelCls}>Lien de paiement rapide <span className="text-gray-400 font-normal">(optionnel)</span></label>
+                <label className={labelCls}>Lien de paiement rapide <span className="text-zinc-400 font-normal">(optionnel)</span></label>
                 <input
                   type="url"
                   value={paymentLink}
@@ -311,21 +311,21 @@ export default function OnboardingPage() {
                   placeholder="https://paypal.me/votrenom"
                   className={inputCls}
                 />
-                <p className="text-[11px] text-gray-400 mt-1">Stripe, PayPal.me, Revolut, etc.</p>
+                <p className="text-[11px] text-zinc-400 mt-1">Stripe, PayPal.me, Revolut, etc.</p>
               </div>
 
               {/* Actions */}
               <div className="flex gap-3 mt-2">
                 <button
                   onClick={() => setStep(1)}
-                  className="px-5 py-3 rounded-xl text-sm font-semibold text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="rounded-xl bg-zinc-100 text-zinc-900 px-5 py-3 text-sm font-medium hover:bg-zinc-200 transition-all active:scale-[0.98] cursor-pointer"
                 >
                   Retour
                 </button>
                 <button
                   onClick={handleFinish}
                   disabled={saving}
-                  className="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-br from-[#00A3FF] to-[#0057FF] hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
+                  className="flex-1 py-3 rounded-xl text-sm font-medium text-white bg-blue-700 hover:bg-blue-800 shadow-sm hover:shadow-md transition-all active:scale-[0.98] disabled:opacity-40 cursor-pointer"
                 >
                   {saving ? 'Enregistrement...' : 'Terminer'}
                 </button>
@@ -335,7 +335,7 @@ export default function OnboardingPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-[11px] text-gray-400 mt-6">
+        <p className="text-center text-[11px] text-zinc-400 mt-6">
           Vous pourrez modifier ces informations a tout moment dans votre Profil.
         </p>
       </div>
