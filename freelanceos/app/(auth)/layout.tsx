@@ -23,8 +23,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         />
 
         {/* Blue glow accents */}
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-[#00A3FF]/10 rounded-full blur-[120px]" />
-        <div className="absolute -top-20 -right-20 w-72 h-72 bg-[#0057FF]/8 rounded-full blur-[100px]" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-700/10 rounded-full blur-[120px]" />
+        <div className="absolute -top-20 -right-20 w-72 h-72 bg-blue-600/10 rounded-full blur-[100px]" />
 
         {/* Top — Brand logo */}
         <div className="relative z-10 p-10">

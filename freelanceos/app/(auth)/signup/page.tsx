@@ -98,7 +98,7 @@ export default function SignupPage() {
             onChange={(e) => setFullName(e.target.value)}
             required
             placeholder="Jean Dupont"
-            className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--line)] rounded-xl text-sm text-[var(--ink)] placeholder:text-[var(--muted)]/50 focus:border-[#00A3FF] focus:ring-2 focus:ring-[#00A3FF]/10 focus:outline-none transition-all"
+            className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--line)] rounded-xl text-sm text-[var(--ink)] placeholder:text-[var(--muted)]/50 focus:border-blue-700 focus:ring-2 focus:ring-blue-700/20 focus:outline-none transition-all"
           />
         </div>
         <div>
@@ -111,7 +111,7 @@ export default function SignupPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="vous@exemple.com"
-            className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--line)] rounded-xl text-sm text-[var(--ink)] placeholder:text-[var(--muted)]/50 focus:border-[#00A3FF] focus:ring-2 focus:ring-[#00A3FF]/10 focus:outline-none transition-all"
+            className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--line)] rounded-xl text-sm text-[var(--ink)] placeholder:text-[var(--muted)]/50 focus:border-blue-700 focus:ring-2 focus:ring-blue-700/20 focus:outline-none transition-all"
           />
         </div>
         <div>
@@ -125,21 +125,21 @@ export default function SignupPage() {
             required
             minLength={6}
             placeholder="Minimum 6 caracteres"
-            className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--line)] rounded-xl text-sm text-[var(--ink)] placeholder:text-[var(--muted)]/50 focus:border-[#00A3FF] focus:ring-2 focus:ring-[#00A3FF]/10 focus:outline-none transition-all"
+            className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--line)] rounded-xl text-sm text-[var(--ink)] placeholder:text-[var(--muted)]/50 focus:border-blue-700 focus:ring-2 focus:ring-blue-700/20 focus:outline-none transition-all"
           />
         </div>
 
         <div>
           <label className="flex items-center gap-2 text-[11px] uppercase tracking-[1.5px] text-[var(--muted)] font-medium mb-1.5">
             SIRET
-            <span className="normal-case tracking-normal font-[var(--font-ibm-plex-mono)] text-[10px] text-[var(--muted)]/60">(Optionnel)</span>
+            <span className="normal-case tracking-normal font-mono text-[10px] text-[var(--muted)]/60">(Optionnel)</span>
           </label>
           <input
             type="text"
             value={siret}
             onChange={(e) => setSiret(e.target.value)}
             placeholder="123 456 789 00012"
-            className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--line)] rounded-xl text-sm text-[var(--ink)] placeholder:text-[var(--muted)]/50 focus:border-[#00A3FF] focus:ring-2 focus:ring-[#00A3FF]/10 focus:outline-none transition-all font-[var(--font-ibm-plex-mono)]"
+            className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--line)] rounded-xl text-sm text-[var(--ink)] placeholder:text-[var(--muted)]/50 focus:border-blue-700 focus:ring-2 focus:ring-blue-700/20 focus:outline-none transition-all font-mono"
           />
         </div>
 
@@ -152,7 +152,7 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-gradient-to-r from-[#00A3FF] to-[#0057FF] text-white font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md shadow-[#0057FF]/20"
+          className="w-full py-3 bg-blue-700 text-white font-medium rounded-xl hover:bg-blue-800 transition-all active:scale-[0.98] disabled:opacity-40 shadow-sm hover:shadow-md"
         >
           {loading ? 'Creation...' : 'Creer mon compte'}
         </button>
@@ -160,7 +160,7 @@ export default function SignupPage() {
 
       <p className="mt-8 text-center text-sm text-[var(--muted)]">
         Deja un compte ?{' '}
-        <Link href="/login" className="text-[#0057FF] font-semibold hover:underline">
+        <Link href="/login" className="text-blue-700 font-semibold hover:underline">
           Se connecter
         </Link>
       </p>

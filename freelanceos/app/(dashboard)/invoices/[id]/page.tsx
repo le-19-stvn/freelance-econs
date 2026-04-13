@@ -409,7 +409,7 @@ export default function InvoiceDetailPage() {
                   value={item.description}
                   onChange={(e) => updateItem(idx, 'description', e.target.value)}
                   placeholder="Description"
-                  className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm bg-[var(--bg)] text-[var(--ink)] outline-none focus:border-[#00A3FF] focus:ring-1 focus:ring-[#00A3FF]/20"
+                  className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm bg-[var(--bg)] text-[var(--ink)] outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700/20"
                 />
               </div>
 
@@ -425,7 +425,7 @@ export default function InvoiceDetailPage() {
                     step="0.01"
                     value={item.quantity}
                     onChange={(e) => updateItem(idx, 'quantity', parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm bg-[var(--bg)] text-[var(--ink)] outline-none focus:border-[#00A3FF] focus:ring-1 focus:ring-[#00A3FF]/20"
+                    className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm bg-[var(--bg)] text-[var(--ink)] outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700/20"
                   />
                 </div>
                 <div>
@@ -435,7 +435,7 @@ export default function InvoiceDetailPage() {
                   <select
                     value={item.unit_type}
                     onChange={(e) => updateItem(idx, 'unit_type', e.target.value)}
-                    className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm bg-[var(--bg)] text-[var(--ink)] outline-none focus:border-[#00A3FF] focus:ring-1 focus:ring-[#00A3FF]/20"
+                    className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm bg-[var(--bg)] text-[var(--ink)] outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700/20"
                   >
                     {unitOptions.map((u) => (
                       <option key={u.value} value={u.value}>{u.label}</option>
@@ -452,7 +452,7 @@ export default function InvoiceDetailPage() {
                     step="0.01"
                     value={item.unit_price}
                     onChange={(e) => updateItem(idx, 'unit_price', parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm bg-[var(--bg)] text-[var(--ink)] outline-none focus:border-[#00A3FF] focus:ring-1 focus:ring-[#00A3FF]/20"
+                    className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm bg-[var(--bg)] text-[var(--ink)] outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700/20"
                   />
                 </div>
               </div>
