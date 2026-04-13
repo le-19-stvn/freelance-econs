@@ -69,7 +69,6 @@ export default function OnboardingPage() {
     const errs: Record<string, string> = {}
     if (fullName.trim().length < 2) errs.fullName = 'Requis (min. 2 caracteres)'
     if (address.trim().length < 5) errs.address = 'Requis (min. 5 caracteres)'
-    if (siret.trim().length < 9) errs.siret = 'Requis (min. 9 chiffres)'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -90,7 +89,7 @@ export default function OnboardingPage() {
           full_name: fullName.trim(),
           company_name: companyName.trim() || null,
           address: address.trim(),
-          siret: siret.trim(),
+          siret: siret.trim() || null,
           tva_rate: tvaSubject ? parseFloat(tvaRate) || 20 : 0,
           tva_number: tvaSubject ? undefined : null,
           iban: iban.trim() || null,
@@ -210,15 +209,14 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <label className={labelCls}>Numero SIRET *</label>
+                <label className={labelCls}>Numero SIRET <span className="text-zinc-400 font-normal">(optionnel)</span></label>
                 <input
                   type="text"
                   value={siret}
                   onChange={(e) => setSiret(e.target.value)}
                   placeholder="123 456 789 00012"
-                  className={`${inputCls} ${errors.siret ? '!border-red-500 !ring-red-500/20' : ''}`}
+                  className={inputCls}
                 />
-                {errors.siret && <p className="text-xs text-red-500 mt-1">{errors.siret}</p>}
               </div>
 
               <button
