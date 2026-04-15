@@ -203,7 +203,7 @@ export default function ClientsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl shadow-elevated-lg p-8 w-full max-w-md mx-4 relative max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-2xl shadow-elevated-lg p-8 w-full max-w-md mx-4 relative"
           >
             <button
               onClick={() => setShowModal(false)}
