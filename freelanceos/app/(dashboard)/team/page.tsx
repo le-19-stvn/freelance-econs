@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import { useTeams, useTeamMembers, useTeamProjects, useTeamTasks } from '@/hooks/useTeams'
@@ -24,9 +25,10 @@ const inputCls = 'w-full px-4 py-3 rounded-xl bg-zinc-50 border border-zinc-200 
 
 /* ── Modal ── */
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
-  return (
+  if (typeof document === 'undefined') return null
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm px-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm px-4"
       onClick={onClose}
     >
       <div
@@ -41,7 +43,8 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
         </button>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

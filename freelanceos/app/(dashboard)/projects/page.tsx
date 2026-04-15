@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useProjects } from '@/hooks/useProjects'
 import { useClients } from '@/hooks/useClients'
 import { useToast } from '@/components/ui/Toast'
@@ -226,9 +227,9 @@ export default function ProjectsPage() {
       )}
 
       {/* ═══ MODAL ═══ */}
-      {showModal && (
+      {showModal && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm"
           onClick={() => setShowModal(false)}
         >
           <div
@@ -462,7 +463,8 @@ export default function ProjectsPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
