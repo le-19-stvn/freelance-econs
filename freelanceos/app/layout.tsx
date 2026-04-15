@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+import { Analytics } from "@vercel/analytics/next";
 
 const siteUrl = "https://econs-freelance.com";
 const siteName = "Freelance by eCons";
@@ -82,6 +83,7 @@ export default function RootLayout({
     <html lang="fr">
       <body className="antialiased">
         <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   );
