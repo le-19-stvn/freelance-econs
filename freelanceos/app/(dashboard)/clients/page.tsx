@@ -196,15 +196,15 @@ export default function ClientsPage() {
       )}
 
       {/* ═══ MODAL ═══ */}
-      {showModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-          onClick={() => setShowModal(false)}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl shadow-elevated-lg p-8 w-full max-w-md mx-4 relative"
-          >
+      {showModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-elevated-lg p-8 w-full max-w-md mx-4 relative max-h-[90vh] overflow-y-auto"
+          >
             <button
               onClick={() => setShowModal(false)}
               className="absolute top-4 right-4 p-1.5 rounded-xl text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors"
