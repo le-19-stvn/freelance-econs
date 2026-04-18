@@ -25,6 +25,7 @@ export default function ParametresPage() {
     tva_assujetti: false,
     tva_number: '',
     tva_rate: '20',
+    annual_goal: '',
   })
 
   const [banque, setBanque] = useState({ iban: '', bic: '' })
@@ -49,6 +50,7 @@ export default function ParametresPage() {
         tva_assujetti: (p.tva_rate ?? 0) > 0,
         tva_number: p.tva_number ?? '',
         tva_rate: String(p.tva_rate ?? 0),
+        annual_goal: p.annual_goal != null ? String(p.annual_goal) : '',
       })
       setBanque({ iban: p.iban ?? '', bic: '' })
       setPlanType(p.plan_type ?? 'free')
@@ -74,12 +76,25 @@ export default function ParametresPage() {
     let updates: Record<string, unknown> = {}
 
     if (section === 'entreprise') {
+      // Parse annual goal: empty string → null; positive number → kept; else reject
+      let annualGoalValue: number | null = null
+      if (entreprise.annual_goal.trim() !== '') {
+        const parsed = parseFloat(entreprise.annual_goal)
+        if (!isFinite(parsed) || parsed <= 0) {
+          setToast({ msg: "L'objectif annuel doit etre un montant positif.", type: 'error' })
+          setSaving(null)
+          return
+        }
+        annualGoalValue = parsed
+      }
+
       updates = {
         company_name: entreprise.company_name || null,
         siret: entreprise.siret || null,
         address: entreprise.address || null,
         tva_number: entreprise.tva_assujetti ? (entreprise.tva_number || null) : null,
         tva_rate: entreprise.tva_assujetti ? (parseFloat(entreprise.tva_rate) || 20) : 0,
+        annual_goal: annualGoalValue,
       }
     } else if (section === 'banque') {
       updates = { iban: banque.iban || null }
@@ -242,6 +257,23 @@ export default function ParametresPage() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Annual revenue goal */}
+          <div>
+            <label className={labelCls}>Objectif annuel (EUR)</label>
+            <input
+              type="number"
+              min="0"
+              step="100"
+              value={entreprise.annual_goal}
+              onChange={(e) => setEntreprise(f => ({ ...f, annual_goal: e.target.value }))}
+              placeholder="60000"
+              className={inputCls}
+            />
+            <p className="text-xs text-zinc-400 mt-1.5">
+              Affiche en barre de progression sur votre tableau de bord. Laissez vide pour masquer.
+            </p>
           </div>
         </div>
 

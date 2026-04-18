@@ -40,6 +40,8 @@ function getLast6Months(): string[] {
 export default function DashboardPage() {
   const [profileTvaRate, setProfileTvaRate] = useState<number | null>(null)
   const [planType, setPlanType] = useState<string>('free')
+  const [firstName, setFirstName] = useState<string | null>(null)
+  const [annualGoal, setAnnualGoal] = useState<number | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -48,15 +50,25 @@ export default function DashboardPage() {
       if (!user) return
       const { data } = await supabase
         .from('profiles')
-        .select('tva_rate, plan_type')
+        .select('tva_rate, plan_type, full_name, annual_goal')
         .eq('id', user.id)
         .single()
       if (data) {
         setProfileTvaRate(data.tva_rate ?? 0)
         setPlanType(data.plan_type ?? 'free')
+        // First word of full_name, fallback to email local part
+        const first = (data.full_name as string | null)?.trim().split(/\s+/)[0] ?? null
+        setFirstName(first || (user.email?.split('@')[0] ?? null))
+        setAnnualGoal(data.annual_goal ?? null)
       }
     })()
   }, [])
+
+  // "avril 2026" — locale fr
+  const monthLabel = new Date().toLocaleDateString('fr-FR', {
+    month: 'long',
+    year: 'numeric',
+  })
 
   const { invoices, loading: loadingInv } = useInvoices()
   const { projects, loading: loadingProj } = useProjects()
@@ -199,24 +211,86 @@ export default function DashboardPage() {
     info: 'text-zinc-400',
   }
 
+  // Progress vs annual goal (0-100, capped)
+  const goalPct =
+    annualGoal && annualGoal > 0
+      ? Math.max(0, Math.min(100, Math.round((totalTTC / annualGoal) * 100)))
+      : 0
+
   return (
     <div className="max-w-7xl mx-auto space-y-4">
 
-      {/* ═══ ROW 1: Hero Revenue ═══ */}
+      {/* ═══ GREETING ═══ */}
+      <div className="animate-fade-in">
+        <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 tracking-tight">
+          Bonjour{firstName ? `, ${firstName}` : ''}
+          <span className="text-zinc-400 font-normal"> — {monthLabel}.</span>
+        </h1>
+        <p className="text-sm text-zinc-500 mt-1">
+          Voici l&apos;etat de votre activite ce mois-ci.
+        </p>
+      </div>
+
+      {/* ═══ ROW 1: Hero Revenue + Annual Goal ═══ */}
       <div
-        className="bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-3xl p-8 md:p-10 animate-fade-in animate-stagger-1"
+        className="bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-3xl p-8 md:p-10 animate-fade-in animate-stagger-1 grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-8 md:gap-10 items-end"
       >
-        <div className="text-[11px] uppercase tracking-[0.05em] font-medium text-white/40 mb-4">
-          Chiffre d&apos;affaires
+        {/* Left: revenue */}
+        <div>
+          <div className="text-[11px] uppercase tracking-[0.05em] font-medium text-white/40 mb-4">
+            Chiffre d&apos;affaires — {new Date().getFullYear()}
+          </div>
+          <div className="text-5xl sm:text-6xl md:text-7xl font-bold text-white tracking-tight leading-none">
+            {formatCurrency(totalTTC)}
+          </div>
+          <div className="flex items-center gap-3 mt-5">
+            <div className="h-px w-8 bg-white/20" />
+            <span className="text-sm text-white/40">
+              {paidInvoices.length} facture{paidInvoices.length !== 1 ? 's' : ''} payée{paidInvoices.length !== 1 ? 's' : ''}
+            </span>
+          </div>
         </div>
-        <div className="text-5xl sm:text-6xl md:text-7xl font-bold text-white tracking-tight leading-none">
-          {formatCurrency(totalTTC)}
-        </div>
-        <div className="flex items-center gap-3 mt-5">
-          <div className="h-px w-8 bg-white/20" />
-          <span className="text-sm text-white/40">
-            {paidInvoices.length} facture{paidInvoices.length !== 1 ? 's' : ''} payée{paidInvoices.length !== 1 ? 's' : ''}
-          </span>
+
+        {/* Right: annual goal */}
+        <div className="md:border-l md:border-white/10 md:pl-8">
+          {annualGoal && annualGoal > 0 ? (
+            <>
+              <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.05em] font-medium text-white/40 mb-3">
+                <span>Objectif annuel</span>
+                <span>{new Date().getFullYear()}</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-white/10 overflow-hidden mb-3">
+                <div
+                  className="h-full bg-gradient-to-r from-blue-500 to-blue-300 transition-all duration-700 ease-out"
+                  style={{ width: `${goalPct}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between text-sm text-white/70">
+                <span>
+                  <span className="text-white font-medium">{formatCurrency(totalTTC)}</span> encaisses
+                </span>
+                <span className="text-white/50">
+                  / {formatCurrency(annualGoal)}
+                </span>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-start gap-3">
+              <div className="text-[11px] uppercase tracking-[0.05em] font-medium text-white/40">
+                Objectif annuel
+              </div>
+              <p className="text-sm text-white/60 leading-snug">
+                Fixez-vous un cap pour {new Date().getFullYear()} et suivez votre progression chaque jour.
+              </p>
+              <Link
+                href="/parametres"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-white/90 hover:text-white transition-colors"
+              >
+                Definir mon objectif
+                <ArrowRight size={13} />
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 

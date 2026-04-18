@@ -21,6 +21,7 @@ export interface Profile {
   plan_status: PlanStatus
   plan_type: PlanType
   onboarding_completed: boolean
+  annual_goal: number | null
 }
 
 export interface Workspace {
