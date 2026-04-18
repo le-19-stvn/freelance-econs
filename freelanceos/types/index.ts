@@ -162,3 +162,14 @@ export interface TeamTask {
   created_at: string
   assignee_name?: string | null
 }
+
+export interface InvoiceReminder {
+  id: string
+  invoice_id: string
+  user_id: string
+  sequence_step: number
+  scheduled_at: string
+  sent_at: string | null
+  status: 'pending' | 'sent' | 'failed'
+  created_at: string
+}

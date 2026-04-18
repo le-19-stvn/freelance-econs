@@ -10,7 +10,7 @@ import { calculateHT, calculateTVA, calculateTTC, formatCurrency } from '@/lib/u
 import { generateInvoiceNumber } from '@/lib/utils/invoice-number'
 import { checkPlanLimit } from '@/lib/plan-limits'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
-import type { Invoice, InvoiceItem, InvoiceStatus, UnitType } from '@/types'
+import type { Invoice, InvoiceItem, InvoiceStatus, UnitType, InvoiceReminder } from '@/types'
 
 const tvaOptions = [0, 5.5, 10, 20]
 const unitOptions: { value: UnitType; label: string }[] = [
@@ -62,6 +62,8 @@ export default function InvoiceDetailPage() {
   const [status, setStatus] = useState<InvoiceStatus>('draft')
   const [invoiceNumber, setInvoiceNumber] = useState('')
   const [items, setItems] = useState<Omit<InvoiceItem, 'id' | 'invoice_id'>[]>([{ ...emptyItem }])
+  const [planType, setPlanType] = useState<string>('free')
+  const [reminders, setReminders] = useState<InvoiceReminder[]>([])
 
   const fetchInvoice = useCallback(async () => {
     if (isNew) return
@@ -98,6 +100,15 @@ export default function InvoiceDetailPage() {
             }))
           : [{ ...emptyItem }]
       )
+
+      if (!isNew) {
+        const { data: rems } = await supabase
+          .from('invoice_reminders')
+          .select('*')
+          .eq('invoice_id', id)
+          .order('sequence_step')
+        if (rems) setReminders(rems as InvoiceReminder[])
+      }
     } catch (err) {
       console.error('Erreur lors du chargement de la facture:', err)
       router.push('/invoices')
@@ -108,6 +119,15 @@ export default function InvoiceDetailPage() {
   useEffect(() => {
     fetchInvoice()
   }, [fetchInvoice])
+
+  useEffect(() => {
+    (async () => {
+      const userId = await getAuthUserId(supabase).catch(() => null)
+      if (!userId) return
+      const { data } = await supabase.from('profiles').select('plan_type').eq('id', userId).single()
+      setPlanType(data?.plan_type ?? 'free')
+    })()
+  }, [supabase])
 
   const ht = calculateHT(items as InvoiceItem[])
   const tva = calculateTVA(ht, tvaRate)
@@ -153,6 +173,8 @@ export default function InvoiceDetailPage() {
         status,
       }
 
+      let invoiceId: string
+
       if (isNew) {
         // ── Plan limit check ──
         const limitCheck = await checkPlanLimit(supabase, userId, 'invoices')
@@ -171,6 +193,8 @@ export default function InvoiceDetailPage() {
           .single()
         if (invErr) throw invErr
 
+        invoiceId = inv.id
+
         if (items.length > 0) {
           const { error: itemsErr } = await supabase
             .from('invoice_items')
@@ -184,6 +208,8 @@ export default function InvoiceDetailPage() {
           .eq('id', id)
         if (invErr) throw invErr
 
+        invoiceId = id
+
         await supabase.from('invoice_items').delete().eq('invoice_id', id)
         if (items.length > 0) {
           const { error: itemsErr } = await supabase
@@ -192,6 +218,41 @@ export default function InvoiceDetailPage() {
           if (itemsErr) throw itemsErr
         }
       }
+
+      // Reminders: schedule if Pro + sent + due date; cancel if paid/draft
+      if (planType === 'pro') {
+        if (status === 'sent' && dueDate) {
+          const due = new Date(dueDate)
+          const remindersToInsert = [
+            { step: 1, offset: 3 },
+            { step: 2, offset: 7 },
+            { step: 3, offset: 15 },
+          ].map((r) => ({
+            invoice_id: invoiceId,
+            user_id: userId,
+            sequence_step: r.step,
+            scheduled_at: new Date(due.getTime() + r.offset * 86400000).toISOString(),
+            status: 'pending' as const,
+          }))
+
+          // Remove existing pending reminders then insert fresh sequence
+          await supabase
+            .from('invoice_reminders')
+            .delete()
+            .eq('invoice_id', invoiceId)
+            .eq('status', 'pending')
+
+          await supabase.from('invoice_reminders').insert(remindersToInsert)
+        } else if (status === 'paid' || status === 'draft') {
+          // Cancel pending reminders when invoice is no longer awaiting payment
+          await supabase
+            .from('invoice_reminders')
+            .update({ status: 'failed' })
+            .eq('invoice_id', invoiceId)
+            .eq('status', 'pending')
+        }
+      }
+
       router.push('/invoices')
     } catch (err) {
       console.error('Erreur lors de la sauvegarde de la facture:', err)
@@ -569,6 +630,28 @@ export default function InvoiceDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Reminders (Pro) */}
+      {planType === 'pro' && reminders.length > 0 && (
+        <div className="bg-zinc-50 rounded-xl p-4 mt-4 mb-4">
+          <h3 className="text-xs font-medium text-zinc-500 mb-2">Relances automatiques</h3>
+          <div className="space-y-1">
+            {reminders.map((r) => {
+              const days = r.sequence_step === 1 ? '3' : r.sequence_step === 2 ? '7' : '15'
+              const dotCls = r.status === 'sent' ? 'bg-emerald-500' : r.status === 'failed' ? 'bg-zinc-300' : 'bg-blue-700'
+              const suffix = r.status === 'sent' ? '— Envoyee' : r.status === 'failed' ? '— Annulee' : '— En attente'
+              return (
+                <div key={r.id} className="flex items-center gap-2 text-xs">
+                  <span className={`w-2 h-2 rounded-full ${dotCls}`} />
+                  <span className="text-zinc-500">J+{days}</span>
+                  <span className="text-zinc-400">{new Date(r.scheduled_at).toLocaleDateString('fr-FR')}</span>
+                  <span className="text-zinc-400">{suffix}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
