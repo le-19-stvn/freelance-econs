@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { ReactNode, useState, useEffect } from 'react'
 import { Menu, X, Users, Bell, Check, XCircle, Settings } from 'lucide-react'
+import * as Sentry from '@sentry/nextjs'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import { useNotifications } from '@/hooks/useNotifications'
@@ -76,9 +77,10 @@ function HeaderProfile() {
     ;(async () => {
       try {
         const userId = await getAuthUserId(supabase)
+        const { data: { user } } = await supabase.auth.getUser()
         const { data } = await supabase
           .from('profiles')
-          .select('avatar_url, full_name')
+          .select('avatar_url, full_name, plan_type, plan_status')
           .eq('id', userId)
           .single()
         if (data?.avatar_url) setAvatarUrl(data.avatar_url)
@@ -86,6 +88,14 @@ function HeaderProfile() {
           setInitial(data.full_name[0].toUpperCase())
           setName(data.full_name)
         }
+        // Tag every Sentry event with user identity + plan so we know
+        // which customer hit the error and whether they're paying.
+        Sentry.setUser({
+          id: userId,
+          email: user?.email,
+        })
+        Sentry.setTag('plan_type', data?.plan_type ?? 'free')
+        Sentry.setTag('plan_status', data?.plan_status ?? 'inactive')
       } catch {}
     })()
   }, [supabase])
