@@ -1,0 +1,2 @@
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS invoice_logo_url TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS invoice_primary_color TEXT DEFAULT '#1D4ED8';

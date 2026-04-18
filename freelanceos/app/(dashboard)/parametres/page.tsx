@@ -4,7 +4,10 @@ import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
 import type { Profile } from '@/types'
-import { Save, Check } from 'lucide-react'
+import { Save, Check, Upload } from 'lucide-react'
+import { ProGate } from '@/components/ui/ProGate'
+import { uploadLogo } from '@/lib/actions/logo'
+import Image from 'next/image'
 
 const inputCls = 'w-full px-4 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 transition-all'
 const labelCls = 'block text-xs font-medium text-zinc-500 mb-1.5'
@@ -26,6 +29,11 @@ export default function ParametresPage() {
 
   const [banque, setBanque] = useState({ iban: '', bic: '' })
 
+  const [planType, setPlanType] = useState<string>('free')
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [primaryColor, setPrimaryColor] = useState('#1D4ED8')
+  const [logoUploading, setLogoUploading] = useState(false)
+
   const fetchProfile = useCallback(async () => {
     setLoading(true)
     const userId = await getAuthUserId(supabase).catch(() => null)
@@ -43,6 +51,9 @@ export default function ParametresPage() {
         tva_rate: String(p.tva_rate ?? 0),
       })
       setBanque({ iban: p.iban ?? '', bic: '' })
+      setPlanType(p.plan_type ?? 'free')
+      setLogoUrl(p.invoice_logo_url ?? null)
+      setPrimaryColor(p.invoice_primary_color ?? '#1D4ED8')
     }
     setLoading(false)
   }, [supabase])
@@ -55,7 +66,7 @@ export default function ParametresPage() {
     return () => clearTimeout(t)
   }, [toast])
 
-  const saveSection = async (section: 'entreprise' | 'banque') => {
+  const saveSection = async (section: 'entreprise' | 'banque' | 'branding') => {
     setSaving(section)
     const userId = await getAuthUserId(supabase).catch(() => null)
     if (!userId) { setSaving(null); return }
@@ -72,6 +83,8 @@ export default function ParametresPage() {
       }
     } else if (section === 'banque') {
       updates = { iban: banque.iban || null }
+    } else if (section === 'branding') {
+      updates = { invoice_primary_color: primaryColor }
     }
 
     const { error } = await supabase.from('profiles').update(updates).eq('id', userId)
@@ -81,6 +94,25 @@ export default function ParametresPage() {
       setToast({ msg: 'Modifications enregistrees', type: 'success' })
     }
     setSaving(null)
+  }
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setLogoUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const url = await uploadLogo(fd)
+      setLogoUrl(url)
+      setToast({ msg: 'Logo mis a jour', type: 'success' })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Erreur lors de l\'upload'
+      setToast({ msg, type: 'error' })
+    } finally {
+      setLogoUploading(false)
+      e.target.value = ''
+    }
   }
 
   if (loading) {
@@ -218,6 +250,84 @@ export default function ParametresPage() {
           </button>
         </div>
       </div>
+
+      {/* ═══ CARD — BRANDING FACTURES (PRO) ═══ */}
+      <ProGate planType={planType}>
+        <div className="bg-white rounded-2xl shadow-elevated p-6 md:p-8">
+          <div className="mb-6">
+            <h2 className="text-base font-semibold text-zinc-900">Branding factures</h2>
+            <p className="text-xs text-zinc-400 mt-0.5">Personnalisez vos factures avec votre logo et couleurs.</p>
+          </div>
+
+          <div className="space-y-6">
+            {/* Logo upload */}
+            <div>
+              <label className={labelCls}>Logo</label>
+              <div className="flex items-center gap-4">
+                {logoUrl ? (
+                  <Image
+                    src={logoUrl}
+                    alt="Logo"
+                    width={80}
+                    height={40}
+                    unoptimized
+                    className="rounded-lg bg-zinc-50 object-contain"
+                  />
+                ) : (
+                  <div className="w-20 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center">
+                    <Upload size={14} className="text-zinc-400" />
+                  </div>
+                )}
+                <label className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-900 px-4 py-2 text-sm font-medium transition-colors">
+                  <Upload size={14} />
+                  {logoUploading ? 'Upload...' : (logoUrl ? 'Changer' : 'Importer un logo')}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/svg+xml,image/webp"
+                    className="hidden"
+                    onChange={handleLogoChange}
+                    disabled={logoUploading}
+                  />
+                </label>
+              </div>
+              <p className="text-[10px] text-zinc-400 mt-2">JPG, PNG, SVG ou WebP. Max 2 Mo.</p>
+            </div>
+
+            {/* Primary color */}
+            <div>
+              <label className={labelCls}>Couleur principale</label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={primaryColor}
+                  onChange={(e) => setPrimaryColor(e.target.value)}
+                  className="w-12 h-12 rounded-xl border border-zinc-200 bg-zinc-50 cursor-pointer"
+                />
+                <input
+                  type="text"
+                  maxLength={7}
+                  value={primaryColor}
+                  onChange={(e) => setPrimaryColor(e.target.value)}
+                  placeholder="#1D4ED8"
+                  className={`${inputCls} max-w-[160px] font-mono`}
+                />
+              </div>
+              <p className="text-[10px] text-zinc-400 mt-2">Appliquee au titre, aux totaux et aux lignes d{"'"}accent.</p>
+            </div>
+          </div>
+
+          <div className="mt-6 flex justify-end">
+            <button
+              onClick={() => saveSection('branding')}
+              disabled={saving === 'branding'}
+              className="rounded-xl bg-blue-700 text-white px-5 py-2.5 text-sm font-medium hover:bg-blue-800 shadow-sm hover:shadow-md transition-all active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <Save size={14} />
+              {saving === 'branding' ? 'Sauvegarde...' : 'Sauvegarder'}
+            </button>
+          </div>
+        </div>
+      </ProGate>
 
       {/* ═══ CARD 2 — BANQUE ═══ */}
       <div className="bg-white rounded-2xl shadow-elevated p-6 md:p-8">

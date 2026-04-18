@@ -389,6 +389,11 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
   const ttc = calculateTTC(ht, tvaRate)
   const isTvaExempt = tvaRate === 0
   const currency = invoice.currency ?? 'EUR'
+  const primaryColor = profile.invoice_primary_color ?? c.black
+  const logoSrc =
+    profile.invoice_logo_url && profile.invoice_logo_url.startsWith('http')
+      ? profile.invoice_logo_url
+      : LOGO_PATH
 
   return (
     <Document>
@@ -401,10 +406,10 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
 
           {/* ── Left: FACTURE + Logo + Sender ── */}
           <View style={styles.headerLeft}>
-            <Text style={styles.factureTitle}>Facture</Text>
+            <Text style={[styles.factureTitle, { color: primaryColor }]}>Facture</Text>
 
-            {/* Logo — eCons Freelance brand mark */}
-            <Image src={LOGO_PATH} style={styles.logo} />
+            {/* Logo — user custom logo or eCons Freelance brand mark */}
+            <Image src={logoSrc} style={styles.logo} />
 
             <Text style={styles.senderName}>
               {profile.company_name ?? profile.full_name ?? 'Freelance'}
@@ -484,7 +489,7 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
         <View style={styles.table}>
 
           {/* Table Header */}
-          <View style={styles.tableHeader}>
+          <View style={[styles.tableHeader, { borderBottomColor: primaryColor }]}>
             <View style={styles.colDesc}>
               <Text style={styles.thText}>Description</Text>
             </View>
@@ -551,11 +556,11 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
             </View>
 
             {/* TOTAL TTC — Bold + thick top border + double underline */}
-            <View style={styles.ttcRow}>
-              <Text style={styles.ttcLabel}>Total TTC</Text>
-              <Text style={styles.ttcValue}>{fmtEur(ttc, currency)}</Text>
+            <View style={[styles.ttcRow, { borderTopColor: primaryColor }]}>
+              <Text style={[styles.ttcLabel, { color: primaryColor }]}>Total TTC</Text>
+              <Text style={[styles.ttcValue, { color: primaryColor }]}>{fmtEur(ttc, currency)}</Text>
             </View>
-            <View style={styles.ttcUnderline} />
+            <View style={[styles.ttcUnderline, { borderBottomColor: primaryColor }]} />
           </View>
         </View>
 
