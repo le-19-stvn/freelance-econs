@@ -25,6 +25,7 @@ import {
 } from 'recharts'
 import { KPICard } from '@/components/ui/KPICard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { ProGate } from '@/components/ui/ProGate'
 
 function getLast6Months(): string[] {
   const months = []
@@ -38,6 +39,7 @@ function getLast6Months(): string[] {
 
 export default function DashboardPage() {
   const [profileTvaRate, setProfileTvaRate] = useState<number | null>(null)
+  const [planType, setPlanType] = useState<string>('free')
 
   useEffect(() => {
     const supabase = createClient()
@@ -46,10 +48,13 @@ export default function DashboardPage() {
       if (!user) return
       const { data } = await supabase
         .from('profiles')
-        .select('tva_rate')
+        .select('tva_rate, plan_type')
         .eq('id', user.id)
         .single()
-      if (data) setProfileTvaRate(data.tva_rate ?? 0)
+      if (data) {
+        setProfileTvaRate(data.tva_rate ?? 0)
+        setPlanType(data.plan_type ?? 'free')
+      }
     })()
   }, [])
 
@@ -155,6 +160,20 @@ export default function DashboardPage() {
   const urssafTax = grossRevenue * urssafRate
   const netIncome = grossRevenue - urssafTax
 
+  // Previsionnel
+  const sentTotal = safeInvoices
+    .filter((i) => i.status === 'sent')
+    .reduce((sum, inv) => {
+      const ht = calculateHT(inv.items ?? [])
+      return sum + calculateTTC(ht, inv.tva_rate)
+    }, 0)
+
+  const ongoingBudget = safeProjects
+    .filter((p) => p.status === 'ongoing' && p.budget > 0)
+    .reduce((sum, p) => sum + p.budget, 0)
+
+  const previsionnel = sentTotal + ongoingBudget
+
   const recentInvoices = safeInvoices.slice(0, 5)
 
   /* ── Loading skeleton ── */
@@ -227,6 +246,13 @@ export default function DashboardPage() {
           accent
           className="animate-fade-in animate-stagger-5"
         />
+        <ProGate planType={planType}>
+          <KPICard
+            label="Previsionnel"
+            value={formatCurrency(previsionnel)}
+            sub={`${formatCurrency(sentTotal)} en attente · ${formatCurrency(ongoingBudget)} en cours`}
+          />
+        </ProGate>
       </div>
 
       {/* ═══ ROW 3: Smart Focus + URSSAF ═══ */}
@@ -274,32 +300,34 @@ export default function DashboardPage() {
         </div>
 
         {/* URSSAF Simulator */}
-        <div className="bg-white rounded-2xl shadow-elevated p-6 animate-fade-in animate-stagger-7">
-          <div className="flex items-center gap-3 mb-5">
-            <h2 className="text-sm font-semibold text-zinc-900">Simulateur URSSAF</h2>
-            <span className="text-xs text-zinc-500">Auto-entrepreneur · 21.2%</span>
+        <ProGate planType={planType}>
+          <div className="bg-white rounded-2xl shadow-elevated p-6 animate-fade-in animate-stagger-7">
+            <div className="flex items-center gap-3 mb-5">
+              <h2 className="text-sm font-semibold text-zinc-900">Simulateur URSSAF</h2>
+              <span className="text-xs text-zinc-500">Auto-entrepreneur · 21.2%</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="rounded-xl bg-zinc-50 p-4">
+                <div className="text-2xl font-bold text-zinc-900 tracking-tight leading-none mb-1">
+                  {formatCurrency(grossRevenue)}
+                </div>
+                <div className="text-xs text-zinc-500">CA Brut</div>
+              </div>
+              <div className="rounded-xl bg-zinc-50 p-4">
+                <div className="text-2xl font-bold text-zinc-400 tracking-tight leading-none mb-1">
+                  - {formatCurrency(urssafTax)}
+                </div>
+                <div className="text-xs text-zinc-500">Cotisations</div>
+              </div>
+              <div className="rounded-xl bg-blue-700 p-4 shadow-blue-glow">
+                <div className="text-2xl font-bold text-white tracking-tight leading-none mb-1">
+                  {formatCurrency(netIncome)}
+                </div>
+                <div className="text-xs text-white/70">Revenu Net</div>
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="rounded-xl bg-zinc-50 p-4">
-              <div className="text-2xl font-bold text-zinc-900 tracking-tight leading-none mb-1">
-                {formatCurrency(grossRevenue)}
-              </div>
-              <div className="text-xs text-zinc-500">CA Brut</div>
-            </div>
-            <div className="rounded-xl bg-zinc-50 p-4">
-              <div className="text-2xl font-bold text-zinc-400 tracking-tight leading-none mb-1">
-                - {formatCurrency(urssafTax)}
-              </div>
-              <div className="text-xs text-zinc-500">Cotisations</div>
-            </div>
-            <div className="rounded-xl bg-blue-700 p-4 shadow-blue-glow">
-              <div className="text-2xl font-bold text-white tracking-tight leading-none mb-1">
-                {formatCurrency(netIncome)}
-              </div>
-              <div className="text-xs text-white/70">Revenu Net</div>
-            </div>
-          </div>
-        </div>
+        </ProGate>
       </div>
 
       {/* ═══ ROW 4: Revenue Chart + Recent Invoices ═══ */}
