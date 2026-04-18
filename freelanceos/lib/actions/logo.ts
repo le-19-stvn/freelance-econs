@@ -4,14 +4,16 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
 
 const MAX_SIZE = 2 * 1024 * 1024 // 2MB
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/svg+xml', 'image/webp']
+// SVG is intentionally excluded — it can embed <script> / foreignObject
+// payloads that execute when the logo is rendered in a browser context.
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
 export async function uploadLogo(formData: FormData): Promise<string> {
   const file = formData.get('file') as File | null
   if (!file) throw new Error('Aucun fichier fourni.')
 
   if (!ALLOWED_TYPES.includes(file.type)) {
-    throw new Error('Format non supporte. Utilisez JPG, PNG, SVG ou WebP.')
+    throw new Error('Format non supporte. Utilisez JPG, PNG ou WebP.')
   }
   if (file.size > MAX_SIZE) {
     throw new Error('Le fichier est trop volumineux (max 2 Mo).')

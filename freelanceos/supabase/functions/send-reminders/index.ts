@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const CRON_SECRET = Deno.env.get('CRON_SECRET')!
 
 const TEMPLATES: Record<number, { subject: (n: string) => string; body: (name: string, n: string, a: string) => string }> = {
   1: {
@@ -23,7 +24,25 @@ const TEMPLATES: Record<number, { subject: (n: string) => string; body: (name: s
   },
 }
 
-Deno.serve(async () => {
+// Timing-safe string comparison (prevents timing attacks on the secret)
+function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false
+  let diff = 0
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  return diff === 0
+}
+
+Deno.serve(async (req) => {
+  // ── Auth: only pg_cron (with the shared secret) may invoke ──
+  const authHeader = req.headers.get('Authorization') ?? ''
+  const provided = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
+  if (!CRON_SECRET || !safeEqual(provided, CRON_SECRET)) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
   const { data: reminders } = await supabase

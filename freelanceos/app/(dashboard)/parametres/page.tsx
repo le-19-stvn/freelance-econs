@@ -84,6 +84,12 @@ export default function ParametresPage() {
     } else if (section === 'banque') {
       updates = { iban: banque.iban || null }
     } else if (section === 'branding') {
+      // Mirror the DB trigger — validate #RRGGBB before round-tripping.
+      if (!/^#[0-9A-Fa-f]{6}$/.test(primaryColor)) {
+        setToast({ msg: 'Couleur invalide (format attendu : #RRGGBB).', type: 'error' })
+        setSaving(null)
+        return
+      }
       updates = { invoice_primary_color: primaryColor }
     }
 
@@ -283,14 +289,14 @@ export default function ParametresPage() {
                   {logoUploading ? 'Upload...' : (logoUrl ? 'Changer' : 'Importer un logo')}
                   <input
                     type="file"
-                    accept="image/jpeg,image/png,image/svg+xml,image/webp"
+                    accept="image/jpeg,image/png,image/webp"
                     className="hidden"
                     onChange={handleLogoChange}
                     disabled={logoUploading}
                   />
                 </label>
               </div>
-              <p className="text-[10px] text-zinc-400 mt-2">JPG, PNG, SVG ou WebP. Max 2 Mo.</p>
+              <p className="text-[10px] text-zinc-400 mt-2">JPG, PNG ou WebP. Max 2 Mo.</p>
             </div>
 
             {/* Primary color */}
