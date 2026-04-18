@@ -2,11 +2,16 @@
 
 import { stripe } from '@/lib/stripe'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { enforceUserRateLimit } from '@/lib/security/rate-limit'
 
 export async function createCheckoutSession(priceId: string) {
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Non authentifié')
+
+  // Prevent abuse: spamming createCheckoutSession creates orphan Stripe
+  // sessions (quota impact + noise in Stripe dashboard).
+  await enforceUserRateLimit(user.id, 'checkout')
 
   // Fetch profile for email
   const { data: profile } = await supabase
@@ -42,6 +47,8 @@ export async function createBillingPortalSession() {
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Non authentifié')
+
+  await enforceUserRateLimit(user.id, 'checkout')
 
   const { data: profile } = await supabase
     .from('profiles')

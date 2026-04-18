@@ -1,12 +1,19 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
+import { checkRateLimit } from '@/lib/security/rate-limit'
+import { checkOrigin } from '@/lib/security/csrf'
 import { generateInvoicesExcel } from '@/lib/export/excel'
 import type { Invoice } from '@/types'
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const originBlock = checkOrigin(request)
+    if (originBlock) return originBlock
+    const rateLimitBlock = await checkRateLimit(request, 'exports')
+    if (rateLimitBlock) return rateLimitBlock
+
     const supabase = createServerSupabaseClient()
     try {
       await getAuthUserId(supabase)

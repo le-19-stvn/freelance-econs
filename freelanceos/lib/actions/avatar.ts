@@ -2,6 +2,7 @@
 
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
+import { enforceUserRateLimit } from '@/lib/security/rate-limit'
 
 const MAX_SIZE = 2 * 1024 * 1024 // 2MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
@@ -21,6 +22,7 @@ export async function uploadAvatar(formData: FormData): Promise<string> {
 
   const supabase = createServerSupabaseClient()
   const userId = await getAuthUserId(supabase)
+  await enforceUserRateLimit(userId, 'uploads')
 
   const ext = file.name.split('.').pop() ?? 'png'
   const path = `${userId}/avatar.${ext}`

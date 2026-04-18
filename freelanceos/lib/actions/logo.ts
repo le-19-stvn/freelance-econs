@@ -2,6 +2,7 @@
 
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getAuthUserId } from '@/lib/supabase/auth-helper'
+import { enforceUserRateLimit } from '@/lib/security/rate-limit'
 
 const MAX_SIZE = 2 * 1024 * 1024 // 2MB
 // SVG is intentionally excluded — it can embed <script> / foreignObject
@@ -21,6 +22,7 @@ export async function uploadLogo(formData: FormData): Promise<string> {
 
   const supabase = createServerSupabaseClient()
   const userId = await getAuthUserId(supabase)
+  await enforceUserRateLimit(userId, 'uploads')
 
   const ext = file.name.split('.').pop()?.toLowerCase() ?? 'png'
   const path = `${userId}/invoice-logo.${ext}`

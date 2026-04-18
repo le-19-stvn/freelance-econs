@@ -22,7 +22,7 @@ export async function POST(
     // Security checks
     const originBlock = checkOrigin(_request)
     if (originBlock) return originBlock
-    const rateLimitBlock = await checkRateLimit(_request)
+    const rateLimitBlock = await checkRateLimit(_request, 'emails')
     if (rateLimitBlock) return rateLimitBlock
     // Validate route param
     const paramsParsed = UuidParamSchema.safeParse(params)
