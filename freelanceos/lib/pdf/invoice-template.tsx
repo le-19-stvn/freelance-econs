@@ -2,7 +2,7 @@ import React from 'react'
 import path from 'path'
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 import type { Invoice, Profile } from '@/types'
-import { calculateHT, calculateTVA, calculateTTC } from '@/lib/utils/calculations'
+import { calculateHT, calculateTVA, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
 
 /* ──────────────────────────────────────────────────────────
    Premium Light Swiss Design Invoice — B&W Strict Grid
@@ -366,13 +366,9 @@ function formatDate(dateStr: string | null): string {
   return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
-function fmtEur(n: number): string {
-  const formatted = new Intl.NumberFormat('fr-FR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n)
-  // U+00A0 = non-breaking space, U+20AC = €
-  return formatted + '\u00a0\u20ac'
+// Kept as helper name for minimal downstream changes; accepts a currency code.
+function fmtEur(n: number, currency: string = 'EUR'): string {
+  return formatCurrency(n, currency)
 }
 
 const unitLabels: Record<string, string> = {
@@ -392,6 +388,7 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
   const tva = calculateTVA(ht, tvaRate)
   const ttc = calculateTTC(ht, tvaRate)
   const isTvaExempt = tvaRate === 0
+  const currency = invoice.currency ?? 'EUR'
 
   return (
     <Document>
@@ -521,12 +518,12 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
                 </View>
                 <View style={styles.colPU}>
                   <Text style={[styles.tdText, { textAlign: 'right' }]}>
-                    {fmtEur(item.unit_price)}
+                    {fmtEur(item.unit_price, currency)}
                   </Text>
                 </View>
                 <View style={styles.colTotal}>
                   <Text style={[styles.tdBold, { textAlign: 'right' }]}>
-                    {fmtEur(rowTotal)}
+                    {fmtEur(rowTotal, currency)}
                   </Text>
                 </View>
               </View>
@@ -542,7 +539,7 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
             {/* Total HT */}
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Total HT</Text>
-              <Text style={styles.totalValue}>{fmtEur(ht)}</Text>
+              <Text style={styles.totalValue}>{fmtEur(ht, currency)}</Text>
             </View>
 
             {/* TVA */}
@@ -550,13 +547,13 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
               <Text style={styles.totalLabel}>
                 TVA {isTvaExempt ? '(0%)' : `(${tvaRate}%)`}
               </Text>
-              <Text style={styles.totalValue}>{fmtEur(tva)}</Text>
+              <Text style={styles.totalValue}>{fmtEur(tva, currency)}</Text>
             </View>
 
             {/* TOTAL TTC — Bold + thick top border + double underline */}
             <View style={styles.ttcRow}>
               <Text style={styles.ttcLabel}>Total TTC</Text>
-              <Text style={styles.ttcValue}>{fmtEur(ttc)}</Text>
+              <Text style={styles.ttcValue}>{fmtEur(ttc, currency)}</Text>
             </View>
             <View style={styles.ttcUnderline} />
           </View>

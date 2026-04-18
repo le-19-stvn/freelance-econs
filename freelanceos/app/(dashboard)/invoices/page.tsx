@@ -376,7 +376,7 @@ export default function InvoicesPage() {
                   <div className="flex items-center gap-2.5 shrink-0">
                     <div className="text-right mr-2">
                       <div className="font-bold text-zinc-900 text-base">
-                        {formatCurrency(ttc)}
+                        {formatCurrency(ttc, inv.currency ?? 'EUR')}
                       </div>
                       <div className="text-[10px] text-zinc-400 font-medium">
                         TTC

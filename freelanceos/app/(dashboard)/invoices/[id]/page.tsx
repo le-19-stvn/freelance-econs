@@ -57,6 +57,7 @@ export default function InvoiceDetailPage() {
   const [issueDate, setIssueDate] = useState(new Date().toISOString().slice(0, 10))
   const [dueDate, setDueDate] = useState('')
   const [tvaRate, setTvaRate] = useState(20)
+  const [currency, setCurrency] = useState('EUR')
   const [notes, setNotes] = useState('')
   const [status, setStatus] = useState<InvoiceStatus>('draft')
   const [invoiceNumber, setInvoiceNumber] = useState('')
@@ -83,6 +84,7 @@ export default function InvoiceDetailPage() {
       setIssueDate(inv.issue_date ?? '')
       setDueDate(inv.due_date ?? '')
       setTvaRate(inv.tva_rate)
+      setCurrency(inv.currency ?? 'EUR')
       setNotes(inv.notes ?? '')
       setStatus(inv.status)
       setInvoiceNumber(inv.invoice_number)
@@ -146,6 +148,7 @@ export default function InvoiceDetailPage() {
         issue_date: issueDate,
         due_date: dueDate || null,
         tva_rate: tvaRate,
+        currency: currency,
         notes: notes || null,
         status,
       }
@@ -322,7 +325,7 @@ export default function InvoiceDetailPage() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 16, marginBottom: 20 }}>
           <div>
             <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)', display: 'block', marginBottom: 4 }}>
               Date d&apos;emission
@@ -357,6 +360,21 @@ export default function InvoiceDetailPage() {
               {tvaOptions.map((r) => (
                 <option key={r} value={r}>{r}%</option>
               ))}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)', display: 'block', marginBottom: 4 }}>
+              Devise
+            </label>
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-900 text-sm outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700/20"
+            >
+              <option value="EUR">EUR (&euro;)</option>
+              <option value="USD">USD ($)</option>
+              <option value="GBP">GBP (&pound;)</option>
+              <option value="CHF">CHF</option>
             </select>
           </div>
         </div>
@@ -460,7 +478,7 @@ export default function InvoiceDetailPage() {
               {/* Total + Delete — flex row on mobile */}
               <div className="flex items-center justify-between md:contents">
                 <span className="font-semibold text-[var(--ink)] text-sm whitespace-nowrap">
-                  {formatCurrency(item.quantity * item.unit_price)}
+                  {formatCurrency(item.quantity * item.unit_price, currency)}
                 </span>
                 {items.length > 1 ? (
                   <button
@@ -517,7 +535,7 @@ export default function InvoiceDetailPage() {
             >
               <span style={{ color: 'var(--muted)' }}>Total HT</span>
               <span style={{ fontWeight: 600, color: 'var(--ink)' }}>
-                {formatCurrency(ht)}
+                {formatCurrency(ht, currency)}
               </span>
             </div>
             <div
@@ -530,7 +548,7 @@ export default function InvoiceDetailPage() {
             >
               <span style={{ color: 'var(--muted)' }}>TVA ({tvaRate}%)</span>
               <span style={{ fontWeight: 600, color: 'var(--ink)' }}>
-                {formatCurrency(tva)}
+                {formatCurrency(tva, currency)}
               </span>
             </div>
             <div
@@ -545,7 +563,7 @@ export default function InvoiceDetailPage() {
             >
               <span style={{ color: 'var(--ink)' }}>Total TTC</span>
               <span style={{ color: 'var(--blue-primary)' }}>
-                {formatCurrency(ttc)}
+                {formatCurrency(ttc, currency)}
               </span>
             </div>
           </div>

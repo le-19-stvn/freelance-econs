@@ -12,11 +12,18 @@ export function calculateTTC(ht: number, tvaRate: number): number {
   return ht + calculateTVA(ht, tvaRate)
 }
 
-export function formatCurrency(amount: number): string {
+const currencySymbols: Record<string, string> = {
+  EUR: '\u20ac',  // €
+  USD: '$',
+  GBP: '\u00a3',  // £
+  CHF: 'CHF',
+}
+
+export function formatCurrency(amount: number, currency: string = 'EUR'): string {
   const formatted = new Intl.NumberFormat('fr-FR', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount)
-  // U+00A0 = non-breaking space, U+20AC = €
-  return formatted + '\u00a0\u20ac'
+  const symbol = currencySymbols[currency] ?? currency
+  return formatted + '\u00a0' + symbol
 }

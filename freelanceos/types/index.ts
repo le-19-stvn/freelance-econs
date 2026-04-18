@@ -97,6 +97,7 @@ export interface Invoice {
   issue_date: string
   due_date: string | null
   tva_rate: number
+  currency: string
   notes: string | null
   pdf_url: string | null
   items: InvoiceItem[]
