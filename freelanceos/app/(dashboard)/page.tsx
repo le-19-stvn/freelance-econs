@@ -7,9 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { calculateHT, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
 import Link from 'next/link'
 import {
-  AlertTriangle,
   CheckCircle2,
-  Clock,
   ArrowRight,
   ArrowUpRight,
   TrendingUp,
@@ -96,10 +94,8 @@ export default function DashboardPage() {
 
   const smartFocusAlerts = useMemo(() => {
     const alerts: {
-      type: 'warning' | 'success' | 'info'
-      icon: React.ReactNode
+      urgency: 'urgent' | 'bientot' | 'semaine'
       text: string
-      action: string
       href: string
     }[] = []
 
@@ -111,10 +107,8 @@ export default function DashboardPage() {
           ? Math.ceil((Date.now() - new Date(inv.due_date).getTime()) / (1000 * 60 * 60 * 24))
           : 0
         alerts.push({
-          type: 'warning',
-          icon: <AlertTriangle size={14} />,
-          text: `Facture ${inv.invoice_number} en retard de ${daysLate}j`,
-          action: 'Rappel',
+          urgency: 'urgent',
+          text: `Facture ${inv.invoice_number} en retard de ${daysLate}j — relancer`,
           href: `/invoices/${inv.id}`,
         })
       })
@@ -124,10 +118,8 @@ export default function DashboardPage() {
       .slice(0, 2)
       .forEach((p) => {
         alerts.push({
-          type: 'success',
-          icon: <CheckCircle2 size={14} />,
-          text: `"${p.name}" terminé — facturer`,
-          action: 'Facturer',
+          urgency: 'bientot',
+          text: `"${p.name}" terminé — à facturer`,
           href: '/invoices/new',
         })
       })
@@ -137,16 +129,20 @@ export default function DashboardPage() {
       .slice(0, 1)
       .forEach((inv) => {
         alerts.push({
-          type: 'info',
-          icon: <Clock size={14} />,
-          text: `${inv.invoice_number} en brouillon`,
-          action: 'Finaliser',
+          urgency: 'semaine',
+          text: `${inv.invoice_number} en brouillon — finaliser`,
           href: `/invoices/${inv.id}`,
         })
       })
 
     return alerts.slice(0, 3)
   }, [safeInvoices, safeProjects])
+
+  const urgencyStyles: Record<'urgent' | 'bientot' | 'semaine', { chip: string; label: string }> = {
+    urgent:  { chip: 'bg-red-50 text-red-700 border-red-200',        label: 'urgent' },
+    bientot: { chip: 'bg-amber-50 text-amber-700 border-amber-200',   label: 'bientôt' },
+    semaine: { chip: 'bg-zinc-100 text-zinc-600 border-zinc-200',     label: 'cette semaine' },
+  }
 
   const revenueData = useMemo(() => {
     const months = getLast6Months()
@@ -203,12 +199,6 @@ export default function DashboardPage() {
         </div>
       </div>
     )
-  }
-
-  const alertIconColors = {
-    warning: 'text-amber-500',
-    success: 'text-emerald-500',
-    info: 'text-zinc-400',
   }
 
   // Progress vs annual goal (0-100, capped)
@@ -350,25 +340,33 @@ export default function DashboardPage() {
               <p className="text-sm text-zinc-400">Aucune action requise</p>
             </div>
           ) : (
-            <div className="flex flex-col gap-2">
-              {smartFocusAlerts.map((alert, idx) => (
-                <div
-                  key={idx}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl bg-zinc-50 px-4 py-3"
-                >
-                  <div className="flex items-center gap-3 text-sm text-zinc-700">
-                    <span className={alertIconColors[alert.type]}>{alert.icon}</span>
-                    {alert.text}
-                  </div>
+            <div className="flex flex-col divide-y divide-zinc-100">
+              {smartFocusAlerts.map((alert, idx) => {
+                const style = urgencyStyles[alert.urgency]
+                return (
                   <Link
+                    key={idx}
                     href={alert.href}
-                    className="inline-flex items-center gap-1.5 bg-blue-700 text-white text-xs font-medium px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0"
+                    className="group flex items-center gap-4 py-3 -mx-1 px-1 rounded-lg hover:bg-zinc-50 transition-colors"
                   >
-                    {alert.action}
-                    <ArrowRight size={11} />
+                    <span className="font-mono text-xs font-semibold text-zinc-400 tabular-nums shrink-0 w-6">
+                      {String(idx + 1).padStart(2, '0')}
+                    </span>
+                    <span className="text-sm text-zinc-700 flex-1 min-w-0 truncate">
+                      {alert.text}
+                    </span>
+                    <span
+                      className={`inline-flex items-center text-[10px] font-medium uppercase tracking-[0.04em] px-2 py-0.5 rounded-full border ${style.chip} shrink-0`}
+                    >
+                      {style.label}
+                    </span>
+                    <ArrowRight
+                      size={13}
+                      className="text-zinc-300 group-hover:text-zinc-600 group-hover:translate-x-0.5 transition-all shrink-0"
+                    />
                   </Link>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
