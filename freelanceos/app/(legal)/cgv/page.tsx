@@ -50,14 +50,14 @@ export default function CGVPage() {
   return (
     <article>
       <h1 style={h1}>Conditions Generales de Vente et d&apos;Utilisation</h1>
-      <p style={subtitle}>Derniere mise a jour : 31 mars 2026</p>
+      <p style={subtitle}>Derniere mise a jour : 18 avril 2026</p>
 
       {/* ── 1. Objet ── */}
       <h2 style={h2}>1. Objet</h2>
       <p style={p}>
         Les presentes Conditions Generales de Vente et d&apos;Utilisation (ci-apres &laquo;&nbsp;CGV/CGU&nbsp;&raquo;)
         regissent l&apos;acces et l&apos;utilisation du service en ligne
-        <span style={strong}> FreelanceOS</span>, edite par <span style={strong}>eCons</span> (auto-entrepreneur,
+        <span style={strong}> Freelance</span>, edite par <span style={strong}>eCons</span> (auto-entrepreneur,
         Loan ESTEVENON).
       </p>
       <p style={p}>
@@ -68,7 +68,7 @@ export default function CGVPage() {
       {/* ── 2. Description du Service ── */}
       <h2 style={h2}>2. Description du Service</h2>
       <p style={p}>
-        FreelanceOS est une <span style={strong}>application SaaS (Software as a Service)</span> de
+        Freelance est une <span style={strong}>application SaaS (Software as a Service)</span> de
         gestion d&apos;activite destinee aux travailleurs independants et auto-entrepreneurs.
         Le Service propose notamment&nbsp;:
       </p>
@@ -89,7 +89,7 @@ export default function CGVPage() {
         }}
       >
         <p style={{ ...p, marginBottom: 0, color: '#92400E', fontWeight: 600 }}>
-          Important&nbsp;: FreelanceOS est un outil d&apos;aide a la gestion. Il ne se substitue
+          Important&nbsp;: Freelance est un outil d&apos;aide a la gestion. Il ne se substitue
           en aucun cas a un expert-comptable, un commissaire aux comptes ou un conseil juridique.
           Les documents generes (factures, devis) sont etablis sous la seule et entiere
           responsabilite de l&apos;utilisateur, qui doit s&apos;assurer de leur conformite avec
@@ -147,8 +147,13 @@ export default function CGVPage() {
             ['Projets actifs', '4 maximum', 'Illimites'],
             ['Factures', '5 maximum', 'Illimitees'],
             ['Export PDF / CSV', 'Oui', 'Oui'],
+            ['Multi-devises (EUR/USD/GBP/CHF)', 'Oui', 'Oui'],
+            ['Simulateur URSSAF', 'Non', 'Oui'],
+            ['KPI Previsionnel', 'Non', 'Oui'],
+            ['Branding factures (logo + couleur)', 'Non', 'Oui'],
+            ['Relances automatiques (J+3, J+7, J+15)', 'Non', 'Oui'],
             ['Support', 'Communautaire', 'Prioritaire'],
-            ['Tarif', 'Gratuit', 'Voir page profil'],
+            ['Tarif', 'Gratuit', '5,99 EUR / mois (TTC)'],
           ] as const).map(([feature, free, pro]) => (
             <tr key={feature}>
               <td style={{ padding: '8px 12px', borderBottom: '1px solid #E4E6ED', fontWeight: 600, color: '#0F1117' }}>
@@ -258,8 +263,8 @@ export default function CGVPage() {
         }}
       >
         <p style={{ ...p, marginBottom: 0, color: '#991B1B', fontWeight: 600 }}>
-          Rappel&nbsp;: les factures et documents generes via FreelanceOS sont sous la
-          responsabilite exclusive de l&apos;utilisateur. FreelanceOS est un outil d&apos;aide
+          Rappel&nbsp;: les factures et documents generes via Freelance sont sous la
+          responsabilite exclusive de l&apos;utilisateur. Freelance est un outil d&apos;aide
           a la gestion&nbsp;; il ne remplace pas un cabinet comptable ni un conseil juridique.
         </p>
       </div>

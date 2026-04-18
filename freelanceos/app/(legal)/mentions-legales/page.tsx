@@ -43,12 +43,12 @@ export default function MentionsLegalesPage() {
   return (
     <article>
       <h1 style={h1}>Mentions Legales</h1>
-      <p style={subtitle}>Derniere mise a jour : 31 mars 2026</p>
+      <p style={subtitle}>Derniere mise a jour : 18 avril 2026</p>
 
       {/* ── 1. Editeur ── */}
       <h2 style={h2}>1. Editeur du site</h2>
       <p style={p}>
-        Le site <span style={strong}>FreelanceOS</span> (ci-apres &laquo;&nbsp;le Service&nbsp;&raquo;)
+        Le site <span style={strong}>Freelance</span> (ci-apres &laquo;&nbsp;le Service&nbsp;&raquo;)
         est edite par&nbsp;:
       </p>
       <table style={{ fontSize: 15, lineHeight: 1.75, color: '#2C2F3A', marginBottom: 24, borderCollapse: 'collapse' }}>
@@ -118,7 +118,7 @@ export default function MentionsLegalesPage() {
       {/* ── 5. Responsabilite ── */}
       <h2 style={h2}>5. Limitation de responsabilite</h2>
       <p style={p}>
-        FreelanceOS est un <span style={strong}>outil d&apos;aide a la gestion</span> destine
+        Freelance est un <span style={strong}>outil d&apos;aide a la gestion</span> destine
         aux travailleurs independants. Il ne constitue en aucun cas un cabinet comptable,
         un service de conseil fiscal ou juridique.
       </p>

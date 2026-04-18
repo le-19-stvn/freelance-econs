@@ -35,7 +35,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
               letterSpacing: -0.5,
             }}
           >
-            FreelanceOS
+            Freelance
           </Link>
           <div style={{ display: 'flex', gap: 24, fontSize: 13, color: '#6B7280' }}>
             <Link href="/mentions-legales" style={{ color: '#6B7280', textDecoration: 'none' }}>
@@ -72,7 +72,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           color: '#6B7280',
         }}
       >
-        &copy; {new Date().getFullYear()} eCons &mdash; FreelanceOS. Tous droits reserves.
+        &copy; {new Date().getFullYear()} eCons &mdash; Freelance. Tous droits reserves.
       </footer>
     </div>
   )

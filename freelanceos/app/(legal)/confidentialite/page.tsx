@@ -50,11 +50,11 @@ export default function ConfidentialitePage() {
   return (
     <article>
       <h1 style={h1}>Politique de Confidentialite</h1>
-      <p style={subtitle}>Derniere mise a jour : 31 mars 2026</p>
+      <p style={subtitle}>Derniere mise a jour : 18 avril 2026</p>
 
       <p style={p}>
         La presente politique de confidentialite decrit comment <span style={strong}>eCons</span>
-        {' '}(auto-entrepreneur, Loan ESTEVENON), editeur du service <span style={strong}>FreelanceOS</span>,
+        {' '}(auto-entrepreneur, Loan ESTEVENON), editeur du service <span style={strong}>Freelance</span>,
         collecte, utilise et protege vos donnees personnelles conformement au
         <span style={strong}> Reglement General sur la Protection des Donnees (RGPD &mdash;
         Reglement UE 2016/679)</span> et a la loi Informatique et Libertes du 6 janvier 1978
@@ -136,7 +136,7 @@ export default function ConfidentialitePage() {
       >
         <p style={{ ...p, marginBottom: 0, color: '#065F46', fontWeight: 600 }}>
           Aucune donnee bancaire sensible (numero de carte, CVV, IBAN) n&apos;est collectee
-          ni stockee par FreelanceOS. Ces donnees sont traitees exclusivement par Stripe,
+          ni stockee par Freelance. Ces donnees sont traitees exclusivement par Stripe,
           certifie PCI-DSS Niveau 1.
         </p>
       </div>
@@ -153,9 +153,19 @@ export default function ConfidentialitePage() {
           directrices de la CNIL.
         </li>
         <li style={li}>
-          <span style={strong}>Aucun cookie publicitaire, de pistage ou d&apos;analyse</span> n&apos;est
+          <span style={strong}>Donnees de telemetrie technique (Sentry)</span> &mdash; en cas
+          d&apos;erreur applicative, un rapport anonymise est envoye a Sentry pour diagnostic
+          (message d&apos;erreur, stack trace, navigateur, URL de la page, identifiant compte,
+          plan d&apos;abonnement). Un enregistrement video anonymise des 30 dernieres secondes
+          d&apos;interaction avec l&apos;interface peut etre inclus (Session Replay) uniquement
+          lorsqu&apos;une erreur se produit. Cette collecte repose sur l&apos;
+          <span style={strong}>interet legitime</span> (art. 6.1.f RGPD) lie a la qualite et
+          la securite du Service. Les donnees sont hebergees en Allemagne et conservees 90 jours.
+        </li>
+        <li style={li}>
+          <span style={strong}>Aucun cookie publicitaire ni traceur commercial</span> n&apos;est
           utilise. Nous n&apos;utilisons ni Google Analytics, ni Facebook Pixel, ni aucun
-          traceur tiers.
+          traceur tiers a des fins marketing.
         </li>
       </ul>
 
@@ -243,6 +253,8 @@ export default function ConfidentialitePage() {
             ['Hebergement application', 'Vercel Inc.', 'Global CDN (Edge)'],
             ['Paiements', 'Stripe Inc. / Stripe Payments Europe Ltd.', 'USA / Irlande (UE)'],
             ['Stockage fichiers (avatars, logos)', 'Supabase Storage', 'Europe (Francfort, Allemagne)'],
+            ['Envoi d\'emails (relances Pro)', 'Resend Inc.', 'USA (encadre par CCT)'],
+            ['Monitoring erreurs & performances', 'Sentry (Functional Software Inc.)', 'Europe (Allemagne)'],
           ] as const).map(([service, provider, location]) => (
             <tr key={service}>
               <td style={{ padding: '8px 12px', borderBottom: '1px solid #E4E6ED', fontWeight: 600, color: '#0F1117' }}>
@@ -295,9 +307,11 @@ export default function ConfidentialitePage() {
         dans la stricte mesure necessaire a la fourniture du Service&nbsp;:
       </p>
       <ul style={{ paddingLeft: 24, marginBottom: 16 }}>
-        <li style={li}><span style={strong}>Supabase</span> &mdash; hebergement de la base de donnees et authentification</li>
+        <li style={li}><span style={strong}>Supabase</span> &mdash; hebergement de la base de donnees et authentification (UE &mdash; Francfort)</li>
         <li style={li}><span style={strong}>Vercel</span> &mdash; hebergement de l&apos;application web</li>
         <li style={li}><span style={strong}>Stripe</span> &mdash; traitement des paiements</li>
+        <li style={li}><span style={strong}>Resend</span> &mdash; envoi automatique des relances de factures (plan Pro uniquement)</li>
+        <li style={li}><span style={strong}>Sentry</span> &mdash; monitoring des erreurs techniques et des performances de l&apos;application, afin d&apos;ameliorer la qualite du Service. Collecte les logs d&apos;erreur, le type de navigateur et, en cas d&apos;erreur, un enregistrement anonymise des interactions utilisateur (Session Replay)</li>
       </ul>
       <p style={p}>
         Chaque sous-traitant est lie par un accord de traitement des donnees (DPA) conforme
