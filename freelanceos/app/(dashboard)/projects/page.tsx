@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import Link from 'next/link'
 import { createPortal } from 'react-dom'
 import { useProjects } from '@/hooks/useProjects'
 import { useClients } from '@/hooks/useClients'
@@ -8,8 +9,11 @@ import { useToast } from '@/components/ui/Toast'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { formatCurrency } from '@/lib/utils/calculations'
-import type { Project, ProjectStatus, Deliverable, UnitType } from '@/types'
-import { FolderOpen, Calendar, DollarSign, Plus, Trash2, X } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import type { Project, ProjectStatus, Deliverable, UnitType, TeamProject } from '@/types'
+import { FolderOpen, Calendar, DollarSign, Plus, Trash2, X, Users } from 'lucide-react'
+
+type TeamProjectWithTeam = TeamProject & { team_name: string }
 
 const emptyForm = {
   name: '',
@@ -25,6 +29,8 @@ const emptyDeliverable: Deliverable = { description: '', quantity: 1, unit: 'h' 
 const inputCls = 'w-full px-4 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 transition-all'
 const labelCls = 'block text-xs font-medium text-zinc-500 mb-1.5'
 
+type ScopeTab = 'all' | 'solo' | 'team'
+
 export default function ProjectsPage() {
   const { projects, loading, createProject, updateProject, deleteProject } = useProjects()
   const { clients } = useClients()
@@ -37,6 +43,48 @@ export default function ProjectsPage() {
   const [deadlineError, setDeadlineError] = useState('')
   const [showUpgrade, setShowUpgrade] = useState(false)
   const [upgradeMessage, setUpgradeMessage] = useState('')
+  const [teamProjects, setTeamProjects] = useState<TeamProjectWithTeam[]>([])
+  const [activeScope, setActiveScope] = useState<ScopeTab>('all')
+
+  // Fetch team projects across all teams the user belongs to
+  useEffect(() => {
+    let canceled = false
+    const load = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: memberships } = await supabase
+        .from('team_members')
+        .select('team_id')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+      const teamIds = (memberships ?? []).map((m: any) => m.team_id)
+      if (teamIds.length === 0) { if (!canceled) setTeamProjects([]); return }
+      const { data: tp } = await supabase
+        .from('team_projects')
+        .select('*, team:teams(name)')
+        .in('team_id', teamIds)
+        .order('created_at', { ascending: false })
+      if (canceled) return
+      const rows: TeamProjectWithTeam[] = (tp ?? []).map((r: any) => ({
+        id: r.id,
+        team_id: r.team_id,
+        name: r.name,
+        description: r.description,
+        created_at: r.created_at,
+        team_name: r.team?.name ?? 'Équipe',
+      }))
+      setTeamProjects(rows)
+    }
+    load()
+    return () => { canceled = true }
+  }, [])
+
+  const counts = useMemo(() => ({
+    all:  projects.length + teamProjects.length,
+    solo: projects.length,
+    team: teamProjects.length,
+  }), [projects.length, teamProjects.length])
 
   const openCreate = () => {
     setNameError('')
@@ -151,13 +199,13 @@ export default function ProjectsPage() {
       />
 
       {/* ═══ HEADER ═══ */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 tracking-tight leading-[1.1]">
             Projets
           </h1>
           <p className="text-sm text-zinc-500 mt-1">
-            {projects.length} projet(s) enregistre(s)
+            {counts.all} projet(s) — solo &amp; équipe
           </p>
         </div>
         <button
@@ -168,8 +216,43 @@ export default function ProjectsPage() {
         </button>
       </div>
 
+      {/* ═══ SCOPE TABS ═══ */}
+      {counts.all > 0 && (
+        <div className="mb-5 border-b border-zinc-200 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="flex gap-1 min-w-max">
+            {([
+              { key: 'all',  label: 'Tous' },
+              { key: 'solo', label: 'Solo' },
+              { key: 'team', label: 'Équipe' },
+            ] as { key: ScopeTab; label: string }[]).map(tab => {
+              const active = activeScope === tab.key
+              const count = counts[tab.key]
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveScope(tab.key)}
+                  className={`relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer whitespace-nowrap ${
+                    active ? 'text-zinc-900' : 'text-zinc-500 hover:text-zinc-900'
+                  }`}
+                >
+                  {tab.label}
+                  <span className={`font-mono text-[11px] tabular-nums px-1.5 py-0.5 rounded ${
+                    active ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-500'
+                  }`}>
+                    {count}
+                  </span>
+                  {active && (
+                    <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-zinc-900" />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* ═══ PROJECT GRID ═══ */}
-      {projects.length === 0 ? (
+      {counts.all === 0 ? (
         <div className="text-center py-20">
           <FolderOpen size={48} className="mx-auto text-zinc-300 mb-4" />
           <p className="text-sm text-zinc-400">
@@ -178,11 +261,11 @@ export default function ProjectsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {projects.map((project, idx) => {
+          {(activeScope === 'all' || activeScope === 'solo') && projects.map((project, idx) => {
             const delCount = (project.deliverables ?? []).length
             return (
               <div
-                key={project.id}
+                key={`solo-${project.id}`}
                 onClick={() => openEdit(project)}
                 className={`bg-white rounded-2xl shadow-elevated p-5 cursor-pointer hover:shadow-elevated-lg transition-all group animate-fade-in animate-stagger-${Math.min(idx + 1, 8)}`}
               >
@@ -209,7 +292,7 @@ export default function ProjectsPage() {
                     </div>
                   )}
                   {project.budget > 0 && (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 font-mono">
                       <DollarSign size={12} />
                       {formatCurrency(project.budget)}
                     </div>
@@ -223,6 +306,39 @@ export default function ProjectsPage() {
               </div>
             )
           })}
+
+          {(activeScope === 'all' || activeScope === 'team') && teamProjects.map((tp, idx) => (
+            <Link
+              key={`team-${tp.id}`}
+              href="/team"
+              className={`bg-white rounded-2xl shadow-elevated p-5 hover:shadow-elevated-lg transition-all group animate-fade-in animate-stagger-${Math.min(idx + 1, 8)} block`}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-white">
+                  <Users size={18} />
+                </div>
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.04em] px-2 py-0.5 rounded-full border bg-zinc-100 text-zinc-600 border-zinc-200">
+                  Équipe
+                </span>
+              </div>
+
+              <h3 className="text-base font-semibold text-zinc-900 truncate mb-1 group-hover:text-blue-700 transition-colors">
+                {tp.name}
+              </h3>
+
+              <p className="text-sm text-zinc-500 truncate mb-4">
+                {tp.team_name}
+              </p>
+
+              <div className="flex items-center gap-4 text-xs text-zinc-400 border-t border-zinc-100 pt-3">
+                {tp.description ? (
+                  <span className="truncate">{tp.description}</span>
+                ) : (
+                  <span className="text-zinc-300">Aucune description</span>
+                )}
+              </div>
+            </Link>
+          ))}
         </div>
       )}
 
