@@ -292,7 +292,7 @@ export default function InvoicesPage() {
       {/* ═══ HEADER ═══ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900">
+          <h1 className="text-3xl sm:text-4xl font-serif font-normal text-zinc-900 tracking-tight leading-[1.1]">
             Factures
           </h1>
           <p className="text-sm text-zinc-500 mt-1">
@@ -349,7 +349,7 @@ export default function InvoicesPage() {
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2.5 flex-wrap">
-                        <span className="font-semibold text-zinc-900 text-sm group-hover:text-zinc-600 transition-colors">
+                        <span className="font-mono font-semibold text-zinc-900 text-sm group-hover:text-zinc-600 transition-colors">
                           {inv.invoice_number}
                         </span>
                         <StatusDropdown

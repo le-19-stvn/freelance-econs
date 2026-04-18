@@ -169,7 +169,7 @@ export default function ParametresPage() {
 
       {/* ═══ PAGE HEADER ═══ */}
       <div>
-        <h1 className="text-2xl font-bold text-zinc-900">Parametres</h1>
+        <h1 className="text-3xl sm:text-4xl font-serif font-normal text-zinc-900 tracking-tight leading-[1.1]">Parametres</h1>
         <p className="text-sm text-zinc-500 mt-1">Informations de votre entite facturante.</p>
       </div>
 

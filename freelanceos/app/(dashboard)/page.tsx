@@ -222,9 +222,9 @@ export default function DashboardPage() {
 
       {/* ═══ GREETING ═══ */}
       <div className="animate-fade-in">
-        <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 tracking-tight">
+        <h1 className="text-4xl sm:text-5xl font-serif font-normal text-zinc-900 tracking-tight leading-[1.05]">
           Bonjour{firstName ? `, ${firstName}` : ''}
-          <span className="text-zinc-400 font-normal"> — {monthLabel}.</span>
+          <span className="text-zinc-400 italic"> — {monthLabel}.</span>
         </h1>
         <p className="text-sm text-zinc-500 mt-1">
           Voici l&apos;etat de votre activite ce mois-ci.
@@ -240,7 +240,7 @@ export default function DashboardPage() {
           <div className="text-[11px] uppercase tracking-[0.05em] font-medium text-white/40 mb-4">
             Chiffre d&apos;affaires — {new Date().getFullYear()}
           </div>
-          <div className="text-5xl sm:text-6xl md:text-7xl font-bold text-white tracking-tight leading-none">
+          <div className="text-5xl sm:text-6xl md:text-7xl font-mono font-semibold text-white tracking-tight leading-none">
             {formatCurrency(totalTTC)}
           </div>
           <div className="flex items-center gap-3 mt-5">
@@ -382,19 +382,19 @@ export default function DashboardPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="rounded-xl bg-zinc-50 p-4">
-                <div className="text-2xl font-bold text-zinc-900 tracking-tight leading-none mb-1">
+                <div className="text-2xl font-mono font-semibold text-zinc-900 tracking-tight leading-none mb-1">
                   {formatCurrency(grossRevenue)}
                 </div>
                 <div className="text-xs text-zinc-500">CA Brut</div>
               </div>
               <div className="rounded-xl bg-zinc-50 p-4">
-                <div className="text-2xl font-bold text-zinc-400 tracking-tight leading-none mb-1">
+                <div className="text-2xl font-mono font-semibold text-zinc-400 tracking-tight leading-none mb-1">
                   - {formatCurrency(urssafTax)}
                 </div>
                 <div className="text-xs text-zinc-500">Cotisations</div>
               </div>
               <div className="rounded-xl bg-blue-700 p-4 shadow-blue-glow">
-                <div className="text-2xl font-bold text-white tracking-tight leading-none mb-1">
+                <div className="text-2xl font-mono font-semibold text-white tracking-tight leading-none mb-1">
                   {formatCurrency(netIncome)}
                 </div>
                 <div className="text-xs text-white/70">Revenu Net</div>
