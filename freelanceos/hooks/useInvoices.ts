@@ -110,6 +110,50 @@ export function useInvoices() {
     setInvoices(prev =>
       prev.map(i => (i.id === id ? { ...i, ...updates } as Invoice : i))
     )
+
+    // ── Pro: schedule / cancel automatic reminders (J+3, J+7, J+15) ──
+    try {
+      const userId = await getAuthUserId(supabase)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('plan_type')
+        .eq('id', userId)
+        .single()
+
+      if (profile?.plan_type !== 'pro') return
+
+      if (newStatus === 'sent' && invoice?.due_date) {
+        const due = new Date(invoice.due_date)
+        const reminders = [
+          { step: 1, offset: 3 },
+          { step: 2, offset: 7 },
+          { step: 3, offset: 15 },
+        ].map(r => ({
+          invoice_id: id,
+          user_id: userId,
+          sequence_step: r.step,
+          scheduled_at: new Date(due.getTime() + r.offset * 86400000).toISOString(),
+          status: 'pending' as const,
+        }))
+
+        await supabase
+          .from('invoice_reminders')
+          .delete()
+          .eq('invoice_id', id)
+          .eq('status', 'pending')
+
+        await supabase.from('invoice_reminders').insert(reminders)
+      } else if (newStatus === 'paid' || newStatus === 'draft') {
+        await supabase
+          .from('invoice_reminders')
+          .update({ status: 'failed' })
+          .eq('invoice_id', id)
+          .eq('status', 'pending')
+      }
+    } catch (err) {
+      // Silently ignore — reminder scheduling shouldn't block status updates
+      console.warn('Reminder scheduling skipped:', err)
+    }
   }
 
   const deleteInvoice = async (id: string) => {
