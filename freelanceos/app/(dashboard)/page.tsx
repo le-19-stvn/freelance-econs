@@ -212,9 +212,9 @@ export default function DashboardPage() {
 
       {/* ═══ GREETING ═══ */}
       <div className="animate-fade-in">
-        <h1 className="text-4xl sm:text-5xl font-serif font-normal text-zinc-900 tracking-tight leading-[1.05]">
+        <h1 className="text-4xl sm:text-5xl font-bold text-zinc-900 tracking-tight leading-[1.05]">
           Bonjour{firstName ? `, ${firstName}` : ''}
-          <span className="text-zinc-400 italic"> — {monthLabel}.</span>
+          <span className="text-zinc-400 font-normal"> — {monthLabel}.</span>
         </h1>
         <p className="text-sm text-zinc-500 mt-1">
           Voici l&apos;etat de votre activite ce mois-ci.

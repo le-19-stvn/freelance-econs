@@ -292,7 +292,7 @@ export default function InvoicesPage() {
       {/* ═══ HEADER ═══ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-serif font-normal text-zinc-900 tracking-tight leading-[1.1]">
+          <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 tracking-tight leading-[1.1]">
             Factures
           </h1>
           <p className="text-sm text-zinc-500 mt-1">

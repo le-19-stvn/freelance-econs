@@ -363,7 +363,7 @@ export default function TeamPage() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-serif font-normal text-zinc-900 tracking-tight leading-[1.1]">Gestion de l&apos;Equipe</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 tracking-tight leading-[1.1]">Gestion de l&apos;Equipe</h1>
           <p className="text-sm text-zinc-500 mt-1">
             {members.length} membre(s) dans cette equipe
           </p>
