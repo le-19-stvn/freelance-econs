@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useInvoices } from '@/hooks/useInvoices'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -215,9 +215,33 @@ function StatusDropdown({
 }
 
 /* ── Main Page ── */
+type TabKey = 'all' | 'draft' | 'sent' | 'paid' | 'late'
+
+const TAB_ORDER: { key: TabKey; label: string }[] = [
+  { key: 'all',   label: 'Toutes' },
+  { key: 'draft', label: 'Brouillons' },
+  { key: 'sent',  label: 'Envoyées' },
+  { key: 'paid',  label: 'Payées' },
+  { key: 'late',  label: 'En retard' },
+]
+
 export default function InvoicesPage() {
   const { invoices, loading, updateStatus, fetchInvoices } = useInvoices()
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+  const [activeTab, setActiveTab] = useState<TabKey>('all')
+
+  const counts = useMemo(() => ({
+    all:   invoices.length,
+    draft: invoices.filter(i => i.status === 'draft').length,
+    sent:  invoices.filter(i => i.status === 'sent').length,
+    paid:  invoices.filter(i => i.status === 'paid').length,
+    late:  invoices.filter(i => i.status === 'late').length,
+  }), [invoices])
+
+  const filteredInvoices = useMemo(
+    () => activeTab === 'all' ? invoices : invoices.filter(i => i.status === activeTab),
+    [invoices, activeTab]
+  )
 
   const handleEmailSuccess = (msg: string) => {
     setToast({ message: msg, type: 'success' })
@@ -290,7 +314,7 @@ export default function InvoicesPage() {
     <div className="max-w-7xl mx-auto animate-fade-in">
 
       {/* ═══ HEADER ═══ */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 tracking-tight leading-[1.1]">
             Factures
@@ -321,6 +345,41 @@ export default function InvoicesPage() {
         </div>
       </div>
 
+      {/* ═══ STATUS TABS ═══ */}
+      {invoices.length > 0 && (
+        <div className="mb-5 border-b border-zinc-200 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="flex gap-1 min-w-max">
+            {TAB_ORDER.map(tab => {
+              const active = activeTab === tab.key
+              const count = counts[tab.key]
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer whitespace-nowrap ${
+                    active
+                      ? 'text-zinc-900'
+                      : 'text-zinc-500 hover:text-zinc-900'
+                  }`}
+                >
+                  {tab.label}
+                  <span className={`font-mono text-[11px] tabular-nums px-1.5 py-0.5 rounded ${
+                    active
+                      ? tab.key === 'late' ? 'bg-red-50 text-red-700' : 'bg-zinc-900 text-white'
+                      : 'bg-zinc-100 text-zinc-500'
+                  }`}>
+                    {count}
+                  </span>
+                  {active && (
+                    <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-zinc-900" />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* ═══ INVOICE LIST ═══ */}
       {invoices.length === 0 ? (
         <div className="text-center py-20">
@@ -329,9 +388,16 @@ export default function InvoicesPage() {
             Aucune facture enregistree.
           </p>
         </div>
+      ) : filteredInvoices.length === 0 ? (
+        <div className="text-center py-16 bg-white rounded-2xl shadow-elevated">
+          <FileText size={36} className="mx-auto text-zinc-200 mb-3" />
+          <p className="text-sm text-zinc-400">
+            Aucune facture dans cette categorie.
+          </p>
+        </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {invoices.map((inv, idx) => {
+          {filteredInvoices.map((inv, idx) => {
             const ht = calculateHT(inv.items ?? [])
             const ttc = calculateTTC(ht, inv.tva_rate)
             return (
@@ -375,7 +441,7 @@ export default function InvoicesPage() {
                   {/* Right — amount + actions */}
                   <div className="flex items-center gap-2.5 shrink-0">
                     <div className="text-right mr-2">
-                      <div className="font-bold text-zinc-900 text-base">
+                      <div className="font-mono font-semibold text-zinc-900 text-base">
                         {formatCurrency(ttc, inv.currency ?? 'EUR')}
                       </div>
                       <div className="text-[10px] text-zinc-400 font-medium">
