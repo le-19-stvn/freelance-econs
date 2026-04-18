@@ -311,9 +311,57 @@ export default function ProfilePage() {
         </div>
 
         {planType === 'free' && (
-          <p className="mt-4 text-sm text-zinc-400 leading-relaxed">
-            Le plan Pro inclut : export illimite, factures automatiques, acces prioritaire aux nouvelles fonctionnalites.
-          </p>
+          <div className="mt-6 rounded-2xl bg-gradient-to-br from-blue-50 to-white border border-blue-100 p-6">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <Sparkles size={16} className="text-blue-700" />
+                <h3 className="text-sm font-semibold text-zinc-900">Ce que contient le plan Pro</h3>
+              </div>
+              <div className="text-right">
+                <div className="text-xl font-bold text-zinc-900 leading-none">5,99 €</div>
+                <div className="text-[11px] text-zinc-500 mt-0.5">par mois</div>
+              </div>
+            </div>
+
+            <ul className="flex flex-col gap-3">
+              {[
+                {
+                  title: 'Clients, projets & factures illimités',
+                  sub: 'Aucune limite sur vos créations, travaillez sans contrainte.',
+                },
+                {
+                  title: 'Simulateur URSSAF',
+                  sub: 'Estimez vos cotisations et votre revenu net en temps réel.',
+                },
+                {
+                  title: 'KPI Prévisionnel',
+                  sub: 'Visualisez le chiffre d\'affaires à venir (factures envoyées + projets en cours).',
+                },
+                {
+                  title: 'Branding des factures',
+                  sub: 'Ajoutez votre logo et votre couleur principale sur tous vos PDF.',
+                },
+                {
+                  title: 'Relances automatiques',
+                  sub: 'Relances email J+3, J+7 et J+15 envoyées automatiquement aux clients en retard.',
+                },
+              ].map((f, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <div className="shrink-0 w-5 h-5 rounded-full bg-blue-700 flex items-center justify-center mt-0.5">
+                    <Check size={12} className="text-white" strokeWidth={3} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-zinc-900">{f.title}</div>
+                    <div className="text-xs text-zinc-500 mt-0.5 leading-relaxed">{f.sub}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <p className="text-[11px] text-zinc-400 mt-5 text-center">
+              Sans engagement · Résiliable à tout moment
+            </p>
+          </div>
         )}
       </div>
 

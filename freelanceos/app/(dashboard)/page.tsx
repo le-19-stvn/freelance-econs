@@ -221,7 +221,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ═══ ROW 2: KPI Cards ═══ */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <KPICard
           label="En attente"
           value={pendingCount}
