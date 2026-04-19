@@ -1,0 +1,12 @@
+# ── Claude Code local config (per-machine, not shared) ──
+.claude/settings.local.json
+
+# ── Superpowers runtime state ──
+.superpowers/
+
+# ── Internal planning docs (drafts, not shipped) ──
+docs/superpowers/plans/
+
+# ── Supabase MCP scratch dirs ──
+supabase/
+freelanceos/supabase/.temp/
