@@ -1,68 +1,23 @@
 import React from 'react'
 import path from 'path'
-import fs from 'fs'
 import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer'
 import type { Invoice, Profile } from '@/types'
 import { calculateHT, calculateTVA, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
 
 /* ──────────────────────────────────────────────────────────
    Premium Light Swiss Design Invoice — B&W Strict Grid
-   Inter (text) · JetBrains Mono (numbers) · No vertical borders
-   ──────────────────────────────────────────────────────────
+   Helvetica (text) · Courier (numbers) · No vertical borders
 
-   FONT LOADING STRATEGY
-   ---------------------
-   @react-pdf/renderer's Font.register() takes a `src` URL-style string.
-   On Vercel serverless, `process.cwd() + public/fonts/X.ttf` fails
-   because Next.js's file tracer can't follow dynamic `path.join(...)`
-   calls — the font files aren't shipped to the Lambda.
-
-   Fix: read every font with fs.readFileSync() at module init (static
-   reference — the Next.js tracer CAN follow this) and convert to a
-   base64 data URL. The font bytes live in the JS bundle, no runtime
-   file I/O needed. Same trick for the default logo.
+   Using PDF's 14 built-in standard fonts (Helvetica, Courier) so no
+   TTF files need to be bundled into the Vercel Lambda. Avoids the
+   @react-pdf/renderer + Next.js file-tracing pitfalls that broke
+   PDF generation in prod.
    ────────────────────────────────────────────────────────── */
-
-const FONTS_DIR = path.join(process.cwd(), 'public', 'fonts')
-const ASSETS_DIR = path.join(process.cwd(), 'public', 'assets')
-
-function fontDataUrl(filename: string): string {
-  const buf = fs.readFileSync(path.join(FONTS_DIR, filename))
-  return `data:font/ttf;base64,${buf.toString('base64')}`
-}
-
-function logoDataUrl(filename: string): string | null {
-  try {
-    const buf = fs.readFileSync(path.join(ASSETS_DIR, filename))
-    return `data:image/png;base64,${buf.toString('base64')}`
-  } catch {
-    return null
-  }
-}
-
-Font.register({
-  family: 'Inter',
-  fonts: [
-    { src: fontDataUrl('Inter-Regular.ttf'),  fontWeight: 400 },
-    { src: fontDataUrl('Inter-Medium.ttf'),   fontWeight: 500 },
-    { src: fontDataUrl('Inter-SemiBold.ttf'), fontWeight: 600 },
-    { src: fontDataUrl('Inter-Bold.ttf'),     fontWeight: 700 },
-  ],
-})
-
-Font.register({
-  family: 'JetBrains Mono',
-  fonts: [
-    { src: fontDataUrl('JetBrainsMono-Regular.ttf'),  fontWeight: 400 },
-    { src: fontDataUrl('JetBrainsMono-Medium.ttf'),   fontWeight: 500 },
-    { src: fontDataUrl('JetBrainsMono-SemiBold.ttf'), fontWeight: 600 },
-  ],
-})
 
 // Disable hyphenation so invoice numbers and IBANs never break
 Font.registerHyphenationCallback((word) => [word])
 
-const LOGO_DATA_URL = logoDataUrl('logo-noir-fr.png')
+const LOGO_PATH = path.join(process.cwd(), 'public', 'assets', 'logo-noir-fr.png')
 
 const c = {
   black: '#000000',
@@ -85,7 +40,7 @@ const styles = StyleSheet.create({
     paddingBottom: 110,
     paddingHorizontal: 52,
     fontSize: 9,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontWeight: 400,
     color: c.dark,
     backgroundColor: c.white,
@@ -107,7 +62,7 @@ const styles = StyleSheet.create({
   },
   factureTitle: {
     fontSize: 32,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontWeight: 700,
     color: c.black,
     letterSpacing: 8,
@@ -122,7 +77,7 @@ const styles = StyleSheet.create({
   },
   senderName: {
     fontSize: 9,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontWeight: 600,
     color: c.dark,
     marginBottom: 2,
@@ -144,7 +99,7 @@ const styles = StyleSheet.create({
   metaLabel: {
     width: 80,
     fontSize: 7.5,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontWeight: 500,
     color: c.lightGrey,
     textTransform: 'uppercase',
@@ -153,7 +108,7 @@ const styles = StyleSheet.create({
   metaValue: {
     flex: 1,
     fontSize: 8.5,
-    fontFamily: 'JetBrains Mono',
+    fontFamily: 'Courier',
     fontWeight: 600,
     color: c.dark,
     textAlign: 'right',
@@ -176,7 +131,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 7,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontWeight: 600,
     color: c.lightGrey,
     textTransform: 'uppercase',
@@ -185,7 +140,7 @@ const styles = StyleSheet.create({
   },
   clientName: {
     fontSize: 12,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontWeight: 700,
     color: c.black,
     marginBottom: 3,
@@ -212,7 +167,7 @@ const styles = StyleSheet.create({
   },
   thText: {
     fontSize: 7,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontWeight: 600,
     color: c.grey,
     textTransform: 'uppercase',
@@ -228,19 +183,19 @@ const styles = StyleSheet.create({
   },
   tdText: {
     fontSize: 9,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontWeight: 400,
     color: c.dark,
   },
   tdNum: {
     fontSize: 9,
-    fontFamily: 'JetBrains Mono',
+    fontFamily: 'Courier',
     fontWeight: 400,
     color: c.dark,
   },
   tdBold: {
     fontSize: 9,
-    fontFamily: 'JetBrains Mono',
+    fontFamily: 'Courier',
     fontWeight: 600,
     color: c.dark,
   },
@@ -273,13 +228,13 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 9,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontWeight: 400,
     color: c.grey,
   },
   totalValue: {
     fontSize: 9,
-    fontFamily: 'JetBrains Mono',
+    fontFamily: 'Courier',
     fontWeight: 600,
     color: c.dark,
   },
@@ -295,13 +250,13 @@ const styles = StyleSheet.create({
   },
   ttcLabel: {
     fontSize: 12,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontWeight: 700,
     color: c.black,
   },
   ttcValue: {
     fontSize: 12,
-    fontFamily: 'JetBrains Mono',
+    fontFamily: 'Courier',
     fontWeight: 600,
     color: c.black,
   },
@@ -322,7 +277,7 @@ const styles = StyleSheet.create({
   },
   notesTitle: {
     fontSize: 7,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontWeight: 600,
     color: c.lightGrey,
     textTransform: 'uppercase',
@@ -347,7 +302,7 @@ const styles = StyleSheet.create({
   },
   paymentTitle: {
     fontSize: 7,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontWeight: 700,
     color: c.dark,
     textTransform: 'uppercase',
@@ -362,7 +317,7 @@ const styles = StyleSheet.create({
   paymentLabel: {
     width: 110,
     fontSize: 7.5,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontWeight: 600,
     color: c.grey,
     textTransform: 'uppercase',
@@ -371,7 +326,7 @@ const styles = StyleSheet.create({
   paymentValue: {
     flex: 1,
     fontSize: 8.5,
-    fontFamily: 'JetBrains Mono',
+    fontFamily: 'Courier',
     fontWeight: 500,
     color: c.dark,
     letterSpacing: 0.5,
@@ -379,7 +334,7 @@ const styles = StyleSheet.create({
   paymentLink: {
     flex: 1,
     fontSize: 8.5,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontWeight: 400,
     color: c.dark,
     textDecoration: 'underline',
@@ -390,7 +345,7 @@ const styles = StyleSheet.create({
      ════════════════════════════════════════ */
   legalText: {
     fontSize: 7.5,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontWeight: 400,
     color: c.grey,
     marginTop: 12,
@@ -418,7 +373,7 @@ const styles = StyleSheet.create({
   },
   footerBrand: {
     fontSize: 7,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontWeight: 700,
     color: c.dark,
     letterSpacing: 2,
@@ -427,7 +382,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 6.5,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontWeight: 400,
     color: c.lightGrey,
     lineHeight: 1.55,
@@ -474,7 +429,7 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
   const logoSrc =
     profile.invoice_logo_url && profile.invoice_logo_url.startsWith('http')
       ? profile.invoice_logo_url
-      : LOGO_DATA_URL
+      : LOGO_PATH
 
   return (
     <Document>
@@ -490,7 +445,7 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
             <Text style={[styles.factureTitle, { color: primaryColor }]}>Facture</Text>
 
             {/* Logo — user custom logo or eCons Freelance brand mark */}
-            {logoSrc && <Image src={logoSrc} style={styles.logo} />}
+            <Image src={logoSrc} style={styles.logo} />
 
             <Text style={styles.senderName}>
               {profile.company_name ?? profile.full_name ?? 'Freelance'}

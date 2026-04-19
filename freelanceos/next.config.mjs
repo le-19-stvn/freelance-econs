@@ -4,16 +4,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  experimental: {
-    // Force-include the PDF fonts + logo in the serverless bundle for routes
-    // that generate invoice PDFs. Without this, `process.cwd()` + `public/fonts`
-    // resolves to a path Vercel hasn't shipped, so @react-pdf/renderer's
-    // Font.register() throws → PDF generation + email sending break.
-    // (Moved to top-level `outputFileTracingIncludes` in Next 15.)
-    outputFileTracingIncludes: {
-      '/api/invoices/**': ['./public/fonts/**', './public/assets/**'],
-    },
-  },
 }
 
 export default withSentryConfig(nextConfig, {
