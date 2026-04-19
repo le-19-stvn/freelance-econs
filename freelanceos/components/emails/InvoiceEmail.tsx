@@ -6,8 +6,10 @@ import {
   Section,
   Text,
   Button,
-  Hr,
   Preview,
+  Row,
+  Column,
+  Img,
 } from '@react-email/components'
 import * as React from 'react'
 
@@ -19,7 +21,19 @@ interface InvoiceEmailProps {
   dueDate: string
   invoiceUrl?: string
   paymentLink?: string
+  logoUrl?: string | null
+  primaryColor?: string | null
 }
+
+const FONT_STACK =
+  "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+const MONO_STACK =
+  "'JetBrains Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Courier New', monospace"
+
+const DEFAULT_BRAND = '#1D4ED8'
+
+const isValidHex = (c?: string | null): c is string =>
+  !!c && /^#[0-9a-fA-F]{6}$/.test(c)
 
 export default function InvoiceEmail({
   freelanceName = 'Freelance',
@@ -29,74 +43,131 @@ export default function InvoiceEmail({
   dueDate = '—',
   invoiceUrl = '#',
   paymentLink,
+  logoUrl,
+  primaryColor,
 }: InvoiceEmailProps) {
+  const brand = isValidHex(primaryColor) ? primaryColor : DEFAULT_BRAND
+
   return (
     <Html lang="fr">
       <Head />
-      <Preview>Facture {invoiceNumber} — {totalAmount}</Preview>
-      <Body style={body}>
-        <Container style={container}>
-          {/* Header accent */}
-          <Section style={headerAccent} />
+      <Preview>
+        Facture {invoiceNumber} — {totalAmount}
+      </Preview>
+      <Body style={bodyCss}>
+        <Container style={containerCss}>
 
-          {/* Content */}
-          <Section style={content}>
-            {/* Brand */}
-            <Text style={brand}>FACTURE</Text>
-            <Text style={invoiceNum}>{invoiceNumber}</Text>
+          {/* Card */}
+          <Section style={cardCss}>
 
-            <Hr style={divider} />
+            {/* Header */}
+            <Section style={{ padding: '24px 32px 0' }}>
+              <Row>
+                <Column align="left">
+                  {logoUrl ? (
+                    <Img
+                      src={logoUrl}
+                      alt={freelanceName}
+                      height="32"
+                      style={{ height: 32, width: 'auto', border: 0, display: 'block' }}
+                    />
+                  ) : (
+                    <span style={logoBadge(brand)}>{freelanceName}</span>
+                  )}
+                </Column>
+                <Column align="right">
+                  <span style={statusBadge(brand)}>FACTURE</span>
+                </Column>
+              </Row>
+            </Section>
 
-            {/* Greeting */}
-            <Text style={paragraph}>
-              Bonjour {clientName},
-            </Text>
-
-            <Text style={paragraph}>
-              Veuillez trouver ci-joint la facture <strong>{invoiceNumber}</strong> d&apos;un montant de <strong>{totalAmount}</strong>.
-            </Text>
-
-            {/* Amount highlight */}
-            <Section style={amountBox}>
-              <Text style={amountLabel}>MONTANT TTC</Text>
-              <Text style={amountValue}>{totalAmount}</Text>
-              <Text style={amountDue}>
-                Date d&apos;échéance : {dueDate}
+            {/* Kicker + Title */}
+            <Section style={{ padding: '28px 32px 0' }}>
+              <Text style={kickerCss(brand)}>Nouvelle facture</Text>
+              <Text style={headlineCss}>
+                {freelanceName} vous a envoyé une facture
               </Text>
             </Section>
 
-            {/* CTA */}
-            <Section style={{ textAlign: 'center' as const, marginTop: '28px', marginBottom: paymentLink ? '12px' : '28px' }}>
-              <Button style={button} href={invoiceUrl}>
-                Consulter la facture
+            {/* Body */}
+            <Section style={{ padding: '20px 32px 0' }}>
+              <Text style={paragraphCss}>Bonjour {clientName},</Text>
+              <Text style={paragraphCss}>
+                Veuillez trouver ci-joint la facture <strong style={{ color: '#18181b' }}>{invoiceNumber}</strong> au format PDF.
+                Le récapitulatif ci-dessous reprend les éléments principaux.
+              </Text>
+            </Section>
+
+            {/* Summary card */}
+            <Section style={{ padding: '0 32px' }}>
+              <Section style={summaryCardCss}>
+                <Row>
+                  <Column style={{ padding: '6px 0' }}>
+                    <Text style={summaryLabelCss}>Facture</Text>
+                  </Column>
+                  <Column align="right" style={{ padding: '6px 0' }}>
+                    <Text style={summaryValueMonoCss}>{invoiceNumber}</Text>
+                  </Column>
+                </Row>
+                <Row>
+                  <Column style={{ padding: '6px 0' }}>
+                    <Text style={summaryLabelCss}>Échéance</Text>
+                  </Column>
+                  <Column align="right" style={{ padding: '6px 0' }}>
+                    <Text style={summaryValueMonoCss}>{dueDate}</Text>
+                  </Column>
+                </Row>
+                <Row>
+                  <Column colSpan={2} style={{ padding: '10px 0 6px', borderTop: '1px solid #e4e4e7' }} />
+                </Row>
+                <Row>
+                  <Column style={{ padding: '6px 0' }}>
+                    <Text style={summaryTotalLabelCss}>Montant TTC</Text>
+                  </Column>
+                  <Column align="right" style={{ padding: '6px 0' }}>
+                    <Text style={summaryTotalValueCss(brand)}>{totalAmount}</Text>
+                  </Column>
+                </Row>
+              </Section>
+            </Section>
+
+            {/* CTAs */}
+            <Section style={{ padding: '8px 32px 0', textAlign: 'center' as const }}>
+              {paymentLink && (
+                <Button style={primaryButtonCss(brand)} href={paymentLink}>
+                  Payer maintenant →
+                </Button>
+              )}
+              <div style={{ height: 10 }} />
+              <Button style={secondaryButtonCss} href={invoiceUrl}>
+                Consulter la facture (PDF)
               </Button>
             </Section>
 
-            {paymentLink && (
-              <Section style={{ textAlign: 'center' as const, marginBottom: '28px' }}>
-                <Button style={payButton} href={paymentLink}>
-                  Payer maintenant
-                </Button>
-              </Section>
-            )}
+            {/* Closing */}
+            <Section style={{ padding: '28px 32px 0' }}>
+              <Text style={paragraphSmallCss}>
+                N&apos;hésitez pas à revenir vers nous si vous avez la moindre question.
+              </Text>
+              <Text style={{ ...paragraphCss, marginTop: 16 }}>
+                Cordialement,<br />
+                <strong style={{ color: '#18181b' }}>{freelanceName}</strong>
+              </Text>
+            </Section>
 
-            <Hr style={divider} />
-
-            {/* Sign-off */}
-            <Text style={paragraph}>
-              Cordialement,
-            </Text>
-            <Text style={{ ...paragraph, fontWeight: 600, color: '#0F1117' }}>
-              {freelanceName}
-            </Text>
+            {/* Spacer */}
+            <Section style={{ padding: '28px 32px' }} />
           </Section>
 
           {/* Footer */}
-          <Section style={footer}>
-            <Text style={footerText}>
-              Ce message a été envoyé automatiquement via eCons Freelance.
+          <Section style={footerCss}>
+            <Text style={footerTextCss}>
+              Envoyé via Freelance by eCons ·{' '}
+              <a href="https://econs-freelance.com" style={{ color: '#a1a1aa', textDecoration: 'underline' }}>
+                econs-freelance.com
+              </a>
             </Text>
-            <Text style={footerText}>
+            <Text style={footerTextCss}>
               La facture est jointe à cet email au format PDF.
             </Text>
           </Section>
@@ -106,125 +177,135 @@ export default function InvoiceEmail({
   )
 }
 
-/* ── Styles ── */
-const body: React.CSSProperties = {
-  backgroundColor: '#F6F7FA',
-  fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+/* ─────────── Styles ─────────── */
+
+const bodyCss: React.CSSProperties = {
+  backgroundColor: '#fafafa',
+  fontFamily: FONT_STACK,
   margin: 0,
   padding: 0,
 }
 
-const container: React.CSSProperties = {
+const containerCss: React.CSSProperties = {
   maxWidth: '560px',
   margin: '0 auto',
-  padding: '40px 0',
+  padding: '32px 16px',
 }
 
-const headerAccent: React.CSSProperties = {
-  height: '4px',
-  background: 'linear-gradient(90deg, #1A3FA3 0%, #00B4D8 100%)',
-  borderRadius: '8px 8px 0 0',
+const cardCss: React.CSSProperties = {
+  backgroundColor: '#ffffff',
+  borderRadius: 16,
+  boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.04)',
+  overflow: 'hidden',
 }
 
-const content: React.CSSProperties = {
-  backgroundColor: '#FFFFFF',
-  padding: '40px 40px 32px',
-  borderLeft: '1px solid #E4E6ED',
-  borderRight: '1px solid #E4E6ED',
-}
+const logoBadge = (brand: string): React.CSSProperties => ({
+  display: 'inline-block',
+  padding: '6px 12px',
+  borderRadius: 8,
+  background: brand,
+  color: '#ffffff',
+  font: `600 13px/1 ${FONT_STACK}`,
+  letterSpacing: '-0.01em',
+})
 
-const brand: React.CSSProperties = {
-  fontSize: '11px',
-  fontWeight: 700,
-  letterSpacing: '2px',
-  color: '#6B7280',
+const statusBadge = (brand: string): React.CSSProperties => ({
+  display: 'inline-block',
+  padding: '4px 10px',
+  borderRadius: 999,
+  background: '#eff6ff',
+  color: brand,
+  font: `600 11px/1 ${MONO_STACK}`,
+  letterSpacing: '0.02em',
+})
+
+const kickerCss = (brand: string): React.CSSProperties => ({
+  margin: '0 0 8px',
+  font: `500 11px/1 ${FONT_STACK}`,
+  color: brand,
+  letterSpacing: '0.08em',
   textTransform: 'uppercase' as const,
-  margin: '0 0 4px',
-}
+})
 
-const invoiceNum: React.CSSProperties = {
-  fontSize: '22px',
-  fontWeight: 800,
-  color: '#1A3FA3',
-  margin: '0 0 20px',
-}
-
-const divider: React.CSSProperties = {
-  borderColor: '#E4E6ED',
-  borderWidth: '1px 0 0 0',
-  margin: '20px 0',
-}
-
-const paragraph: React.CSSProperties = {
-  fontSize: '15px',
-  lineHeight: '1.6',
-  color: '#2C2F3A',
-  margin: '0 0 12px',
-}
-
-const amountBox: React.CSSProperties = {
-  backgroundColor: '#EBF2FA',
-  borderRadius: '8px',
-  padding: '20px 24px',
-  textAlign: 'center' as const,
-  margin: '24px 0',
-}
-
-const amountLabel: React.CSSProperties = {
-  fontSize: '10px',
-  fontWeight: 600,
-  letterSpacing: '1.5px',
-  color: '#6B7280',
-  margin: '0 0 6px',
-}
-
-const amountValue: React.CSSProperties = {
-  fontSize: '28px',
-  fontWeight: 800,
-  color: '#1A3FA3',
-  margin: '0 0 6px',
-}
-
-const amountDue: React.CSSProperties = {
-  fontSize: '13px',
-  color: '#6B7280',
+const headlineCss: React.CSSProperties = {
   margin: 0,
+  font: `700 24px/1.2 ${FONT_STACK}`,
+  color: '#18181b',
+  letterSpacing: '-0.02em',
 }
 
-const button: React.CSSProperties = {
-  backgroundColor: '#1A3FA3',
-  color: '#FFFFFF',
-  fontSize: '14px',
-  fontWeight: 700,
-  padding: '12px 32px',
-  borderRadius: '6px',
-  textDecoration: 'none',
+const paragraphCss: React.CSSProperties = {
+  margin: '0 0 16px',
+  font: `400 15px/1.6 ${FONT_STACK}`,
+  color: '#3f3f46',
+}
+
+const paragraphSmallCss: React.CSSProperties = {
+  margin: '0 0 8px',
+  font: `400 14px/1.6 ${FONT_STACK}`,
+  color: '#52525b',
+}
+
+const summaryCardCss: React.CSSProperties = {
+  background: '#fafafa',
+  border: '1px solid #e4e4e7',
+  borderRadius: 12,
+  padding: '16px 18px',
+}
+
+const summaryLabelCss: React.CSSProperties = {
+  margin: 0,
+  font: `400 13px/1.5 ${FONT_STACK}`,
+  color: '#71717a',
+}
+
+const summaryValueMonoCss: React.CSSProperties = {
+  margin: 0,
+  font: `600 13px/1.5 ${MONO_STACK}`,
+  color: '#27272a',
+}
+
+const summaryTotalLabelCss: React.CSSProperties = {
+  margin: 0,
+  font: `500 14px/1.3 ${FONT_STACK}`,
+  color: '#18181b',
+}
+
+const summaryTotalValueCss = (brand: string): React.CSSProperties => ({
+  margin: 0,
+  font: `600 20px/1.2 ${MONO_STACK}`,
+  color: brand,
+  letterSpacing: '-0.01em',
+})
+
+const primaryButtonCss = (brand: string): React.CSSProperties => ({
   display: 'inline-block',
-}
-
-const payButton: React.CSSProperties = {
-  backgroundColor: '#059669',
-  color: '#FFFFFF',
-  fontSize: '14px',
-  fontWeight: 700,
-  padding: '12px 32px',
-  borderRadius: '6px',
+  padding: '12px 24px',
+  backgroundColor: brand,
+  color: '#ffffff',
+  font: `600 14px/1 ${FONT_STACK}`,
   textDecoration: 'none',
+  borderRadius: 10,
+  letterSpacing: '-0.005em',
+})
+
+const secondaryButtonCss: React.CSSProperties = {
   display: 'inline-block',
+  padding: '10px 22px',
+  backgroundColor: '#f4f4f5',
+  color: '#27272a',
+  font: `500 13px/1 ${FONT_STACK}`,
+  textDecoration: 'none',
+  borderRadius: 10,
 }
 
-const footer: React.CSSProperties = {
-  backgroundColor: '#FFFFFF',
-  padding: '16px 40px 24px',
-  borderLeft: '1px solid #E4E6ED',
-  borderRight: '1px solid #E4E6ED',
-  borderBottom: '1px solid #E4E6ED',
-  borderRadius: '0 0 8px 8px',
-}
-
-const footerText: React.CSSProperties = {
-  fontSize: '11px',
-  color: '#6B7280',
-  margin: '0 0 4px',
+const footerCss: React.CSSProperties = {
+  padding: '16px 16px',
   textAlign: 'center' as const,
+}
+
+const footerTextCss: React.CSSProperties = {
+  margin: '0 0 4px',
+  font: `400 11px/1.5 ${FONT_STACK}`,
+  color: '#a1a1aa',
 }

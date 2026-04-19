@@ -127,6 +127,8 @@ export async function POST(
         dueDate: dueDateFormatted,
         invoiceUrl: `${appUrl}/api/invoices/${invoiceId}/pdf`,
         paymentLink: (userProfile as any).payment_link || undefined,
+        logoUrl: userProfile.invoice_logo_url ?? null,
+        primaryColor: userProfile.invoice_primary_color ?? null,
       })
     )
 
