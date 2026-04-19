@@ -339,7 +339,7 @@ export default function ClientsPage() {
         <div>
           <h1 className="text-3xl sm:text-5xl font-bold text-zinc-900 tracking-tight leading-[1.05]">
             Clients <span className="text-zinc-300 font-normal">—</span>{' '}
-            <span className="italic font-serif text-zinc-400 font-medium">votre portefeuille.</span>
+            <span className="text-zinc-400 font-medium">votre portefeuille.</span>
           </h1>
           <p className="text-sm text-zinc-500 mt-2">
             Suivi des relations, CA et factures par client.

@@ -41,7 +41,7 @@ type UnifiedProject =
       name: string
       clientName: string
       status: ProjectStatus
-      budget: number
+      prestationsTotal: number   // HT sum of deliverables
       billed: number
       deadline: string | null
       deliverableCount: number
@@ -55,7 +55,7 @@ type UnifiedProject =
       name: string
       clientName: string // = team name
       status: 'ongoing' // team projects don't have our status today
-      budget: 0
+      prestationsTotal: 0
       billed: 0
       deadline: null
       deliverableCount: 0
@@ -265,27 +265,34 @@ export default function ProjectsPage() {
 
   /* ── Unified project list (solo + team) ── */
   const unified: UnifiedProject[] = useMemo(() => {
-    const solo: UnifiedProject[] = projects.map(p => ({
-      kind: 'solo' as const,
-      id: p.id,
-      name: p.name,
-      clientName: p.client?.name ?? '—',
-      status: p.status,
-      budget: p.budget,
-      billed: billedByProject.get(p.id) ?? 0,
-      deadline: p.deadline,
-      deliverableCount: (p.deliverables ?? []).length,
-      memberCount: 1,
-      memberInitials: userInitials ? [userInitials] : ['LM'],
-      project: p,
-    }))
+    const solo: UnifiedProject[] = projects.map(p => {
+      const deliverables = p.deliverables ?? []
+      const prestationsTotal = deliverables.reduce(
+        (sum, d) => sum + d.quantity * d.unit_price,
+        0
+      )
+      return {
+        kind: 'solo' as const,
+        id: p.id,
+        name: p.name,
+        clientName: p.client?.name ?? '—',
+        status: p.status,
+        prestationsTotal,
+        billed: billedByProject.get(p.id) ?? 0,
+        deadline: p.deadline,
+        deliverableCount: deliverables.length,
+        memberCount: 1,
+        memberInitials: userInitials ? [userInitials] : ['LM'],
+        project: p,
+      }
+    })
     const team: UnifiedProject[] = teamProjects.map(tp => ({
       kind: 'team' as const,
       id: tp.id,
       name: tp.name,
       clientName: tp.team_name,
       status: 'ongoing' as const,
-      budget: 0,
+      prestationsTotal: 0,
       billed: 0,
       deadline: null,
       deliverableCount: 0,
@@ -439,7 +446,7 @@ export default function ProjectsPage() {
         <div>
           <h1 className="text-3xl sm:text-5xl font-bold text-zinc-900 tracking-tight leading-[1.05]">
             Projets <span className="text-zinc-300 font-normal">—</span>{' '}
-            <span className="italic font-serif text-zinc-400 font-medium">vos missions en cours.</span>
+            <span className="text-zinc-400 font-medium">vos missions en cours.</span>
           </h1>
           <p className="text-sm text-zinc-500 mt-2">
             Suivez l&apos;avancement, les budgets et les échéances.
@@ -503,11 +510,11 @@ export default function ProjectsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {filtered.map((u, idx) => {
             const isTeam = u.kind === 'team'
-            const hasBudget = !isTeam && u.budget > 0
-            const pct = hasBudget
-              ? Math.min(100, Math.round((u.billed / u.budget) * 100))
+            const hasPrestations = !isTeam && u.prestationsTotal > 0
+            const pct = hasPrestations
+              ? Math.min(100, Math.round((u.billed / u.prestationsTotal) * 100))
               : 0
-            const overBudget = hasBudget && u.billed > u.budget
+            const overBudget = hasPrestations && u.billed > u.prestationsTotal
             const barCls = overBudget
               ? 'bg-red-500'
               : u.status === 'done'
@@ -531,8 +538,8 @@ export default function ProjectsPage() {
                   {u.clientName}
                 </p>
 
-                {/* Progress bar (solo only, if budget set) */}
-                {hasBudget && (
+                {/* Progress bar (solo only, if deliverables priced) */}
+                {hasPrestations && (
                   <div className="mb-5">
                     <div className="h-1.5 rounded-full bg-zinc-100 overflow-hidden mb-2">
                       <div
@@ -548,16 +555,16 @@ export default function ProjectsPage() {
                         <span className={overBudget ? 'text-red-600 font-semibold' : 'text-zinc-900 font-semibold'}>
                           {formatCurrency(u.billed)}
                         </span>
-                        <span className="text-zinc-400"> / {formatCurrency(u.budget)}</span>
+                        <span className="text-zinc-400"> / {formatCurrency(u.prestationsTotal)}</span>
                       </span>
                     </div>
                   </div>
                 )}
 
-                {/* Stats row (solo with budget) */}
-                {!isTeam && hasBudget && (
+                {/* Stats row (solo with prestations) */}
+                {!isTeam && hasPrestations && (
                   <div className="grid grid-cols-3 gap-4 pt-4 border-t border-zinc-100">
-                    <StatCell label="Budget"   value={formatCurrency(u.budget)} />
+                    <StatCell label="Prestations" value={formatCurrency(u.prestationsTotal)} />
                     <StatCell
                       label="Facturé"
                       value={formatCurrency(u.billed)}
@@ -567,11 +574,11 @@ export default function ProjectsPage() {
                   </div>
                 )}
 
-                {/* Stats row (solo without budget — fallback) */}
-                {!isTeam && !hasBudget && (
+                {/* Stats row (solo without prestations — fallback) */}
+                {!isTeam && !hasPrestations && (
                   <div className="grid grid-cols-3 gap-4 pt-4 border-t border-zinc-100">
-                    <StatCell label="Prestations" value={String(u.deliverableCount)} />
-                    <StatCell label="Budget"      value="—" />
+                    <StatCell label="Lignes"      value={String(u.deliverableCount)} />
+                    <StatCell label="Prestations" value="—" />
                     <StatCell label="Échéance"    value={formatDeadline(u.deadline)} />
                   </div>
                 )}
