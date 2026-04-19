@@ -1,5 +1,6 @@
 import React from 'react'
 import path from 'path'
+import fs from 'fs'
 import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer'
 import type { Invoice, Profile } from '@/types'
 import { calculateHT, calculateTVA, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
@@ -7,33 +8,61 @@ import { calculateHT, calculateTVA, calculateTTC, formatCurrency } from '@/lib/u
 /* ──────────────────────────────────────────────────────────
    Premium Light Swiss Design Invoice — B&W Strict Grid
    Inter (text) · JetBrains Mono (numbers) · No vertical borders
+   ──────────────────────────────────────────────────────────
+
+   FONT LOADING STRATEGY
+   ---------------------
+   @react-pdf/renderer's Font.register() takes a `src` URL-style string.
+   On Vercel serverless, `process.cwd() + public/fonts/X.ttf` fails
+   because Next.js's file tracer can't follow dynamic `path.join(...)`
+   calls — the font files aren't shipped to the Lambda.
+
+   Fix: read every font with fs.readFileSync() at module init (static
+   reference — the Next.js tracer CAN follow this) and convert to a
+   base64 data URL. The font bytes live in the JS bundle, no runtime
+   file I/O needed. Same trick for the default logo.
    ────────────────────────────────────────────────────────── */
 
 const FONTS_DIR = path.join(process.cwd(), 'public', 'fonts')
+const ASSETS_DIR = path.join(process.cwd(), 'public', 'assets')
+
+function fontDataUrl(filename: string): string {
+  const buf = fs.readFileSync(path.join(FONTS_DIR, filename))
+  return `data:font/ttf;base64,${buf.toString('base64')}`
+}
+
+function logoDataUrl(filename: string): string | null {
+  try {
+    const buf = fs.readFileSync(path.join(ASSETS_DIR, filename))
+    return `data:image/png;base64,${buf.toString('base64')}`
+  } catch {
+    return null
+  }
+}
 
 Font.register({
   family: 'Inter',
   fonts: [
-    { src: path.join(FONTS_DIR, 'Inter-Regular.ttf'),  fontWeight: 400 },
-    { src: path.join(FONTS_DIR, 'Inter-Medium.ttf'),   fontWeight: 500 },
-    { src: path.join(FONTS_DIR, 'Inter-SemiBold.ttf'), fontWeight: 600 },
-    { src: path.join(FONTS_DIR, 'Inter-Bold.ttf'),     fontWeight: 700 },
+    { src: fontDataUrl('Inter-Regular.ttf'),  fontWeight: 400 },
+    { src: fontDataUrl('Inter-Medium.ttf'),   fontWeight: 500 },
+    { src: fontDataUrl('Inter-SemiBold.ttf'), fontWeight: 600 },
+    { src: fontDataUrl('Inter-Bold.ttf'),     fontWeight: 700 },
   ],
 })
 
 Font.register({
   family: 'JetBrains Mono',
   fonts: [
-    { src: path.join(FONTS_DIR, 'JetBrainsMono-Regular.ttf'),  fontWeight: 400 },
-    { src: path.join(FONTS_DIR, 'JetBrainsMono-Medium.ttf'),   fontWeight: 500 },
-    { src: path.join(FONTS_DIR, 'JetBrainsMono-SemiBold.ttf'), fontWeight: 600 },
+    { src: fontDataUrl('JetBrainsMono-Regular.ttf'),  fontWeight: 400 },
+    { src: fontDataUrl('JetBrainsMono-Medium.ttf'),   fontWeight: 500 },
+    { src: fontDataUrl('JetBrainsMono-SemiBold.ttf'), fontWeight: 600 },
   ],
 })
 
 // Disable hyphenation so invoice numbers and IBANs never break
 Font.registerHyphenationCallback((word) => [word])
 
-const LOGO_PATH = path.join(process.cwd(), 'public', 'assets', 'logo-noir-fr.png')
+const LOGO_DATA_URL = logoDataUrl('logo-noir-fr.png')
 
 const c = {
   black: '#000000',
@@ -445,7 +474,7 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
   const logoSrc =
     profile.invoice_logo_url && profile.invoice_logo_url.startsWith('http')
       ? profile.invoice_logo_url
-      : LOGO_PATH
+      : LOGO_DATA_URL
 
   return (
     <Document>
@@ -461,7 +490,7 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
             <Text style={[styles.factureTitle, { color: primaryColor }]}>Facture</Text>
 
             {/* Logo — user custom logo or eCons Freelance brand mark */}
-            <Image src={logoSrc} style={styles.logo} />
+            {logoSrc && <Image src={logoSrc} style={styles.logo} />}
 
             <Text style={styles.senderName}>
               {profile.company_name ?? profile.full_name ?? 'Freelance'}

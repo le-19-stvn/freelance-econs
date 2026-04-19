@@ -167,9 +167,15 @@ export async function POST(
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error('Email send error:', err)
+    const message = err instanceof Error ? err.message : String(err)
+    const stack = err instanceof Error ? err.stack : undefined
+    console.error('Email send error:', message, stack)
     return NextResponse.json(
-      { error: "Erreur lors de l'envoi de l'email" },
+      {
+        error: "Erreur lors de l'envoi de l'email",
+        detail: message,
+        ...(process.env.NODE_ENV !== 'production' ? { stack } : {}),
+      },
       { status: 500 }
     )
   }

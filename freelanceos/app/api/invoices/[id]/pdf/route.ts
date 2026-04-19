@@ -80,9 +80,17 @@ export async function GET(
       },
     })
   } catch (err) {
-    console.error('PDF generation error:', err)
+    const message = err instanceof Error ? err.message : String(err)
+    const stack = err instanceof Error ? err.stack : undefined
+    console.error('PDF generation error:', message, stack)
+    // Surface the real error so we can diagnose prod issues
+    // (Vercel logs + Sentry are not always accessible mid-debug)
     return NextResponse.json(
-      { error: 'Erreur lors de la generation du PDF' },
+      {
+        error: 'Erreur lors de la generation du PDF',
+        detail: message,
+        ...(process.env.NODE_ENV !== 'production' ? { stack } : {}),
+      },
       { status: 500 }
     )
   }
