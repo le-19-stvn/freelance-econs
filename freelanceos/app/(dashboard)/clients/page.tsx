@@ -6,16 +6,14 @@ import { useClients } from '@/hooks/useClients'
 import { useInvoices } from '@/hooks/useInvoices'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
 import { calculateHT, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
-import type { Client } from '@/types'
-import { Users, Mail, X } from 'lucide-react'
+import type { Client, ClientStatus } from '@/types'
+import { Users, X } from 'lucide-react'
 
 type ClientStats = {
-  totalPaid: number
+  totalBilled: number       // TTC toutes factures (hors draft)
   invoiceCount: number
   lastInvoiceDate: Date | null
 }
-
-const DORMANT_THRESHOLD_MS = 1000 * 60 * 60 * 24 * 30 * 6 // ~6 months
 
 function getInitials(name: string) {
   return name
@@ -32,27 +30,61 @@ const emptyForm = {
   phone: '',
   address: '',
   fiscal_id: '',
+  sector: '',
+  status: 'active' as ClientStatus,
 }
 
 const inputCls = 'w-full px-4 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 transition-all'
 const labelCls = 'block text-xs font-medium text-zinc-500 mb-1.5'
+
+/* ── Status presentation ─────────────────────────────── */
+const statusPresentation: Record<
+  ClientStatus,
+  { label: string; textCls: string }
+> = {
+  active:   { label: 'Actif',    textCls: 'text-emerald-600' },
+  prospect: { label: 'Prospect', textCls: 'text-blue-700' },
+  inactive: { label: 'Inactif',  textCls: 'text-zinc-400' },
+}
+
+/* ── Tiny stat block used in the card grid ─────────── */
+function StatCell({
+  label,
+  value,
+  valueCls = 'text-zinc-900',
+}: {
+  label: string
+  value: string
+  valueCls?: string
+}) {
+  return (
+    <div>
+      <div className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.08em] mb-1.5">
+        {label}
+      </div>
+      <div className={`font-mono text-sm font-semibold tabular-nums ${valueCls}`}>
+        {value}
+      </div>
+    </div>
+  )
+}
 
 export default function ClientsPage() {
   const { clients, loading, createClient, updateClient, deleteClient } = useClients()
   const { invoices } = useInvoices()
   const [showModal, setShowModal] = useState(false)
 
-  // Aggregate stats per client
+  // Aggregate stats per client (CA billed hors draft, facture count, last activity)
   const statsByClient = useMemo(() => {
     const map = new Map<string, ClientStats>()
     invoices.forEach(inv => {
       if (!inv.client_id || inv.status === 'draft') return
       const ht = calculateHT(inv.items ?? [])
       const ttc = calculateTTC(ht, inv.tva_rate)
-      const prev = map.get(inv.client_id) ?? { totalPaid: 0, invoiceCount: 0, lastInvoiceDate: null }
+      const prev = map.get(inv.client_id) ?? { totalBilled: 0, invoiceCount: 0, lastInvoiceDate: null }
       const issueDate = inv.issue_date ? new Date(inv.issue_date) : null
       map.set(inv.client_id, {
-        totalPaid: prev.totalPaid + (inv.status === 'paid' ? ttc : 0),
+        totalBilled: prev.totalBilled + ttc,
         invoiceCount: prev.invoiceCount + 1,
         lastInvoiceDate:
           issueDate && (!prev.lastInvoiceDate || issueDate > prev.lastInvoiceDate)
@@ -62,6 +94,7 @@ export default function ClientsPage() {
     })
     return map
   }, [invoices])
+
   const [editing, setEditing] = useState<Client | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [nameError, setNameError] = useState('')
@@ -84,6 +117,8 @@ export default function ClientsPage() {
       phone: client.phone ?? '',
       address: client.address ?? '',
       fiscal_id: client.fiscal_id ?? '',
+      sector: client.sector ?? '',
+      status: client.status ?? 'active',
     })
     setShowModal(true)
   }
@@ -101,6 +136,8 @@ export default function ClientsPage() {
       phone: form.phone || null,
       address: form.address || null,
       fiscal_id: form.fiscal_id || null,
+      sector: form.sector || null,
+      status: form.status,
     }
     try {
       if (editing) {
@@ -121,19 +158,25 @@ export default function ClientsPage() {
     }
   }
 
-  // Loading skeleton
+  /* ── Loading skeleton ── */
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-2xl shadow-elevated p-5 animate-pulse">
-              <div className="flex items-center gap-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="bg-white rounded-2xl border border-zinc-200/80 p-6 animate-pulse">
+              <div className="flex items-center gap-3 mb-5">
                 <div className="w-11 h-11 bg-zinc-100 rounded-xl" />
-                <div>
+                <div className="flex-1">
                   <div className="h-4 w-28 bg-zinc-100 rounded mb-2" />
                   <div className="h-3 w-36 bg-zinc-50 rounded" />
                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-100">
+                <div className="h-8 bg-zinc-50 rounded" />
+                <div className="h-8 bg-zinc-50 rounded" />
+                <div className="h-8 bg-zinc-50 rounded" />
+                <div className="h-8 bg-zinc-50 rounded" />
               </div>
             </div>
           ))}
@@ -142,7 +185,7 @@ export default function ClientsPage() {
     )
   }
 
-  // ── Modal JSX (rendered via portal) ──
+  /* ── Modal (portal) ── */
   const modalJSX = showModal ? (
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -150,7 +193,7 @@ export default function ClientsPage() {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl shadow-elevated-lg p-8 w-full max-w-md mx-4 relative"
+        className="bg-white rounded-2xl shadow-elevated-lg p-8 w-full max-w-md mx-4 relative max-h-[90vh] overflow-y-auto"
       >
         <button
           onClick={() => setShowModal(false)}
@@ -164,27 +207,88 @@ export default function ClientsPage() {
         </h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {[
-            { key: 'name', label: 'Nom *', required: true, type: 'text' },
-            { key: 'email', label: 'Email', required: false, type: 'email' },
-            { key: 'phone', label: 'Telephone', required: false, type: 'tel' },
-            { key: 'address', label: 'Adresse', required: false, type: 'text' },
-            { key: 'fiscal_id', label: 'ID Fiscal', required: false, type: 'text' },
-          ].map((field) => (
-            <div key={field.key}>
-              <label className={labelCls}>{field.label}</label>
+          {/* Name */}
+          <div>
+            <label className={labelCls}>Nom *</label>
+            <input
+              type="text"
+              required
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              className={`${inputCls} ${nameError ? '!ring-2 !ring-red-500/20 !border-red-500' : ''}`}
+            />
+            {nameError && <p className="text-xs text-red-500 mt-1">{nameError}</p>}
+          </div>
+
+          {/* Sector + Status */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Secteur</label>
               <input
-                type={field.type}
-                required={field.required}
-                value={form[field.key as keyof typeof form]}
-                onChange={(e) => setForm((f) => ({ ...f, [field.key]: e.target.value }))}
-                className={`${inputCls} ${field.key === 'name' && nameError ? '!ring-2 !ring-red-500/20 !border-red-500' : ''}`}
+                type="text"
+                placeholder="Ex: Agence créative"
+                value={form.sector}
+                onChange={(e) => setForm((f) => ({ ...f, sector: e.target.value }))}
+                className={inputCls}
               />
-              {field.key === 'name' && nameError && (
-                <p className="text-xs text-red-500 mt-1">{nameError}</p>
-              )}
             </div>
-          ))}
+            <div>
+              <label className={labelCls}>Statut</label>
+              <select
+                value={form.status}
+                onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as ClientStatus }))}
+                className={inputCls}
+              >
+                <option value="active">Actif</option>
+                <option value="prospect">Prospect</option>
+                <option value="inactive">Inactif</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Email + Phone */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Email</label>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Téléphone</label>
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                className={inputCls}
+              />
+            </div>
+          </div>
+
+          {/* Address */}
+          <div>
+            <label className={labelCls}>Adresse</label>
+            <input
+              type="text"
+              value={form.address}
+              onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+              className={inputCls}
+            />
+          </div>
+
+          {/* Fiscal ID */}
+          <div>
+            <label className={labelCls}>ID Fiscal</label>
+            <input
+              type="text"
+              value={form.fiscal_id}
+              onChange={(e) => setForm((f) => ({ ...f, fiscal_id: e.target.value }))}
+              className={inputCls}
+            />
+          </div>
 
           {/* Actions */}
           <div className="flex gap-3 mt-2 justify-end">
@@ -210,9 +314,9 @@ export default function ClientsPage() {
             </button>
             <button
               type="submit"
-              className="rounded-xl bg-blue-700 text-white px-5 py-2.5 text-sm font-medium hover:bg-blue-800 shadow-sm hover:shadow-md transition-all active:scale-[0.98] cursor-pointer"
+              className="rounded-xl bg-zinc-900 text-white px-5 py-2.5 text-sm font-medium hover:bg-zinc-800 shadow-sm hover:shadow-md transition-all active:scale-[0.98] cursor-pointer"
             >
-              {editing ? 'Enregistrer' : 'Creer'}
+              {editing ? 'Enregistrer' : 'Créer'}
             </button>
           </div>
         </form>
@@ -220,10 +324,10 @@ export default function ClientsPage() {
     </div>
   ) : null
 
+  /* ── Render ── */
   return (
     <div className="max-w-7xl mx-auto animate-fade-in">
 
-      {/* Upgrade Modal */}
       <UpgradeModal
         open={showUpgrade}
         onClose={() => setShowUpgrade(false)}
@@ -231,102 +335,92 @@ export default function ClientsPage() {
       />
 
       {/* ═══ HEADER ═══ */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 tracking-tight leading-[1.1]">
-            Clients
+          <h1 className="text-3xl sm:text-5xl font-bold text-zinc-900 tracking-tight leading-[1.05]">
+            Clients <span className="text-zinc-300 font-normal">—</span>{' '}
+            <span className="italic font-serif text-zinc-400 font-medium">votre portefeuille.</span>
           </h1>
-          <p className="text-sm text-zinc-500 mt-1">
-            {clients.length} client(s) enregistre(s)
+          <p className="text-sm text-zinc-500 mt-2">
+            Suivi des relations, CA et factures par client.
           </p>
         </div>
-        <button
-          onClick={openCreate}
-          className="inline-flex items-center bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-blue-800 shadow-sm hover:shadow-md transition-all active:scale-[0.98] cursor-pointer"
-        >
-          + Nouveau Client
-        </button>
+
+        <div className="flex items-center gap-3">
+          <span className="inline-flex items-center gap-1.5 bg-white border border-zinc-200 rounded-full px-3 py-1.5 text-xs font-medium text-zinc-600">
+            <span className="font-mono tabular-nums text-zinc-900">{clients.length}</span>
+            client{clients.length > 1 ? 's' : ''}
+          </span>
+          <button
+            onClick={openCreate}
+            className="inline-flex items-center gap-1.5 bg-zinc-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-zinc-800 transition-all active:scale-[0.98] cursor-pointer"
+          >
+            <span className="text-base leading-none">+</span>
+            Ajouter un client
+          </button>
+        </div>
       </div>
 
-      {/* ═══ CLIENT GRID ═══ */}
+      {/* ═══ EMPTY STATE ═══ */}
       {clients.length === 0 ? (
-        <div className="text-center py-20">
+        <div className="text-center py-20 bg-white rounded-2xl border border-zinc-200/80">
           <Users size={48} className="mx-auto text-zinc-300 mb-4" />
           <p className="text-sm text-zinc-400">
-            Pret a ajouter votre premier client ?
+            Prêt à ajouter votre premier client ?
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        /* ═══ GRID ═══ */
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {clients.map((client, idx) => {
             const stats = statsByClient.get(client.id)
             const hasHistory = !!stats && stats.invoiceCount > 0
-            const isDormant =
-              hasHistory &&
-              stats!.lastInvoiceDate !== null &&
-              Date.now() - stats!.lastInvoiceDate.getTime() > DORMANT_THRESHOLD_MS
             const lastLabel = stats?.lastInvoiceDate
-              ? stats.lastInvoiceDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })
-              : null
+              ? stats.lastInvoiceDate.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
+              : '—'
+            const status = client.status ?? 'active'
+            const statusDef = statusPresentation[status]
+
             return (
               <div
                 key={client.id}
                 onClick={() => openEdit(client)}
-                className={`bg-white rounded-2xl shadow-elevated p-5 cursor-pointer hover:shadow-elevated-lg transition-all group animate-fade-in animate-stagger-${Math.min(idx + 1, 8)}`}
+                className={`bg-white rounded-2xl border border-zinc-200/80 p-6 cursor-pointer hover:border-zinc-300 hover:shadow-elevated transition-all group animate-fade-in animate-stagger-${Math.min(idx + 1, 8)}`}
               >
-                <div className="flex items-center gap-4">
-                  {/* Avatar */}
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-white text-sm font-bold shrink-0 ${
-                    isDormant ? 'bg-zinc-400' : 'bg-blue-700'
-                  }`}>
+                {/* Header: avatar + name + sector */}
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="w-11 h-11 rounded-xl bg-zinc-100 border border-zinc-200/80 flex items-center justify-center text-zinc-900 text-sm font-semibold shrink-0">
                     {getInitials(client.name)}
                   </div>
-
-                  {/* Info */}
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className={`text-sm font-semibold truncate group-hover:text-zinc-500 transition-colors ${
-                        isDormant ? 'text-zinc-500' : 'text-zinc-900'
-                      }`}>
-                        {client.name}
-                      </h3>
-                      {isDormant && (
-                        <span className="inline-flex items-center text-[9px] font-medium uppercase tracking-[0.04em] px-1.5 py-0.5 rounded-full border bg-zinc-100 text-zinc-500 border-zinc-200 shrink-0">
-                          dormant
-                        </span>
-                      )}
-                    </div>
-                    {client.email && (
-                      <div className="flex items-center gap-1.5 text-xs text-zinc-400 mt-0.5 truncate">
-                        <Mail size={11} className="shrink-0" />
-                        <span className="truncate">{client.email}</span>
-                      </div>
-                    )}
+                    <h3 className="text-base font-bold text-zinc-900 truncate group-hover:text-zinc-700 transition-colors">
+                      {client.name}
+                    </h3>
+                    <p className="text-xs text-zinc-500 truncate mt-0.5">
+                      {client.sector || client.email || '—'}
+                    </p>
                   </div>
                 </div>
 
-                {/* Stats row */}
-                <div className="mt-4 pt-3 border-t border-zinc-100">
-                  {hasHistory ? (
-                    <div className="flex items-end justify-between gap-3">
-                      <div>
-                        <div className="font-mono font-semibold text-zinc-900 text-base tabular-nums leading-none">
-                          {formatCurrency(stats!.totalPaid)}
-                        </div>
-                        <div className="text-[10px] text-zinc-400 uppercase tracking-[0.04em] mt-1">
-                          payé · {stats!.invoiceCount} facture{stats!.invoiceCount > 1 ? 's' : ''}
-                        </div>
-                      </div>
-                      {lastLabel && (
-                        <div className="text-right">
-                          <div className="text-xs font-mono text-zinc-600 tabular-nums">{lastLabel}</div>
-                          <div className="text-[10px] text-zinc-400 uppercase tracking-[0.04em] mt-1">dernière</div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-zinc-400">Aucune facture émise</p>
-                  )}
+                {/* Stats grid 2×2 */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-4 pt-4 border-t border-zinc-100">
+                  <StatCell
+                    label="Chiffre d'affaires"
+                    value={hasHistory ? formatCurrency(stats!.totalBilled) : '—'}
+                  />
+                  <StatCell
+                    label="Factures"
+                    value={hasHistory ? String(stats!.invoiceCount) : '0'}
+                  />
+                  <StatCell
+                    label="Dernière activité"
+                    value={lastLabel}
+                  />
+                  <StatCell
+                    label="Statut"
+                    value={statusDef.label}
+                    valueCls={statusDef.textCls}
+                  />
                 </div>
               </div>
             )
@@ -334,7 +428,7 @@ export default function ClientsPage() {
         </div>
       )}
 
-      {/* ═══ MODAL (rendered via Portal to escape stacking context) ═══ */}
+      {/* ═══ MODAL ═══ */}
       {typeof document !== 'undefined' && createPortal(modalJSX, document.body)}
     </div>
   )

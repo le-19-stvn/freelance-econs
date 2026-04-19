@@ -1,6 +1,8 @@
 'use client'
 
-type StatusVariant = 'draft' | 'sent' | 'paid' | 'late' | 'ongoing' | 'done'
+type StatusVariant =
+  | 'draft' | 'sent' | 'paid' | 'late'
+  | 'ongoing' | 'paused' | 'done' | 'archived'
 
 interface StatusBadgeProps {
   variant: StatusVariant
@@ -14,7 +16,9 @@ const dotColors: Record<StatusVariant, string> = {
   paid: 'bg-emerald-500',
   late: 'bg-red-500',
   ongoing: 'bg-blue-700',
+  paused: 'bg-amber-500',
   done: 'bg-emerald-500',
+  archived: 'bg-zinc-400',
 }
 
 const defaultLabels: Record<StatusVariant, string> = {
@@ -23,7 +27,9 @@ const defaultLabels: Record<StatusVariant, string> = {
   paid: 'Payée',
   late: 'En retard',
   ongoing: 'En cours',
+  paused: 'En pause',
   done: 'Terminé',
+  archived: 'Archivé',
 }
 
 export function StatusBadge({ variant, label, className = '' }: StatusBadgeProps) {

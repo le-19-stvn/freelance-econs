@@ -8,38 +8,80 @@ import { useClients } from '@/hooks/useClients'
 import { useInvoices } from '@/hooks/useInvoices'
 import { useToast } from '@/components/ui/Toast'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
-import { StatusBadge } from '@/components/ui/StatusBadge'
 import { calculateHT, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
 import { createClient } from '@/lib/supabase/client'
 import type { Project, ProjectStatus, Deliverable, UnitType, TeamProject } from '@/types'
-import { FolderOpen, Plus, Trash2, X, Users } from 'lucide-react'
+import { FolderOpen, Plus, Trash2, X } from 'lucide-react'
 
 /* ── Helpers ── */
-function getDeadlineChip(deadline: string | null | undefined, status: ProjectStatus) {
-  if (!deadline || status === 'done') return null
-  const d = new Date(deadline)
-  if (Number.isNaN(d.getTime())) return null
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const target = new Date(d)
-  target.setHours(0, 0, 0, 0)
-  const diff = Math.round((target.getTime() - today.getTime()) / 86_400_000)
-  if (diff < 0) {
-    return { text: `Dépassé · ${Math.abs(diff)}j`, cls: 'bg-red-50 text-red-700 border-red-200' }
-  }
-  if (diff === 0) {
-    return { text: "Aujourd'hui", cls: 'bg-red-50 text-red-700 border-red-200' }
-  }
-  if (diff <= 7) {
-    return { text: `J-${diff}`, cls: 'bg-red-50 text-red-700 border-red-200' }
-  }
-  if (diff <= 30) {
-    return { text: `J-${diff}`, cls: 'bg-amber-50 text-amber-700 border-amber-200' }
-  }
-  return { text: `J-${diff}`, cls: 'bg-zinc-100 text-zinc-600 border-zinc-200' }
+function getInitials(name: string | null | undefined, fallback = '—') {
+  if (!name) return fallback
+  return name
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
 }
 
-type TeamProjectWithTeam = TeamProject & { team_name: string }
+function formatDeadline(deadline: string | null | undefined): string {
+  if (!deadline) return '—'
+  const d = new Date(deadline)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
+}
+
+/* ── Types shared with team scope ── */
+type TeamProjectWithTeam = TeamProject & { team_name: string; member_count: number }
+
+type UnifiedProject =
+  | {
+      kind: 'solo'
+      id: string
+      name: string
+      clientName: string
+      status: ProjectStatus
+      budget: number
+      billed: number
+      deadline: string | null
+      deliverableCount: number
+      memberCount: number
+      memberInitials: string[]
+      project: Project
+    }
+  | {
+      kind: 'team'
+      id: string
+      name: string
+      clientName: string // = team name
+      status: 'ongoing' // team projects don't have our status today
+      budget: 0
+      billed: 0
+      deadline: null
+      deliverableCount: 0
+      memberCount: number
+      memberInitials: string[]
+      teamProject: TeamProjectWithTeam
+    }
+
+type TabKey = 'all' | 'ongoing' | 'paused' | 'done' | 'archived'
+
+const TAB_ORDER: { key: TabKey; label: string }[] = [
+  { key: 'all',      label: 'Tous' },
+  { key: 'ongoing',  label: 'En cours' },
+  { key: 'paused',   label: 'En pause' },
+  { key: 'done',     label: 'Terminés' },
+  { key: 'archived', label: 'Archivés' },
+]
+
+/* ── Status badge colors (mockup): blue=en cours, amber=pause, emerald=terminé, zinc=archivé ── */
+const statusBadge: Record<ProjectStatus | 'team', { label: string; cls: string }> = {
+  ongoing:  { label: 'En cours',  cls: 'bg-blue-50 text-blue-700 border-blue-100' },
+  paused:   { label: 'En pause',  cls: 'bg-amber-50 text-amber-700 border-amber-100' },
+  done:     { label: 'Terminé',   cls: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
+  archived: { label: 'Archivé',   cls: 'bg-zinc-100 text-zinc-500 border-zinc-200' },
+  team:     { label: 'Équipe',    cls: 'bg-violet-50 text-violet-700 border-violet-100' },
+}
 
 const emptyForm = {
   name: '',
@@ -55,7 +97,73 @@ const emptyDeliverable: Deliverable = { description: '', quantity: 1, unit: 'h' 
 const inputCls = 'w-full px-4 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 transition-all'
 const labelCls = 'block text-xs font-medium text-zinc-500 mb-1.5'
 
-type ScopeTab = 'all' | 'solo' | 'team'
+/* ── Small building blocks ─────────────────────────── */
+
+function Pill({ label, value }: { label: string; value: number | string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 bg-white border border-zinc-200 rounded-full px-3 py-1.5 text-xs font-medium text-zinc-600 whitespace-nowrap">
+      <span className="font-mono tabular-nums text-zinc-900">{value}</span>
+      {label}
+    </span>
+  )
+}
+
+function StatCell({
+  label,
+  value,
+  valueCls = 'text-zinc-900',
+}: {
+  label: string
+  value: string
+  valueCls?: string
+}) {
+  return (
+    <div>
+      <div className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.08em] mb-1.5">
+        {label}
+      </div>
+      <div className={`font-mono text-sm font-semibold tabular-nums ${valueCls}`}>
+        {value}
+      </div>
+    </div>
+  )
+}
+
+function StatusChip({ kind }: { kind: ProjectStatus | 'team' }) {
+  const cfg = statusBadge[kind]
+  return (
+    <span
+      className={`inline-flex items-center text-[10px] font-semibold uppercase tracking-[0.08em] px-2.5 py-1 rounded-full border ${cfg.cls}`}
+    >
+      {cfg.label}
+    </span>
+  )
+}
+
+function MemberStack({ initials, count }: { initials: string[]; count: number }) {
+  const shown = initials.slice(0, 3)
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex -space-x-1.5">
+        {shown.map((ini, i) => (
+          <span
+            key={i}
+            className="w-6 h-6 rounded-md bg-violet-100 text-violet-700 text-[10px] font-semibold flex items-center justify-center border border-white ring-1 ring-zinc-200/60"
+          >
+            {ini}
+          </span>
+        ))}
+      </div>
+      <span className="text-xs text-zinc-400">
+        {count} membre{count > 1 ? 's' : ''}
+      </span>
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════════
+   PAGE
+   ═══════════════════════════════════════════════════ */
 
 export default function ProjectsPage() {
   const { projects, loading, createProject, updateProject, deleteProject } = useProjects()
@@ -63,17 +171,6 @@ export default function ProjectsPage() {
   const { invoices } = useInvoices()
   const { showToast } = useToast()
 
-  // Facturé par projet (toutes factures hors brouillon)
-  const billedByProject = useMemo(() => {
-    const map = new Map<string, number>()
-    invoices.forEach(inv => {
-      if (!inv.project_id || inv.status === 'draft') return
-      const ht = calculateHT(inv.items ?? [])
-      const ttc = calculateTTC(ht, inv.tva_rate)
-      map.set(inv.project_id, (map.get(inv.project_id) ?? 0) + ttc)
-    })
-    return map
-  }, [invoices])
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Project | null>(null)
   const [form, setForm] = useState(emptyForm)
@@ -83,12 +180,32 @@ export default function ProjectsPage() {
   const [showUpgrade, setShowUpgrade] = useState(false)
   const [upgradeMessage, setUpgradeMessage] = useState('')
   const [teamProjects, setTeamProjects] = useState<TeamProjectWithTeam[]>([])
-  const [activeScope, setActiveScope] = useState<ScopeTab>('all')
+  const [activeTab, setActiveTab] = useState<TabKey>('all')
+  const [userInitials, setUserInitials] = useState<string>('')
 
-  // Fetch team projects across all teams the user belongs to
+  /* ── Fetch: current user initials for solo project avatar ── */
   useEffect(() => {
     let canceled = false
-    const load = async () => {
+    ;(async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, company_name, email')
+        .eq('id', user.id)
+        .single()
+      if (canceled) return
+      const src = profile?.full_name || profile?.company_name || profile?.email || ''
+      setUserInitials(getInitials(src, 'ME'))
+    })()
+    return () => { canceled = true }
+  }, [])
+
+  /* ── Fetch: team projects + member counts ── */
+  useEffect(() => {
+    let canceled = false
+    ;(async () => {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
@@ -99,11 +216,26 @@ export default function ProjectsPage() {
         .eq('status', 'active')
       const teamIds = (memberships ?? []).map((m: any) => m.team_id)
       if (teamIds.length === 0) { if (!canceled) setTeamProjects([]); return }
-      const { data: tp } = await supabase
-        .from('team_projects')
-        .select('*, team:teams(name)')
-        .in('team_id', teamIds)
-        .order('created_at', { ascending: false })
+
+      const [{ data: tp }, { data: allMembers }] = await Promise.all([
+        supabase
+          .from('team_projects')
+          .select('*, team:teams(name)')
+          .in('team_id', teamIds)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('team_members')
+          .select('team_id')
+          .in('team_id', teamIds)
+          .eq('status', 'active'),
+      ])
+
+      // Count active members per team
+      const memberCountByTeam = new Map<string, number>()
+      ;(allMembers ?? []).forEach((m: any) => {
+        memberCountByTeam.set(m.team_id, (memberCountByTeam.get(m.team_id) ?? 0) + 1)
+      })
+
       if (canceled) return
       const rows: TeamProjectWithTeam[] = (tp ?? []).map((r: any) => ({
         id: r.id,
@@ -112,19 +244,80 @@ export default function ProjectsPage() {
         description: r.description,
         created_at: r.created_at,
         team_name: r.team?.name ?? 'Équipe',
+        member_count: memberCountByTeam.get(r.team_id) ?? 1,
       }))
       setTeamProjects(rows)
-    }
-    load()
+    })()
     return () => { canceled = true }
   }, [])
 
-  const counts = useMemo(() => ({
-    all:  projects.length + teamProjects.length,
-    solo: projects.length,
-    team: teamProjects.length,
-  }), [projects.length, teamProjects.length])
+  /* ── Facturé par projet (TTC hors draft) ── */
+  const billedByProject = useMemo(() => {
+    const map = new Map<string, number>()
+    invoices.forEach(inv => {
+      if (!inv.project_id || inv.status === 'draft') return
+      const ht = calculateHT(inv.items ?? [])
+      const ttc = calculateTTC(ht, inv.tva_rate)
+      map.set(inv.project_id, (map.get(inv.project_id) ?? 0) + ttc)
+    })
+    return map
+  }, [invoices])
 
+  /* ── Unified project list (solo + team) ── */
+  const unified: UnifiedProject[] = useMemo(() => {
+    const solo: UnifiedProject[] = projects.map(p => ({
+      kind: 'solo' as const,
+      id: p.id,
+      name: p.name,
+      clientName: p.client?.name ?? '—',
+      status: p.status,
+      budget: p.budget,
+      billed: billedByProject.get(p.id) ?? 0,
+      deadline: p.deadline,
+      deliverableCount: (p.deliverables ?? []).length,
+      memberCount: 1,
+      memberInitials: userInitials ? [userInitials] : ['LM'],
+      project: p,
+    }))
+    const team: UnifiedProject[] = teamProjects.map(tp => ({
+      kind: 'team' as const,
+      id: tp.id,
+      name: tp.name,
+      clientName: tp.team_name,
+      status: 'ongoing' as const,
+      budget: 0,
+      billed: 0,
+      deadline: null,
+      deliverableCount: 0,
+      memberCount: tp.member_count,
+      memberInitials: [tp.team_name[0]?.toUpperCase() ?? 'T'],
+      teamProject: tp,
+    }))
+    return [...solo, ...team]
+  }, [projects, teamProjects, billedByProject, userInitials])
+
+  /* ── Tab counts (solo only, team lives outside status taxonomy) ── */
+  const counts = useMemo(() => {
+    const base = { all: 0, ongoing: 0, paused: 0, done: 0, archived: 0 }
+    projects.forEach(p => {
+      base.all += 1
+      if (p.status in base) base[p.status as keyof typeof base] += 1
+    })
+    // Team projects are always visible in "Tous" and "En cours"
+    base.all += teamProjects.length
+    base.ongoing += teamProjects.length
+    return base
+  }, [projects, teamProjects])
+
+  const filtered = useMemo(() => {
+    if (activeTab === 'all') return unified
+    if (activeTab === 'ongoing') {
+      return unified.filter(u => u.status === 'ongoing')
+    }
+    return unified.filter(u => u.kind === 'solo' && u.status === activeTab)
+  }, [unified, activeTab])
+
+  /* ── Modal open/close ── */
   const openCreate = () => {
     setNameError('')
     setDeadlineError('')
@@ -150,7 +343,6 @@ export default function ProjectsPage() {
     setShowModal(true)
   }
 
-  /* ── Deliverable row helpers ── */
   const addDeliverable = () => setDeliverables(prev => [...prev, { ...emptyDeliverable }])
   const removeDeliverable = (idx: number) => setDeliverables(prev => prev.filter((_, i) => i !== idx))
   const updateDeliverable = (idx: number, field: keyof Deliverable, value: string | number) => {
@@ -177,7 +369,6 @@ export default function ProjectsPage() {
     }
     if (hasError) return
 
-    // Filter out empty deliverables
     const validDeliverables = deliverables.filter(d => d.description.trim() !== '')
 
     const payload = {
@@ -193,7 +384,7 @@ export default function ProjectsPage() {
       if (editing) {
         const result = await updateProject(editing.id, payload)
         if (result.invoiceGenerated) {
-          showToast('Projet termine ! Facture brouillon generee avec les prestations.', 'success')
+          showToast('Projet terminé ! Facture brouillon générée avec les prestations.', 'success')
         }
       } else {
         await createProject(payload)
@@ -211,16 +402,21 @@ export default function ProjectsPage() {
     }
   }
 
-  // Loading skeleton
+  /* ── Loading skeleton ── */
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-2xl shadow-elevated p-5 animate-pulse">
-              <div className="h-10 w-10 bg-zinc-100 rounded-xl mb-4" />
-              <div className="h-4 w-32 bg-zinc-100 rounded mb-2" />
-              <div className="h-3 w-20 bg-zinc-50 rounded" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white rounded-2xl border border-zinc-200/80 p-6 animate-pulse">
+              <div className="h-4 w-48 bg-zinc-100 rounded mb-2" />
+              <div className="h-3 w-24 bg-zinc-50 rounded mb-5" />
+              <div className="h-2 w-full bg-zinc-100 rounded mb-4" />
+              <div className="grid grid-cols-3 gap-4">
+                <div className="h-8 bg-zinc-50 rounded" />
+                <div className="h-8 bg-zinc-50 rounded" />
+                <div className="h-8 bg-zinc-50 rounded" />
+              </div>
             </div>
           ))}
         </div>
@@ -228,6 +424,7 @@ export default function ProjectsPage() {
     )
   }
 
+  /* ═══ RENDER ═══ */
   return (
     <div className="max-w-7xl mx-auto animate-fade-in">
 
@@ -238,50 +435,53 @@ export default function ProjectsPage() {
       />
 
       {/* ═══ HEADER ═══ */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 tracking-tight leading-[1.1]">
-            Projets
+          <h1 className="text-3xl sm:text-5xl font-bold text-zinc-900 tracking-tight leading-[1.05]">
+            Projets <span className="text-zinc-300 font-normal">—</span>{' '}
+            <span className="italic font-serif text-zinc-400 font-medium">vos missions en cours.</span>
           </h1>
-          <p className="text-sm text-zinc-500 mt-1">
-            {counts.all} projet(s) — solo &amp; équipe
+          <p className="text-sm text-zinc-500 mt-2">
+            Suivez l&apos;avancement, les budgets et les échéances.
           </p>
         </div>
-        <button
-          onClick={openCreate}
-          className="inline-flex items-center bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-blue-800 shadow-sm hover:shadow-md transition-all active:scale-[0.98] cursor-pointer"
-        >
-          + Nouveau Projet
-        </button>
+
+        <div className="flex items-center gap-3">
+          <Pill label="actifs" value={counts.ongoing} />
+          <Pill label="terminés" value={counts.done} />
+          <button
+            onClick={openCreate}
+            className="inline-flex items-center gap-1.5 bg-zinc-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-zinc-800 transition-all active:scale-[0.98] cursor-pointer whitespace-nowrap"
+          >
+            <span className="text-base leading-none">+</span>
+            Nouveau projet
+          </button>
+        </div>
       </div>
 
-      {/* ═══ SCOPE TABS ═══ */}
+      {/* ═══ TABS ═══ */}
       {counts.all > 0 && (
         <div className="mb-5 border-b border-zinc-200 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           <div className="flex gap-1 min-w-max">
-            {([
-              { key: 'all',  label: 'Tous' },
-              { key: 'solo', label: 'Solo' },
-              { key: 'team', label: 'Équipe' },
-            ] as { key: ScopeTab; label: string }[]).map(tab => {
-              const active = activeScope === tab.key
+            {TAB_ORDER.map(tab => {
+              const active = activeTab === tab.key
               const count = counts[tab.key]
               return (
                 <button
                   key={tab.key}
-                  onClick={() => setActiveScope(tab.key)}
+                  onClick={() => setActiveTab(tab.key)}
                   className={`relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer whitespace-nowrap ${
-                    active ? 'text-zinc-900' : 'text-zinc-500 hover:text-zinc-900'
+                    active ? 'text-blue-700' : 'text-zinc-500 hover:text-zinc-900'
                   }`}
                 >
                   {tab.label}
                   <span className={`font-mono text-[11px] tabular-nums px-1.5 py-0.5 rounded ${
-                    active ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-500'
+                    active ? 'bg-blue-700 text-white' : 'bg-zinc-100 text-zinc-500'
                   }`}>
                     {count}
                   </span>
                   {active && (
-                    <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-zinc-900" />
+                    <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-blue-700" />
                   )}
                 </button>
               )
@@ -290,122 +490,127 @@ export default function ProjectsPage() {
         </div>
       )}
 
-      {/* ═══ PROJECT GRID ═══ */}
+      {/* ═══ EMPTY STATE ═══ */}
       {counts.all === 0 ? (
-        <div className="text-center py-20">
+        <div className="text-center py-20 bg-white rounded-2xl border border-zinc-200/80">
           <FolderOpen size={48} className="mx-auto text-zinc-300 mb-4" />
           <p className="text-sm text-zinc-400">
-            Pret a demarrer un nouveau projet ?
+            Prêt à démarrer un nouveau projet ?
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {(activeScope === 'all' || activeScope === 'solo') && projects.map((project, idx) => {
-            const delCount = (project.deliverables ?? []).length
-            const deadlineChip = getDeadlineChip(project.deadline, project.status)
-            const billed = billedByProject.get(project.id) ?? 0
-            const hasBudget = project.budget > 0
-            const pct = hasBudget ? Math.min(100, Math.round((billed / project.budget) * 100)) : 0
-            const overBudget = hasBudget && billed > project.budget
-            return (
+        /* ═══ GRID ═══ */
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {filtered.map((u, idx) => {
+            const isTeam = u.kind === 'team'
+            const hasBudget = !isTeam && u.budget > 0
+            const pct = hasBudget
+              ? Math.min(100, Math.round((u.billed / u.budget) * 100))
+              : 0
+            const overBudget = hasBudget && u.billed > u.budget
+            const barCls = overBudget
+              ? 'bg-red-500'
+              : u.status === 'done'
+                ? 'bg-emerald-500'
+                : u.status === 'paused'
+                  ? 'bg-amber-500'
+                  : 'bg-blue-700'
+
+            const card = (
               <div
-                key={`solo-${project.id}`}
-                onClick={() => openEdit(project)}
-                className={`bg-white rounded-2xl shadow-elevated p-5 cursor-pointer hover:shadow-elevated-lg transition-all group animate-fade-in animate-stagger-${Math.min(idx + 1, 8)}`}
+                className={`bg-white rounded-2xl border border-zinc-200/80 p-6 hover:border-zinc-300 hover:shadow-elevated transition-all group animate-fade-in animate-stagger-${Math.min(idx + 1, 8)}`}
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-blue-700 flex items-center justify-center text-white">
-                    <FolderOpen size={18} />
-                  </div>
-                  <StatusBadge variant={project.status} />
+                {/* Title row */}
+                <div className="flex items-start justify-between gap-4 mb-1">
+                  <h3 className="text-base font-bold text-zinc-900 truncate group-hover:text-zinc-700 transition-colors">
+                    {u.name}
+                  </h3>
+                  <StatusChip kind={isTeam ? 'team' : u.status} />
                 </div>
-
-                <h3 className="text-base font-semibold text-zinc-900 truncate mb-1 group-hover:text-blue-700 transition-colors">
-                  {project.name}
-                </h3>
-
-                <p className="text-sm text-zinc-500 truncate mb-4">
-                  {project.client?.name ?? '---'}
+                <p className="text-sm text-zinc-500 truncate mb-5">
+                  {u.clientName}
                 </p>
 
-                <div className="border-t border-zinc-100 pt-3 space-y-3">
-                  {/* Row 1: deadline chip + prestations count */}
-                  <div className="flex items-center justify-between gap-2 min-h-[22px]">
-                    {deadlineChip ? (
-                      <span className={`inline-flex items-center text-[10px] font-medium uppercase tracking-[0.04em] px-2 py-0.5 rounded-full border ${deadlineChip.cls}`}>
-                        {deadlineChip.text}
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-zinc-300 uppercase tracking-[0.04em]">
-                        {project.status === 'done' ? 'Terminé' : 'Sans deadline'}
-                      </span>
-                    )}
-                    {delCount > 0 && (
-                      <span className="text-xs text-zinc-400">
-                        {delCount} prestation{delCount > 1 ? 's' : ''}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Row 2: budget bar */}
-                  {hasBudget && (
-                    <div>
-                      <div className="flex items-center justify-between text-xs mb-1.5">
-                        <span className="text-zinc-500">Facturé</span>
-                        <span className="font-mono tabular-nums text-zinc-700">
-                          <span className={overBudget ? 'text-red-600 font-semibold' : 'text-zinc-900 font-semibold'}>
-                            {formatCurrency(billed)}
-                          </span>
-                          <span className="text-zinc-400"> / {formatCurrency(project.budget)}</span>
-                        </span>
-                      </div>
-                      <div className="h-1 rounded-full bg-zinc-100 overflow-hidden">
-                        <div
-                          className={`h-full transition-all duration-500 ${
-                            overBudget ? 'bg-red-500' : pct >= 100 ? 'bg-emerald-500' : 'bg-blue-700'
-                          }`}
-                          style={{ width: `${Math.max(pct, billed > 0 ? 4 : 0)}%` }}
-                        />
-                      </div>
+                {/* Progress bar (solo only, if budget set) */}
+                {hasBudget && (
+                  <div className="mb-5">
+                    <div className="h-1.5 rounded-full bg-zinc-100 overflow-hidden mb-2">
+                      <div
+                        className={`h-full transition-all duration-500 ${barCls}`}
+                        style={{ width: `${Math.max(pct, u.billed > 0 ? 4 : 0)}%` }}
+                      />
                     </div>
-                  )}
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-zinc-500">
+                        <span className="font-mono tabular-nums text-zinc-700 font-semibold">{pct}%</span> facturé
+                      </span>
+                      <span className="font-mono tabular-nums text-zinc-500">
+                        <span className={overBudget ? 'text-red-600 font-semibold' : 'text-zinc-900 font-semibold'}>
+                          {formatCurrency(u.billed)}
+                        </span>
+                        <span className="text-zinc-400"> / {formatCurrency(u.budget)}</span>
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Stats row (solo with budget) */}
+                {!isTeam && hasBudget && (
+                  <div className="grid grid-cols-3 gap-4 pt-4 border-t border-zinc-100">
+                    <StatCell label="Budget"   value={formatCurrency(u.budget)} />
+                    <StatCell
+                      label="Facturé"
+                      value={formatCurrency(u.billed)}
+                      valueCls={overBudget ? 'text-red-600' : 'text-zinc-900'}
+                    />
+                    <StatCell label="Échéance" value={formatDeadline(u.deadline)} />
+                  </div>
+                )}
+
+                {/* Stats row (solo without budget — fallback) */}
+                {!isTeam && !hasBudget && (
+                  <div className="grid grid-cols-3 gap-4 pt-4 border-t border-zinc-100">
+                    <StatCell label="Prestations" value={String(u.deliverableCount)} />
+                    <StatCell label="Budget"      value="—" />
+                    <StatCell label="Échéance"    value={formatDeadline(u.deadline)} />
+                  </div>
+                )}
+
+                {/* Stats row (team — no budget/deadline concept yet) */}
+                {isTeam && (
+                  <div className="pt-4 border-t border-zinc-100">
+                    <p className="text-xs text-zinc-500">
+                      Projet collaboratif — voir le détail dans{' '}
+                      <span className="text-blue-700 font-medium">/team</span>
+                    </p>
+                  </div>
+                )}
+
+                {/* Footer: members */}
+                <div className="flex items-center justify-between pt-4 mt-4 border-t border-zinc-100">
+                  <MemberStack initials={u.memberInitials} count={u.memberCount} />
                 </div>
               </div>
             )
+
+            if (isTeam) {
+              return (
+                <Link key={`team-${u.id}`} href="/team" className="block cursor-pointer">
+                  {card}
+                </Link>
+              )
+            }
+
+            return (
+              <div
+                key={`solo-${u.id}`}
+                onClick={() => openEdit(u.project)}
+                className="cursor-pointer"
+              >
+                {card}
+              </div>
+            )
           })}
-
-          {(activeScope === 'all' || activeScope === 'team') && teamProjects.map((tp, idx) => (
-            <Link
-              key={`team-${tp.id}`}
-              href="/team"
-              className={`bg-white rounded-2xl shadow-elevated p-5 hover:shadow-elevated-lg transition-all group animate-fade-in animate-stagger-${Math.min(idx + 1, 8)} block`}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-white">
-                  <Users size={18} />
-                </div>
-                <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.04em] px-2 py-0.5 rounded-full border bg-zinc-100 text-zinc-600 border-zinc-200">
-                  Équipe
-                </span>
-              </div>
-
-              <h3 className="text-base font-semibold text-zinc-900 truncate mb-1 group-hover:text-blue-700 transition-colors">
-                {tp.name}
-              </h3>
-
-              <p className="text-sm text-zinc-500 truncate mb-4">
-                {tp.team_name}
-              </p>
-
-              <div className="flex items-center gap-4 text-xs text-zinc-400 border-t border-zinc-100 pt-3">
-                {tp.description ? (
-                  <span className="truncate">{tp.description}</span>
-                ) : (
-                  <span className="text-zinc-300">Aucune description</span>
-                )}
-              </div>
-            </Link>
-          ))}
         </div>
       )}
 
@@ -480,7 +685,9 @@ export default function ProjectsPage() {
                     className={inputCls}
                   >
                     <option value="ongoing">En cours</option>
-                    <option value="done">Termine</option>
+                    <option value="paused">En pause</option>
+                    <option value="done">Terminé</option>
+                    <option value="archived">Archivé</option>
                   </select>
                 </div>
                 <div>
@@ -507,7 +714,7 @@ export default function ProjectsPage() {
                 />
               </div>
 
-              {/* ═══ DELIVERABLES ═══ */}
+              {/* Deliverables */}
               <div className="border-t border-zinc-100 pt-4 mt-2">
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-xs font-semibold text-zinc-900">
@@ -524,12 +731,12 @@ export default function ProjectsPage() {
                 </div>
 
                 <p className="text-[11px] text-zinc-400 mb-3">
-                  Ces lignes seront automatiquement reportees sur la facture quand le projet sera termine.
+                  Ces lignes seront automatiquement reportées sur la facture quand le projet sera terminé.
                 </p>
 
                 {deliverables.length === 0 ? (
                   <div className="text-center py-6 border border-dashed border-zinc-200 rounded-xl">
-                    <p className="text-xs text-zinc-400">Aucune prestation definie.</p>
+                    <p className="text-xs text-zinc-400">Aucune prestation définie.</p>
                     <button
                       type="button"
                       onClick={addDeliverable}
@@ -542,7 +749,6 @@ export default function ProjectsPage() {
                   <div className="flex flex-col gap-3">
                     {deliverables.map((d, idx) => (
                       <div key={idx} className="grid grid-cols-12 gap-2 items-end">
-                        {/* Description — 5 cols */}
                         <div className="col-span-5">
                           {idx === 0 && <label className="block text-[10px] font-medium text-zinc-400 mb-1">Description</label>}
                           <input
@@ -553,9 +759,8 @@ export default function ProjectsPage() {
                             className={inputCls}
                           />
                         </div>
-                        {/* Quantity — 2 cols */}
                         <div className="col-span-2">
-                          {idx === 0 && <label className="block text-[10px] font-medium text-zinc-400 mb-1">Qte</label>}
+                          {idx === 0 && <label className="block text-[10px] font-medium text-zinc-400 mb-1">Qté</label>}
                           <input
                             type="number"
                             min="0"
@@ -565,9 +770,8 @@ export default function ProjectsPage() {
                             className={inputCls}
                           />
                         </div>
-                        {/* Unit — 2 cols */}
                         <div className="col-span-2">
-                          {idx === 0 && <label className="block text-[10px] font-medium text-zinc-400 mb-1">Unite</label>}
+                          {idx === 0 && <label className="block text-[10px] font-medium text-zinc-400 mb-1">Unité</label>}
                           <select
                             value={d.unit}
                             onChange={(e) => updateDeliverable(idx, 'unit', e.target.value)}
@@ -578,7 +782,6 @@ export default function ProjectsPage() {
                             <option value="forfait">Forfait</option>
                           </select>
                         </div>
-                        {/* Unit Price — 2 cols */}
                         <div className="col-span-2">
                           {idx === 0 && <label className="block text-[10px] font-medium text-zinc-400 mb-1">Prix unit.</label>}
                           <input
@@ -590,7 +793,6 @@ export default function ProjectsPage() {
                             className={inputCls}
                           />
                         </div>
-                        {/* Delete — 1 col */}
                         <div className="col-span-1 flex justify-center">
                           <button
                             type="button"
@@ -603,7 +805,6 @@ export default function ProjectsPage() {
                       </div>
                     ))}
 
-                    {/* Total */}
                     {deliverables.some(d => d.description.trim()) && (
                       <div className="flex justify-end pt-2 border-t border-zinc-100">
                         <span className="text-sm font-bold text-zinc-900">
@@ -639,9 +840,9 @@ export default function ProjectsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-blue-700 text-white px-5 py-2.5 text-sm font-medium hover:bg-blue-800 shadow-sm hover:shadow-md transition-all active:scale-[0.98] cursor-pointer"
+                  className="rounded-xl bg-zinc-900 text-white px-5 py-2.5 text-sm font-medium hover:bg-zinc-800 shadow-sm hover:shadow-md transition-all active:scale-[0.98] cursor-pointer"
                 >
-                  {editing ? 'Enregistrer' : 'Creer'}
+                  {editing ? 'Enregistrer' : 'Créer'}
                 </button>
               </div>
             </form>

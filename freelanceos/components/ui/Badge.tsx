@@ -2,7 +2,9 @@
 
 import { StatusBadge } from './StatusBadge'
 
-type BadgeVariant = 'draft' | 'sent' | 'paid' | 'late' | 'ongoing' | 'done'
+type BadgeVariant =
+  | 'draft' | 'sent' | 'paid' | 'late'
+  | 'ongoing' | 'paused' | 'done' | 'archived'
 
 interface BadgeProps {
   variant: BadgeVariant

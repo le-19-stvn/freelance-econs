@@ -41,6 +41,8 @@ export interface WorkspaceMember {
   profile?: Profile
 }
 
+export type ClientStatus = 'active' | 'prospect' | 'inactive'
+
 export interface Client {
   id: string
   user_id: string
@@ -50,10 +52,12 @@ export interface Client {
   phone: string | null
   fiscal_id: string | null
   address: string | null
+  sector: string | null
+  status: ClientStatus
   created_at: string
 }
 
-export type ProjectStatus = 'ongoing' | 'done'
+export type ProjectStatus = 'ongoing' | 'paused' | 'done' | 'archived'
 
 export interface Deliverable {
   description: string
