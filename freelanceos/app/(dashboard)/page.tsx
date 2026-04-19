@@ -24,6 +24,7 @@ import {
 import { KPICard } from '@/components/ui/KPICard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ProGate } from '@/components/ui/ProGate'
+import { OnboardingChecklist } from '@/components/ui/OnboardingChecklist'
 
 function getLast6Months(): string[] {
   const months = []
@@ -220,6 +221,9 @@ export default function DashboardPage() {
           Voici l&apos;etat de votre activite ce mois-ci.
         </p>
       </div>
+
+      {/* ═══ ONBOARDING CHECKLIST (auto-hides when complete) ═══ */}
+      <OnboardingChecklist />
 
       {/* ═══ ROW 1: Hero Revenue + Annual Goal ═══ */}
       <div
