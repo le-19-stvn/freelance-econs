@@ -119,11 +119,11 @@ export default function OnboardingPage() {
 
         {/* ═══ HEADER ═══ */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-zinc-900 mb-1">
-            Bienvenue sur eCons Freelance
+          <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 tracking-tight leading-[1.05] mb-2">
+            Bienvenue <span className="text-zinc-300 font-normal">—</span> <span className="italic font-bold text-zinc-500">configurons votre profil.</span>
           </h1>
-          <p className="text-sm text-zinc-400">
-            Completez votre profil pour commencer a facturer.
+          <p className="text-sm text-zinc-500">
+            Quelques informations pour personnaliser vos factures.
           </p>
         </div>
 

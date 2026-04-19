@@ -313,8 +313,8 @@ export default function TeamPage() {
           <div className="w-16 h-16 rounded-2xl bg-zinc-50 flex items-center justify-center mx-auto mb-5">
             <Users size={28} className="text-zinc-400" />
           </div>
-          <h2 className="text-xl font-bold text-zinc-900 mb-2">
-            Gestion de l&apos;Equipe
+          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 tracking-tight leading-[1.1] mb-2">
+            Equipe <span className="text-zinc-300 font-normal">—</span> <span className="italic font-bold text-zinc-500">collaborez ensemble.</span>
           </h2>
           <p className="text-sm text-zinc-400 mb-8 leading-relaxed max-w-xs mx-auto">
             Collaborez avec d&apos;autres freelances sur des projets communs.
@@ -361,12 +361,17 @@ export default function TeamPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in">
 
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 tracking-tight leading-[1.1]">Gestion de l&apos;Equipe</h1>
-          <p className="text-sm text-zinc-500 mt-1">
-            {members.length} membre(s) dans cette equipe
+          <h1 className="text-3xl sm:text-5xl font-bold text-zinc-900 tracking-tight leading-[1.05]">
+            Equipe <span className="text-zinc-300 font-normal">—</span> <span className="italic font-bold text-zinc-500">collaborez ensemble.</span>
+          </h1>
+          <p className="text-sm text-zinc-500 mt-2">
+            Membres, projets partages et tableau de taches.
           </p>
+          <span className="inline-flex items-center px-3 py-1 rounded-full bg-zinc-100 text-xs font-medium text-zinc-500 mt-3">
+            {members.length} membre(s)
+          </span>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">

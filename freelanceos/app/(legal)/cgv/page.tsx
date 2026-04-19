@@ -153,7 +153,7 @@ export default function CGVPage() {
             ['Branding factures (logo + couleur)', 'Non', 'Oui'],
             ['Relances automatiques (J+3, J+7, J+15)', 'Non', 'Oui'],
             ['Support', 'Communautaire', 'Prioritaire'],
-            ['Tarif', 'Gratuit', '5,99 EUR / mois (TTC)'],
+            ['Tarif', 'Gratuit', '8,99 EUR / mois (TTC)'],
           ] as const).map(([feature, free, pro]) => (
             <tr key={feature}>
               <td style={{ padding: '8px 12px', borderBottom: '1px solid #E4E6ED', fontWeight: 600, color: '#0F1117' }}>
