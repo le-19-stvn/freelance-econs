@@ -63,13 +63,7 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
     creator: "@eCons",
   },
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/assets/econs-logo-icon.svg", type: "image/svg+xml" },
-    ],
-    apple: "/apple-touch-icon.png",
-  },
+  // icons auto-generated from app/icon.png + app/apple-icon.png (Next.js file convention)
   manifest: "/manifest.json",
 };
 
