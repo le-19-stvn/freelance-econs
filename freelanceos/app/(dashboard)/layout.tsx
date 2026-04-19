@@ -63,7 +63,6 @@ const pageTitles: Record<string, string> = {
   '/invoices': 'Factures',
   '/team': 'Equipe',
   '/profile': 'Mon compte',
-  '/parametres': 'Parametres',
 }
 
 /* ── Header Profile ── */
@@ -205,20 +204,20 @@ function SidebarContent({
         <div className="h-px bg-zinc-100 mx-5" />
         <div className="px-3 py-3">
           <Link
-            href="/parametres"
+            href="/profile"
             onClick={onNavigate}
             className={`
               flex items-center gap-3 px-4 py-2.5
               text-sm font-medium
               transition-all duration-150 rounded-xl
-              ${isActive('/parametres')
+              ${isActive('/profile')
                 ? 'bg-blue-700 text-white'
                 : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
               }
             `}
           >
             <Settings size={14} />
-            <span>Parametres</span>
+            <span>Mon compte</span>
           </Link>
         </div>
       </div>

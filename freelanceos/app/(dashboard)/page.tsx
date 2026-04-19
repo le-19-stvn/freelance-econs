@@ -273,7 +273,7 @@ export default function DashboardPage() {
                 Fixez-vous un cap pour {new Date().getFullYear()} et suivez votre progression chaque jour.
               </p>
               <Link
-                href="/parametres"
+                href="/profile#entreprise"
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-white/90 hover:text-white transition-colors"
               >
                 Definir mon objectif
