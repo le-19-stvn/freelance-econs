@@ -1,13 +1,37 @@
 import React from 'react'
 import path from 'path'
-import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer'
 import type { Invoice, Profile } from '@/types'
 import { calculateHT, calculateTVA, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
 
 /* ──────────────────────────────────────────────────────────
    Premium Light Swiss Design Invoice — B&W Strict Grid
-   Helvetica · No vertical borders · Chrome-level precision
+   Inter (text) · JetBrains Mono (numbers) · No vertical borders
    ────────────────────────────────────────────────────────── */
+
+const FONTS_DIR = path.join(process.cwd(), 'public', 'fonts')
+
+Font.register({
+  family: 'Inter',
+  fonts: [
+    { src: path.join(FONTS_DIR, 'Inter-Regular.ttf'),  fontWeight: 400 },
+    { src: path.join(FONTS_DIR, 'Inter-Medium.ttf'),   fontWeight: 500 },
+    { src: path.join(FONTS_DIR, 'Inter-SemiBold.ttf'), fontWeight: 600 },
+    { src: path.join(FONTS_DIR, 'Inter-Bold.ttf'),     fontWeight: 700 },
+  ],
+})
+
+Font.register({
+  family: 'JetBrains Mono',
+  fonts: [
+    { src: path.join(FONTS_DIR, 'JetBrainsMono-Regular.ttf'),  fontWeight: 400 },
+    { src: path.join(FONTS_DIR, 'JetBrainsMono-Medium.ttf'),   fontWeight: 500 },
+    { src: path.join(FONTS_DIR, 'JetBrainsMono-SemiBold.ttf'), fontWeight: 600 },
+  ],
+})
+
+// Disable hyphenation so invoice numbers and IBANs never break
+Font.registerHyphenationCallback((word) => [word])
 
 const LOGO_PATH = path.join(process.cwd(), 'public', 'assets', 'logo-noir-fr.png')
 
@@ -32,7 +56,8 @@ const styles = StyleSheet.create({
     paddingBottom: 110,
     paddingHorizontal: 52,
     fontSize: 9,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Inter',
+    fontWeight: 400,
     color: c.dark,
     backgroundColor: c.white,
   },
@@ -53,7 +78,8 @@ const styles = StyleSheet.create({
   },
   factureTitle: {
     fontSize: 32,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Inter',
+    fontWeight: 700,
     color: c.black,
     letterSpacing: 8,
     textTransform: 'uppercase',
@@ -67,7 +93,8 @@ const styles = StyleSheet.create({
   },
   senderName: {
     fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Inter',
+    fontWeight: 600,
     color: c.dark,
     marginBottom: 2,
   },
@@ -88,7 +115,8 @@ const styles = StyleSheet.create({
   metaLabel: {
     width: 80,
     fontSize: 7.5,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Inter',
+    fontWeight: 500,
     color: c.lightGrey,
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -96,7 +124,8 @@ const styles = StyleSheet.create({
   metaValue: {
     flex: 1,
     fontSize: 8.5,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'JetBrains Mono',
+    fontWeight: 600,
     color: c.dark,
     textAlign: 'right',
   },
@@ -118,7 +147,8 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 7,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Inter',
+    fontWeight: 600,
     color: c.lightGrey,
     textTransform: 'uppercase',
     letterSpacing: 2.5,
@@ -126,7 +156,8 @@ const styles = StyleSheet.create({
   },
   clientName: {
     fontSize: 12,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Inter',
+    fontWeight: 700,
     color: c.black,
     marginBottom: 3,
   },
@@ -152,7 +183,8 @@ const styles = StyleSheet.create({
   },
   thText: {
     fontSize: 7,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Inter',
+    fontWeight: 600,
     color: c.grey,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
@@ -167,12 +199,20 @@ const styles = StyleSheet.create({
   },
   tdText: {
     fontSize: 9,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Inter',
+    fontWeight: 400,
+    color: c.dark,
+  },
+  tdNum: {
+    fontSize: 9,
+    fontFamily: 'JetBrains Mono',
+    fontWeight: 400,
     color: c.dark,
   },
   tdBold: {
     fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'JetBrains Mono',
+    fontWeight: 600,
     color: c.dark,
   },
 
@@ -204,12 +244,14 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 9,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Inter',
+    fontWeight: 400,
     color: c.grey,
   },
   totalValue: {
     fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'JetBrains Mono',
+    fontWeight: 600,
     color: c.dark,
   },
   ttcRow: {
@@ -224,12 +266,14 @@ const styles = StyleSheet.create({
   },
   ttcLabel: {
     fontSize: 12,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Inter',
+    fontWeight: 700,
     color: c.black,
   },
   ttcValue: {
     fontSize: 12,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'JetBrains Mono',
+    fontWeight: 600,
     color: c.black,
   },
   ttcUnderline: {
@@ -249,7 +293,8 @@ const styles = StyleSheet.create({
   },
   notesTitle: {
     fontSize: 7,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Inter',
+    fontWeight: 600,
     color: c.lightGrey,
     textTransform: 'uppercase',
     letterSpacing: 2,
@@ -273,7 +318,8 @@ const styles = StyleSheet.create({
   },
   paymentTitle: {
     fontSize: 7,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Inter',
+    fontWeight: 700,
     color: c.dark,
     textTransform: 'uppercase',
     letterSpacing: 2.5,
@@ -287,7 +333,8 @@ const styles = StyleSheet.create({
   paymentLabel: {
     width: 110,
     fontSize: 7.5,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Inter',
+    fontWeight: 600,
     color: c.grey,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
@@ -295,14 +342,16 @@ const styles = StyleSheet.create({
   paymentValue: {
     flex: 1,
     fontSize: 8.5,
-    fontFamily: 'Courier',
+    fontFamily: 'JetBrains Mono',
+    fontWeight: 500,
     color: c.dark,
     letterSpacing: 0.5,
   },
   paymentLink: {
     flex: 1,
     fontSize: 8.5,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Inter',
+    fontWeight: 400,
     color: c.dark,
     textDecoration: 'underline',
   },
@@ -312,7 +361,8 @@ const styles = StyleSheet.create({
      ════════════════════════════════════════ */
   legalText: {
     fontSize: 7.5,
-    fontFamily: 'Helvetica-Oblique',
+    fontFamily: 'Inter',
+    fontWeight: 400,
     color: c.grey,
     marginTop: 12,
   },
@@ -339,7 +389,8 @@ const styles = StyleSheet.create({
   },
   footerBrand: {
     fontSize: 7,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Inter',
+    fontWeight: 700,
     color: c.dark,
     letterSpacing: 2,
     textTransform: 'uppercase',
@@ -347,7 +398,8 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 6.5,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Inter',
+    fontWeight: 400,
     color: c.lightGrey,
     lineHeight: 1.55,
   },
@@ -517,12 +569,12 @@ export function InvoicePDFTemplate({ invoice, profile }: InvoicePDFProps) {
                   </Text>
                 </View>
                 <View style={styles.colQty}>
-                  <Text style={[styles.tdText, { textAlign: 'right' }]}>
+                  <Text style={[styles.tdNum, { textAlign: 'right' }]}>
                     {item.quantity}
                   </Text>
                 </View>
                 <View style={styles.colPU}>
-                  <Text style={[styles.tdText, { textAlign: 'right' }]}>
+                  <Text style={[styles.tdNum, { textAlign: 'right' }]}>
                     {fmtEur(item.unit_price, currency)}
                   </Text>
                 </View>
