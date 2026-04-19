@@ -325,11 +325,12 @@ export default function InvoicesPage() {
       {/* ═══ HEADER ═══ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 tracking-tight leading-[1.1]">
-            Factures
+          <h1 className="text-3xl sm:text-5xl font-bold text-zinc-900 tracking-tight leading-[1.05]">
+            Factures <span className="text-zinc-300 font-normal">—</span>{' '}
+            <span className="italic font-bold text-zinc-500">suivi &amp; relances.</span>
           </h1>
-          <p className="text-sm text-zinc-500 mt-1">
-            {invoices.length} facture(s) enregistree(s)
+          <p className="text-sm text-zinc-500 mt-2">
+            Gérez vos factures, devis et relances client.
           </p>
         </div>
         <div className="flex gap-2 sm:gap-3 flex-wrap">

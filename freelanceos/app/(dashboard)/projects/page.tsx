@@ -446,7 +446,7 @@ export default function ProjectsPage() {
         <div>
           <h1 className="text-3xl sm:text-5xl font-bold text-zinc-900 tracking-tight leading-[1.05]">
             Projets <span className="text-zinc-300 font-normal">—</span>{' '}
-            <span className="text-zinc-400 font-medium">vos missions en cours.</span>
+            <span className="italic font-bold text-zinc-500">vos missions en cours.</span>
           </h1>
           <p className="text-sm text-zinc-500 mt-2">
             Suivez l&apos;avancement, les budgets et les échéances.
