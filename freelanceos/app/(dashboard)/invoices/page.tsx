@@ -263,8 +263,9 @@ export default function InvoicesPage() {
       late: 'En retard',
     }
 
+    // Export respects the active tab: "Payees" -> only paid, "Toutes" -> all, etc.
     const header = 'Numero;Client;Date;Montant;Statut'
-    const rows = invoices.map((inv) => {
+    const rows = filteredInvoices.map((inv) => {
       const ht = calculateHT(inv.items ?? [])
       const ttc = calculateTTC(ht, inv.tva_rate)
       const clientName = inv.client?.name ?? ''
@@ -281,7 +282,15 @@ export default function InvoicesPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'factures_export.csv'
+    // Filename reflects the active tab: factures_payees.csv, factures_brouillons.csv, etc.
+    const tabSlug: Record<TabKey, string> = {
+      all: 'toutes',
+      draft: 'brouillons',
+      sent: 'envoyees',
+      paid: 'payees',
+      late: 'en_retard',
+    }
+    a.download = `factures_${tabSlug[activeTab]}.csv`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -326,15 +335,19 @@ export default function InvoicesPage() {
         <div className="flex gap-2 sm:gap-3 flex-wrap">
           <button
             onClick={handleExportCSV}
-            disabled={invoices.length === 0}
+            disabled={filteredInvoices.length === 0}
+            title={`Exporte l'onglet actif (${filteredInvoices.length})`}
             className={`inline-flex items-center gap-2 bg-zinc-100 text-zinc-900 rounded-xl px-5 py-2.5 text-sm font-medium transition-all active:scale-[0.98] ${
-              invoices.length === 0
+              filteredInvoices.length === 0
                 ? 'opacity-40 cursor-not-allowed'
                 : 'hover:bg-zinc-200 cursor-pointer'
             }`}
           >
             <Download size={15} />
             Exporter
+            <span className="font-mono text-xs text-zinc-500 tabular-nums">
+              ({filteredInvoices.length})
+            </span>
           </button>
           <Link
             href="/invoices/new"
