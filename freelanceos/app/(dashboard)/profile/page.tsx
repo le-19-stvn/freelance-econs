@@ -297,6 +297,45 @@ export default function ProfilePage() {
     setBillingLoading(false)
   }
 
+  /* ─────────── Profile completion ─────────── */
+  const completion = useMemo(() => {
+    type Check = { id: string; label: string; filled: boolean; anchor: SectionId }
+    const checks: Check[] = [
+      { id: 'avatar',       label: 'Photo de profil', filled: !!avatarUrl,                       anchor: 'identite'    },
+      { id: 'full_name',    label: 'Nom complet',     filled: !!identite.full_name.trim(),       anchor: 'identite'    },
+      { id: 'company',      label: 'Raison sociale',  filled: !!entreprise.company_name.trim(),  anchor: 'entreprise'  },
+      { id: 'siret',        label: 'SIRET',           filled: !!entreprise.siret.trim(),         anchor: 'entreprise'  },
+      { id: 'address',      label: 'Adresse',         filled: !!entreprise.address.trim(),       anchor: 'entreprise'  },
+      { id: 'goal',         label: 'Objectif annuel', filled: !!entreprise.annual_goal.trim(),   anchor: 'entreprise'  },
+      { id: 'iban',         label: 'IBAN',            filled: !!facturation.iban.trim(),         anchor: 'facturation' },
+      { id: 'payment_link', label: 'Lien de paiement',filled: !!facturation.payment_link.trim(), anchor: 'facturation' },
+    ]
+    if (entreprise.tva_assujetti) {
+      checks.push({ id: 'tva', label: 'Numero TVA', filled: !!entreprise.tva_number.trim(), anchor: 'entreprise' })
+    }
+    if (planType === 'pro') {
+      checks.push({ id: 'logo', label: 'Logo facture', filled: !!logoUrl, anchor: 'branding' })
+    }
+    const filled = checks.filter((c) => c.filled).length
+    const total  = checks.length
+    const pct    = total === 0 ? 100 : Math.round((filled / total) * 100)
+    const missing = checks.filter((c) => !c.filled)
+    return { filled, total, pct, missing }
+  }, [
+    avatarUrl,
+    identite.full_name,
+    entreprise.company_name,
+    entreprise.siret,
+    entreprise.address,
+    entreprise.annual_goal,
+    entreprise.tva_assujetti,
+    entreprise.tva_number,
+    facturation.iban,
+    facturation.payment_link,
+    planType,
+    logoUrl,
+  ])
+
   /* ─────────── Scroll spy for sticky nav ─────────── */
   useEffect(() => {
     if (loading) return
@@ -407,6 +446,12 @@ export default function ProfilePage() {
           </p>
         </div>
       </div>
+
+      {/* ═══ COMPLETION RING ═══ */}
+      <CompletionCard
+        completion={completion}
+        onJump={(s) => scrollTo(s)}
+      />
 
       {/* ═══ LAYOUT : sticky nav + sections ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-10">
@@ -901,6 +946,99 @@ function SectionHeader({
           )}
         </div>
         {subtitle && <p className="text-xs text-zinc-400 mt-1">{subtitle}</p>}
+      </div>
+    </div>
+  )
+}
+
+function CompletionCard({
+  completion,
+  onJump,
+}: {
+  completion: {
+    filled: number
+    total: number
+    pct: number
+    missing: { id: string; label: string; anchor: SectionId }[]
+  }
+  onJump: (s: SectionId) => void
+}) {
+  const { pct, filled, total, missing } = completion
+  const radius = 36
+  const circumference = 2 * Math.PI * radius
+  const dashOffset = circumference * (1 - pct / 100)
+
+  // Color logic: red <40, amber <80, emerald otherwise
+  const ringColor =
+    pct < 40 ? 'stroke-red-500' : pct < 80 ? 'stroke-amber-500' : 'stroke-emerald-500'
+  const pctColor =
+    pct < 40 ? 'text-red-600' : pct < 80 ? 'text-amber-600' : 'text-emerald-600'
+
+  // Hide entirely if 100%
+  if (pct === 100) return null
+
+  return (
+    <div className="mb-7 rounded-2xl bg-white shadow-elevated p-5 md:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+      {/* Ring */}
+      <div className="relative shrink-0">
+        <svg width="88" height="88" viewBox="0 0 88 88" className="-rotate-90">
+          <circle
+            cx="44"
+            cy="44"
+            r={radius}
+            strokeWidth="8"
+            fill="none"
+            className="stroke-zinc-100"
+          />
+          <circle
+            cx="44"
+            cy="44"
+            r={radius}
+            strokeWidth="8"
+            fill="none"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={dashOffset}
+            className={`${ringColor} transition-[stroke-dashoffset] duration-700 ease-out`}
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className={`font-mono font-semibold text-lg tabular-nums ${pctColor}`}>
+            {pct}%
+          </span>
+        </div>
+      </div>
+
+      {/* Text + missing chips */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-zinc-900">
+          Profil {pct === 0 ? 'a completer' : `${pct}% complet`}
+          <span className="font-mono text-xs text-zinc-400 ml-2 tabular-nums">
+            {filled}/{total}
+          </span>
+        </p>
+        <p className="text-xs text-zinc-500 mt-1">
+          Plus votre profil est complet, plus vos factures inspirent confiance.
+        </p>
+
+        {missing.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {missing.slice(0, 4).map((m) => (
+              <button
+                key={m.id}
+                onClick={() => onJump(m.anchor)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-50 hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 text-[11px] font-medium border border-zinc-200 transition-colors cursor-pointer"
+              >
+                + {m.label}
+              </button>
+            ))}
+            {missing.length > 4 && (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-zinc-50 text-zinc-400 text-[11px] font-medium border border-zinc-200">
+                +{missing.length - 4}
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
