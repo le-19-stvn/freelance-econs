@@ -843,7 +843,7 @@ export default function ProfilePage() {
                   </div>
                   <div className="text-right">
                     <div className="text-xl font-mono font-semibold text-zinc-900 leading-none tabular-nums">
-                      8,99 €
+                      5,99 €
                     </div>
                     <div className="text-[11px] text-zinc-500 mt-0.5">par mois</div>
                   </div>
