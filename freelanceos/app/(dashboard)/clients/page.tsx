@@ -1,11 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useClients } from '@/hooks/useClients'
+import { useInvoices } from '@/hooks/useInvoices'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
+import { calculateHT, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
 import type { Client } from '@/types'
-import { Users, Mail, Phone, MapPin, X } from 'lucide-react'
+import { Users, Mail, X } from 'lucide-react'
+
+type ClientStats = {
+  totalPaid: number
+  invoiceCount: number
+  lastInvoiceDate: Date | null
+}
+
+const DORMANT_THRESHOLD_MS = 1000 * 60 * 60 * 24 * 30 * 6 // ~6 months
 
 function getInitials(name: string) {
   return name
@@ -29,7 +39,29 @@ const labelCls = 'block text-xs font-medium text-zinc-500 mb-1.5'
 
 export default function ClientsPage() {
   const { clients, loading, createClient, updateClient, deleteClient } = useClients()
+  const { invoices } = useInvoices()
   const [showModal, setShowModal] = useState(false)
+
+  // Aggregate stats per client
+  const statsByClient = useMemo(() => {
+    const map = new Map<string, ClientStats>()
+    invoices.forEach(inv => {
+      if (!inv.client_id || inv.status === 'draft') return
+      const ht = calculateHT(inv.items ?? [])
+      const ttc = calculateTTC(ht, inv.tva_rate)
+      const prev = map.get(inv.client_id) ?? { totalPaid: 0, invoiceCount: 0, lastInvoiceDate: null }
+      const issueDate = inv.issue_date ? new Date(inv.issue_date) : null
+      map.set(inv.client_id, {
+        totalPaid: prev.totalPaid + (inv.status === 'paid' ? ttc : 0),
+        invoiceCount: prev.invoiceCount + 1,
+        lastInvoiceDate:
+          issueDate && (!prev.lastInvoiceDate || issueDate > prev.lastInvoiceDate)
+            ? issueDate
+            : prev.lastInvoiceDate,
+      })
+    })
+    return map
+  }, [invoices])
   const [editing, setEditing] = useState<Client | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [nameError, setNameError] = useState('')
@@ -226,51 +258,79 @@ export default function ClientsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {clients.map((client, idx) => (
-            <div
-              key={client.id}
-              onClick={() => openEdit(client)}
-              className={`bg-white rounded-2xl shadow-elevated p-5 cursor-pointer hover:shadow-elevated-lg transition-all group animate-fade-in animate-stagger-${Math.min(idx + 1, 8)}`}
-            >
-              <div className="flex items-center gap-4">
-                {/* Avatar */}
-                <div className="w-11 h-11 rounded-xl bg-blue-700 flex items-center justify-center text-white text-sm font-bold shrink-0">
-                  {getInitials(client.name)}
+          {clients.map((client, idx) => {
+            const stats = statsByClient.get(client.id)
+            const hasHistory = !!stats && stats.invoiceCount > 0
+            const isDormant =
+              hasHistory &&
+              stats!.lastInvoiceDate !== null &&
+              Date.now() - stats!.lastInvoiceDate.getTime() > DORMANT_THRESHOLD_MS
+            const lastLabel = stats?.lastInvoiceDate
+              ? stats.lastInvoiceDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })
+              : null
+            return (
+              <div
+                key={client.id}
+                onClick={() => openEdit(client)}
+                className={`bg-white rounded-2xl shadow-elevated p-5 cursor-pointer hover:shadow-elevated-lg transition-all group animate-fade-in animate-stagger-${Math.min(idx + 1, 8)}`}
+              >
+                <div className="flex items-center gap-4">
+                  {/* Avatar */}
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-white text-sm font-bold shrink-0 ${
+                    isDormant ? 'bg-zinc-400' : 'bg-blue-700'
+                  }`}>
+                    {getInitials(client.name)}
+                  </div>
+
+                  {/* Info */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className={`text-sm font-semibold truncate group-hover:text-zinc-500 transition-colors ${
+                        isDormant ? 'text-zinc-500' : 'text-zinc-900'
+                      }`}>
+                        {client.name}
+                      </h3>
+                      {isDormant && (
+                        <span className="inline-flex items-center text-[9px] font-medium uppercase tracking-[0.04em] px-1.5 py-0.5 rounded-full border bg-zinc-100 text-zinc-500 border-zinc-200 shrink-0">
+                          dormant
+                        </span>
+                      )}
+                    </div>
+                    {client.email && (
+                      <div className="flex items-center gap-1.5 text-xs text-zinc-400 mt-0.5 truncate">
+                        <Mail size={11} className="shrink-0" />
+                        <span className="truncate">{client.email}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                {/* Info */}
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-semibold text-zinc-900 truncate group-hover:text-zinc-500 transition-colors">
-                    {client.name}
-                  </h3>
-                  {client.email && (
-                    <div className="flex items-center gap-1.5 text-xs text-zinc-400 mt-0.5 truncate">
-                      <Mail size={11} className="shrink-0" />
-                      <span className="truncate">{client.email}</span>
+                {/* Stats row */}
+                <div className="mt-4 pt-3 border-t border-zinc-100">
+                  {hasHistory ? (
+                    <div className="flex items-end justify-between gap-3">
+                      <div>
+                        <div className="font-mono font-semibold text-zinc-900 text-base tabular-nums leading-none">
+                          {formatCurrency(stats!.totalPaid)}
+                        </div>
+                        <div className="text-[10px] text-zinc-400 uppercase tracking-[0.04em] mt-1">
+                          payé · {stats!.invoiceCount} facture{stats!.invoiceCount > 1 ? 's' : ''}
+                        </div>
+                      </div>
+                      {lastLabel && (
+                        <div className="text-right">
+                          <div className="text-xs font-mono text-zinc-600 tabular-nums">{lastLabel}</div>
+                          <div className="text-[10px] text-zinc-400 uppercase tracking-[0.04em] mt-1">dernière</div>
+                        </div>
+                      )}
                     </div>
+                  ) : (
+                    <p className="text-xs text-zinc-400">Aucune facture émise</p>
                   )}
                 </div>
               </div>
-
-              {/* Extra info row */}
-              {(client.phone || client.address) && (
-                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-zinc-100 text-xs text-zinc-400">
-                  {client.phone && (
-                    <div className="flex items-center gap-1">
-                      <Phone size={11} />
-                      {client.phone}
-                    </div>
-                  )}
-                  {client.address && (
-                    <div className="flex items-center gap-1 truncate">
-                      <MapPin size={11} className="shrink-0" />
-                      <span className="truncate">{client.address}</span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
