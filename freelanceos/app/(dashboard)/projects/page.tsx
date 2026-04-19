@@ -5,13 +5,39 @@ import Link from 'next/link'
 import { createPortal } from 'react-dom'
 import { useProjects } from '@/hooks/useProjects'
 import { useClients } from '@/hooks/useClients'
+import { useInvoices } from '@/hooks/useInvoices'
 import { useToast } from '@/components/ui/Toast'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { formatCurrency } from '@/lib/utils/calculations'
+import { calculateHT, calculateTTC, formatCurrency } from '@/lib/utils/calculations'
 import { createClient } from '@/lib/supabase/client'
 import type { Project, ProjectStatus, Deliverable, UnitType, TeamProject } from '@/types'
-import { FolderOpen, Calendar, DollarSign, Plus, Trash2, X, Users } from 'lucide-react'
+import { FolderOpen, Plus, Trash2, X, Users } from 'lucide-react'
+
+/* ── Helpers ── */
+function getDeadlineChip(deadline: string | null | undefined, status: ProjectStatus) {
+  if (!deadline || status === 'done') return null
+  const d = new Date(deadline)
+  if (Number.isNaN(d.getTime())) return null
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const target = new Date(d)
+  target.setHours(0, 0, 0, 0)
+  const diff = Math.round((target.getTime() - today.getTime()) / 86_400_000)
+  if (diff < 0) {
+    return { text: `Dépassé · ${Math.abs(diff)}j`, cls: 'bg-red-50 text-red-700 border-red-200' }
+  }
+  if (diff === 0) {
+    return { text: "Aujourd'hui", cls: 'bg-red-50 text-red-700 border-red-200' }
+  }
+  if (diff <= 7) {
+    return { text: `J-${diff}`, cls: 'bg-red-50 text-red-700 border-red-200' }
+  }
+  if (diff <= 30) {
+    return { text: `J-${diff}`, cls: 'bg-amber-50 text-amber-700 border-amber-200' }
+  }
+  return { text: `J-${diff}`, cls: 'bg-zinc-100 text-zinc-600 border-zinc-200' }
+}
 
 type TeamProjectWithTeam = TeamProject & { team_name: string }
 
@@ -34,7 +60,20 @@ type ScopeTab = 'all' | 'solo' | 'team'
 export default function ProjectsPage() {
   const { projects, loading, createProject, updateProject, deleteProject } = useProjects()
   const { clients } = useClients()
+  const { invoices } = useInvoices()
   const { showToast } = useToast()
+
+  // Facturé par projet (toutes factures hors brouillon)
+  const billedByProject = useMemo(() => {
+    const map = new Map<string, number>()
+    invoices.forEach(inv => {
+      if (!inv.project_id || inv.status === 'draft') return
+      const ht = calculateHT(inv.items ?? [])
+      const ttc = calculateTTC(ht, inv.tva_rate)
+      map.set(inv.project_id, (map.get(inv.project_id) ?? 0) + ttc)
+    })
+    return map
+  }, [invoices])
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Project | null>(null)
   const [form, setForm] = useState(emptyForm)
@@ -263,6 +302,11 @@ export default function ProjectsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {(activeScope === 'all' || activeScope === 'solo') && projects.map((project, idx) => {
             const delCount = (project.deliverables ?? []).length
+            const deadlineChip = getDeadlineChip(project.deadline, project.status)
+            const billed = billedByProject.get(project.id) ?? 0
+            const hasBudget = project.budget > 0
+            const pct = hasBudget ? Math.min(100, Math.round((billed / project.budget) * 100)) : 0
+            const overBudget = hasBudget && billed > project.budget
             return (
               <div
                 key={`solo-${project.id}`}
@@ -284,22 +328,45 @@ export default function ProjectsPage() {
                   {project.client?.name ?? '---'}
                 </p>
 
-                <div className="flex items-center gap-4 text-xs text-zinc-400 border-t border-zinc-100 pt-3">
-                  {project.deadline && (
-                    <div className="flex items-center gap-1">
-                      <Calendar size={12} />
-                      {new Date(project.deadline).toLocaleDateString('fr-FR')}
-                    </div>
-                  )}
-                  {project.budget > 0 && (
-                    <div className="flex items-center gap-1 font-mono">
-                      <DollarSign size={12} />
-                      {formatCurrency(project.budget)}
-                    </div>
-                  )}
-                  {delCount > 0 && (
-                    <div className="text-blue-700 font-medium">
-                      {delCount} prestation(s)
+                <div className="border-t border-zinc-100 pt-3 space-y-3">
+                  {/* Row 1: deadline chip + prestations count */}
+                  <div className="flex items-center justify-between gap-2 min-h-[22px]">
+                    {deadlineChip ? (
+                      <span className={`inline-flex items-center text-[10px] font-medium uppercase tracking-[0.04em] px-2 py-0.5 rounded-full border ${deadlineChip.cls}`}>
+                        {deadlineChip.text}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-zinc-300 uppercase tracking-[0.04em]">
+                        {project.status === 'done' ? 'Terminé' : 'Sans deadline'}
+                      </span>
+                    )}
+                    {delCount > 0 && (
+                      <span className="text-xs text-zinc-400">
+                        {delCount} prestation{delCount > 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Row 2: budget bar */}
+                  {hasBudget && (
+                    <div>
+                      <div className="flex items-center justify-between text-xs mb-1.5">
+                        <span className="text-zinc-500">Facturé</span>
+                        <span className="font-mono tabular-nums text-zinc-700">
+                          <span className={overBudget ? 'text-red-600 font-semibold' : 'text-zinc-900 font-semibold'}>
+                            {formatCurrency(billed)}
+                          </span>
+                          <span className="text-zinc-400"> / {formatCurrency(project.budget)}</span>
+                        </span>
+                      </div>
+                      <div className="h-1 rounded-full bg-zinc-100 overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-500 ${
+                            overBudget ? 'bg-red-500' : pct >= 100 ? 'bg-emerald-500' : 'bg-blue-700'
+                          }`}
+                          style={{ width: `${Math.max(pct, billed > 0 ? 4 : 0)}%` }}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
