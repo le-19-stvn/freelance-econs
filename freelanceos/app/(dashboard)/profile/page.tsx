@@ -457,7 +457,7 @@ export default function ProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-10">
 
         {/* ─── Sticky nav ─── */}
-        <nav className="lg:sticky lg:top-6 lg:self-start">
+        <nav className="lg:sticky lg:top-20 lg:self-start">
           {/* Mobile : horizontal scroll */}
           <div className="lg:hidden flex gap-2 overflow-x-auto pb-3 -mx-4 px-4">
             {SECTIONS.map((s) => (
